@@ -51,7 +51,8 @@ fn configured_command_preview_does_not_execute_or_write_verification_state() -> 
     let sb = Sandbox::new()?;
     let command = "printf 'must not run' > executed; exit 7";
     configure_command(&sb, command)?;
-    sb.bn(["goal", "--json"])?.expect_success()?;
+    // Any first command writes the daily catch-up marker; let it land before the snapshot.
+    sb.bn(["version", "--json"])?.expect_success()?;
     let notes = files(&sb.path("notes"))?;
     let state = files(&sb.path("state"))?;
 
