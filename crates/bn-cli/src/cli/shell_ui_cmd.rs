@@ -20,13 +20,13 @@ pub(crate) enum CmdShellUi {
     /// Resolves from the given path (tmux passes #{pane_current_path}) or cwd.
     TmuxStatus { path: Option<String> },
     /// Report tmux sessions that name no repository on this machine, and with `--force` kill them.
-    /// bn opens a session per repo and a window per worktree; anything else is left over from an
+    /// workspan opens a session per repo and a window per worktree; anything else is left over from an
     /// older layout or made by hand. Dry run by default. Never automated — killing a session is
     /// reclamation, which stays in your hands (see the note in config/crons.toml).
     ///
     /// Spared whatever they are called: `_bn_edit` and other `_`-prefixed storage sessions,
     /// `host:<alias>` remote attachments, anything with a client attached, a pane running something
-    /// other than a shell, or a live bn agent.
+    /// other than a shell, or a live workspan agent.
     TmuxPrune {
         /// Actually kill them (default: report only).
         #[arg(long)]
@@ -74,7 +74,7 @@ pub(crate) enum CmdShellUi {
     },
     /// Orchestration roll-up popup (bound to prefix S; replaces workflow/bin/tmux-cockpit.sh):
     /// in-flight windows across every session (agent state / silence-watch), fleet health
-    /// (`agent supervise`), and the bn cross-branch summary. Waits for Enter before closing.
+    /// (`agent supervise`), and the workspan cross-branch summary. Waits for Enter before closing.
     TmuxCockpit,
     /// Curated keybinding cheat-sheet popup (bound to prefix ?; replaces
     /// workflow/bin/tmux-help.sh). The workflow bindings worth remembering, grouped. Waits for
@@ -88,17 +88,17 @@ pub(crate) enum CmdShellUi {
         since: Option<String>,
     },
 
-    /// Icon-vocabulary cheatsheet: every Nerd Font glyph bn uses (name, codepoint, meaning)
+    /// Icon-vocabulary cheatsheet: every Nerd Font glyph workspan uses (name, codepoint, meaning)
     /// plus a mock of the two tmux status rows. If a row shows tofu/blanks, your font is
     /// missing the glyph. The mirrors listed in bn-core/src/glyph.rs must match this set.
     Glyphs,
     /// Push the current task's counts into per-window tmux options (@bn_todos, @bn_blockers)
-    /// so the window list can decorate cheaply. Decorates the window bn ran in;
-    /// `bn tmux-reconcile` sweeps them all.
+    /// so the window list can decorate cheaply. Decorates the window workspan ran in;
+    /// `workspan tmux-reconcile` sweeps them all.
     TmuxSync,
     /// Restore the window -> worktree link (@bn_repo/@bn_branch) across every window and refresh
     /// their task badges: window options do not survive a tmux-resurrect restore, and badges are
-    /// otherwise written only to the window bn ran in. Stamps only where a window's name agrees
+    /// otherwise written only to the window workspan ran in. Stamps only where a window's name agrees
     /// with the branch its pane is on; drift is reported, never guessed. Idempotent.
     TmuxReconcile {
         /// Print the decisions and pending writes without touching tmux.
@@ -118,7 +118,7 @@ pub(crate) enum CmdShellUi {
     /// Cut a GitHub release end-to-end (#627): bump the semver from the last tag (default patch,
     /// `--bump major|minor|patch`), create + push the tag, and `gh release create` with notes
     /// rolled up from the PRs merged since the last tag. Gated + idempotent — refuses on a dirty or
-    /// behind-`origin/main` tree, and never releases the same commit twice. Runs the local `bn
+    /// behind-`origin/main` tree, and never releases the same commit twice. Runs the local `workspan
     /// verify` gate first to confirm `main` is green (`--skip-verify` trusts the caller); `--dry-run`
     /// prints the tag + notes without touching git/GitHub.
     Release {
@@ -128,7 +128,7 @@ pub(crate) enum CmdShellUi {
         /// Print the tag + rolled-up notes without creating/pushing the tag or the release.
         #[arg(long)]
         dry_run: bool,
-        /// Skip the local `bn verify` gate (trust the caller that `main` is green).
+        /// Skip the local `workspan verify` gate (trust the caller that `main` is green).
         #[arg(long)]
         skip_verify: bool,
     },

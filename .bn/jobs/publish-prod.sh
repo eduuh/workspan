@@ -1,7 +1,7 @@
 #!/bin/sh
-# bn — build THIS checkout into the prod install dir, then link it in as the live bn.
+# workspan — build THIS checkout into the prod install dir, then link it in as the live workspan.
 #
-# The command surface is `bn build publish-prod`. The heavy lifting stays in ./build.sh and
+# The command surface is `workspan build publish-prod`. The heavy lifting stays in ./build.sh and
 # install.sh; this job just picks the prod destination and the shared Cargo target dir.
 set -eu
 

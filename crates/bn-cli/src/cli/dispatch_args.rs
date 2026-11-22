@@ -3,7 +3,7 @@
 //! bn-core is clap-free, so anything that has to be a `clap::ValueEnum` lives on this side of
 //! the boundary.
 
-/// What `bn dispatch` does when every warm pool slot is already leased.
+/// What `workspan dispatch` does when every warm pool slot is already leased.
 ///
 /// The old behaviour was `Cold`, unconditionally and silently: a full pool meant a brand-new
 /// worktree directory, every time, forever, with nothing to reclaim them. Queueing is the honest

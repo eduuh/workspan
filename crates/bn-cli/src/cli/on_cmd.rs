@@ -24,7 +24,7 @@ pub(crate) enum OnCmd {
     },
     /// Remove a rule by id.
     Rm { id: String },
-    /// Stop a rule firing without deleting it (`bn on enable` puts it back).
+    /// Stop a rule firing without deleting it (`workspan on enable` puts it back).
     Disable { id: String },
     /// Re-enable a disabled rule.
     Enable { id: String },

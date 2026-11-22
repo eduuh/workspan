@@ -3,12 +3,12 @@
 use super::IssueKindArg;
 use clap::Subcommand;
 
-/// `bn issue` subcommands (#345 proposal 4 — auto-file deduped, labeled bn issues).
+/// `workspan issue` subcommands (#345 proposal 4 — auto-file deduped, labeled workspan issues).
 #[derive(Subcommand, Debug)]
 pub(crate) enum IssueCmd {
     /// File a labeled GitHub issue for an identified problem, deduped against the repo's OPEN
     /// issues by title so re-running never opens a duplicate. Prints the issue URL (new or the
-    /// matched existing one). E.g. `bn issue file "watch reactor wedges on a stale lock" \
+    /// matched existing one). E.g. `workspan issue file "watch reactor wedges on a stale lock" \
     /// --kind bug --body "seen on dispatch-345 …"`.
     File {
         /// The issue title (one-line problem statement). The dedup key.
@@ -33,7 +33,7 @@ pub(crate) enum IssueCmd {
     },
     /// Split one oversized GitHub issue into independently shippable, conflict-scoped child
     /// issues, then start an agent on each child (never the parent). An agent first triages the
-    /// bundle into repeated `--part "TITLE::GLOB[,GLOB]"` specifications; bn rejects overlapping
+    /// bundle into repeated `--part "TITLE::GLOB[,GLOB]"` specifications; workspan rejects overlapping
     /// touch scopes and links every child to the parent.
     Decompose {
         /// Parent issue number or URL to split.

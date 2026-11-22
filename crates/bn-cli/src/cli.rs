@@ -3,7 +3,7 @@
 //! `Cli` parser struct and the dispatch `match`. Glob-re-exported by `main.rs`.
 use crate::*;
 
-/// `bn dispatch`'s value enums: under the never-grow ratchet, a command's args move out first.
+/// `workspan dispatch`'s value enums: under the never-grow ratchet, a command's args move out first.
 mod dispatch_args;
 pub(crate) use dispatch_args::OnPoolFull;
 
@@ -53,9 +53,9 @@ pub(crate) use issue_cmd::IssueCmd;
 // append a new command to the LAST group (or start a new one) rather than inserting mid-list.
 #[derive(Subcommand, Debug)]
 pub(crate) enum CmdIntake {
-    /// Zero-friction global capture: bn q "<thought>" banks it in the inbox with a timestamp
-    /// and repo/branch hint — no questions, no git ops. Bare `bn q` lists the inbox; routing
-    /// happens later via `bn q drain` (also run by daily rollover and shown at focus end).
+    /// Zero-friction global capture: workspan q "<thought>" banks it in the inbox with a timestamp
+    /// and repo/branch hint — no questions, no git ops. Bare `workspan q` lists the inbox; routing
+    /// happens later via `workspan q drain` (also run by daily rollover and shown at focus end).
     #[command(visible_alias = "quick", args_conflicts_with_subcommands = true)]
     Q {
         #[command(subcommand)]
@@ -65,7 +65,7 @@ pub(crate) enum CmdIntake {
     },
     /// Dispatch an item into an isolated worktree — from anywhere: resolve a todo id / issue-PR URL
     /// / free text, create a worktree off the base branch, prepare task and execution context,
-    /// and open a window on it in the repo's tmux session. The execution end of `bn next`
+    /// and open a window on it in the repo's tmux session. The execution end of `workspan next`
     /// — what to do → doing it. Target another repo with `--repo <name>` (works outside any repo).
     Dispatch {
         /// A todo id (e.g. t3), an issue/PR URL, or free text describing the work.
@@ -98,12 +98,12 @@ pub(crate) enum CmdIntake {
         /// record, never a UI guess). For the monitor role; a normal ship agent is a worker.
         #[arg(long)]
         orchestrator: bool,
-        /// Workflow skill to seed the agent with (see `bn skills`): its rendered body becomes the
-        /// agent's process, closing with a `bn reflect "skill:<name> — …"` line so evolve-skills
+        /// Workflow skill to seed the agent with (see `workspan skills`): its rendered body becomes the
+        /// agent's process, closing with a `workspan reflect "skill:<name> — …"` line so evolve-skills
         /// learns from the run. Defaults to `ship-solo`; pick `debug` for a repro-first bugfix.
         #[arg(long)]
         skill: Option<String>,
-        /// Gate "done" on verification: instruct the agent to run `bn verify` (the repo's
+        /// Gate "done" on verification: instruct the agent to run `workspan verify` (the repo's
         /// build/test/lint gate) and only report done once it passes.
         #[arg(long)]
         verify: bool,
@@ -113,7 +113,7 @@ pub(crate) enum CmdIntake {
         #[arg(long)]
         yolo: bool,
         /// Plan-review gate: independent reviewers vote on the proposed plan. Low-risk majority
-        /// auto-advances; sensitive or no-consensus plans wait for `bn review approve <id>`.
+        /// auto-advances; sensitive or no-consensus plans wait for `workspan review approve <id>`.
         /// Opt in per-dispatch; `[dispatch].plan_review = true` makes it the default. `--yolo`
         /// also uses this gate so trusted autonomy cannot bypass sensitive-plan review.
         #[arg(long)]
@@ -128,15 +128,15 @@ pub(crate) enum CmdIntake {
         no_plan_review: bool,
         /// The pipeline stage this dispatch runs as (pickup|investigate|plan|consensus|execute|
         /// validate|critique|ship|learn). Selects `[pipeline.stages.<stage>]` — its model, effort
-        /// and harness. Omit and bn infers it from `--skill`, which can only ever mean
+        /// and harness. Omit and workspan infers it from `--skill`, which can only ever mean
         /// investigate, plan or execute; pass it explicitly so the six other stages run under their
         /// own profile instead of borrowing execute's.
         #[arg(long)]
         stage: Option<bn_core::pipeline::stage::Stage>,
-        /// Attach specific references (coding standards, see `bn ref`) to the agent's seed, so it
+        /// Attach specific references (coding standards, see `workspan ref`) to the agent's seed, so it
         /// writes code to your standards — repeatable (`--ref javascript --ref commit-style`) or
         /// comma-separated. Omit to attach ALL references by default; pass `--ref -` (or an empty
-        /// value) to attach none. Each name is listed with a hint to run `bn ref <name>` for the
+        /// value) to attach none. Each name is listed with a hint to run `workspan ref <name>` for the
         /// full text, keeping the seed compact.
         #[arg(long = "ref", value_name = "NAME")]
         refs: Vec<String>,
@@ -144,18 +144,18 @@ pub(crate) enum CmdIntake {
         /// default `--agent` resumes a worktree's prior session (a human returning to it continues
         /// where they left off); on a recovery re-dispatch that prior session is idle/dead, so
         /// resuming it just restores an empty prompt (#383). `--fresh` re-seeds a new session that
-        /// actually resumes the work — used by `bn orchestrate`'s hard-restart.
+        /// actually resumes the work — used by `workspan orchestrate`'s hard-restart.
         #[arg(long)]
         fresh: bool,
         /// Keep the repo's *project* MCP servers enabled for a dispatched Copilot agent. By
         /// default a dispatched Copilot boots with project MCP servers suppressed (each passed to
         /// `copilot --disable-mcp-server`), so a failing or auth-requiring repo MCP can't wedge the
-        /// agent on "Loading: … MCP servers" before it reaches its prompt (#384) — bn's own server
+        /// agent on "Loading: … MCP servers" before it reaches its prompt (#384) — workspan's own server
         /// is always kept. Pass this when the repo's MCPs are known-good and the task needs them.
         /// No effect on `--agent claude` (Claude has native strict-MCP handling).
         #[arg(long)]
         keep_project_mcps: bool,
-        /// Opt out of pooling: cut a fresh cold worktree instead of leasing a warm `bn wt pool`
+        /// Opt out of pooling: cut a fresh cold worktree instead of leasing a warm `workspan wt pool`
         /// slot. Leasing a reap-safe pool slot is the default dispatch path — every repo with a
         /// bn-managed bare clone gets a warm slot (deps/build cache intact), sized from
         /// the slots that exist, floored at four and grown on demand. Pass `--no-pool` for
@@ -188,7 +188,7 @@ pub(crate) enum CmdIntake {
         pool: bool,
         /// Run the agent in THIS pane instead of a background tmux lane (#claude-wrap): the harness
         /// takes over the current terminal, and the moment it exits any leased `--pool` slot is
-        /// handed straight back. Powers the `claude`/`copilot` shell wrappers (`bn shell-init`) —
+        /// handed straight back. Powers the `claude`/`copilot` shell wrappers (`workspan shell-init`) —
         /// an interactive, throwaway investigation. Requires `--agent`; local-only (no tmux window,
         /// agent-lease, or controller event), so it conflicts with `--no-tmux`/`--orchestrator`.
         #[arg(
@@ -207,19 +207,19 @@ pub(crate) enum CmdIntake {
     },
     /// Run this worktree's verification gate (all available `build`, `test`, and `lint` jobs) and record the
     /// PASS/FAIL as execution progress. Exits non-zero on failure, so an agent can gate
-    /// "done" on it (see `bn dispatch --verify`). Runs in the current worktree, like `bn build`.
+    /// "done" on it (see `workspan dispatch --verify`). Runs in the current worktree, like `workspan build`.
     Verify(VerifyCommandArgs),
     /// The no-mistake pre-land gate: rebase this worktree's HEAD onto a freshly-fetched
     /// `origin/main` in a *disposable* worktree, then run the repo's aggregate verify gate on THAT
     /// rebased head. Exits non-zero unless green, so an agent self-gates before
-    /// reporting done and `bn wt merge` refuses to land a red or stale-base PR. Kills the "green on
+    /// reporting done and `workspan wt merge` refuses to land a red or stale-base PR. Kills the "green on
     /// a stale base" class: the suite runs against current main + your changes, in an isolated
     /// checkout — your own worktree is never touched.
     Gate(VerifyArgs),
 
     /// Pre-grant an agent harness's folder-trust for a path (default: cwd), so a dispatched agent
     /// boots without the interactive "trust this folder?" prompt. Your opt-in for worktrees you
-    /// made from your own repos — it rides on `bn dispatch --yolo`. Edits ~/.claude.json /
+    /// made from your own repos — it rides on `workspan dispatch --yolo`. Edits ~/.claude.json /
     /// ~/.copilot/config.json.
     TrustFolder {
         /// Folder to trust (default: current directory).
@@ -245,7 +245,7 @@ pub(crate) enum CmdReview {
     },
     /// Adversarial diff-only review gate (#607): before a dispatched ship PR may land, ≥N
     /// independent reviewers inspect the DIFF ONLY (no plan/reasoning) and must approve the current
-    /// head with every blocking finding resolved. `bn review-gate record` is the reviewer's write
+    /// head with every blocking finding resolved. `workspan review-gate record` is the reviewer's write
     /// path; `resolve`/`waive` clear findings; `status`/`list` read; `prompt` emits the diff-only
     /// reviewer seed. Enforced on the ship-lane land path when `[review].diff_gate` is on.
     #[command(name = "review-gate")]
@@ -254,17 +254,17 @@ pub(crate) enum CmdReview {
         action: ReviewGateCmd,
     },
 
-    /// Record something learned today (codebase, tooling): bn learned <text...>
+    /// Record something learned today (codebase, tooling): workspan learned <text...>
     Learned { text: Vec<String> },
-    /// Record a reflection — one thing to improve next time: bn reflect <text...>
+    /// Record a reflection — one thing to improve next time: workspan reflect <text...>
     Reflect { text: Vec<String> },
-    /// Inspect what the dispatched fleet has learned (#322): aggregate every `bn learned` /
-    /// `bn reflect` entry across the daily history — each stamped with the repo/branch/issue/
+    /// Inspect what the dispatched fleet has learned (#322): aggregate every `workspan learned` /
+    /// `workspan reflect` entry across the daily history — each stamped with the repo/branch/issue/
     /// harness it came from — grouped by theme (skill > repo > general), with agent-vs-mine and
-    /// review state. Because learnings live on the date axis they survive `bn wt cleanup`, so an
+    /// review state. Because learnings live on the date axis they survive `workspan wt cleanup`, so an
     /// archived note's insights stay reviewable. Filters narrow the window/provenance;
-    /// `bn learnings promote|dismiss <key|substring>` is the human-in-the-loop keep/drop. Bare
-    /// `bn learnings` shows the anchored weekly window; read-only and network-free.
+    /// `workspan learnings promote|dismiss <key|substring>` is the human-in-the-loop keep/drop. Bare
+    /// `workspan learnings` shows the anchored weekly window; read-only and network-free.
     Learnings {
         #[command(subcommand)]
         action: Option<LearningsCmd>,
@@ -274,25 +274,25 @@ pub(crate) enum CmdReview {
         /// Widen to the entire daily history (overrides the window).
         #[arg(long)]
         all: bool,
-        /// Only learnings recorded in this repo (basename, e.g. `bn`).
+        /// Only learnings recorded in this repo (basename, e.g. `workspan`).
         #[arg(long)]
         repo: Option<String>,
         /// Only skill reflections whose `skill:<name>` tag contains this substring.
         #[arg(long)]
         skill: Option<String>,
-        /// Only entries I recorded at a plain shell (no harness driving bn).
+        /// Only entries I recorded at a plain shell (no harness driving workspan).
         #[arg(long, conflicts_with = "agent")]
         mine: bool,
-        /// Only entries a dispatched agent recorded (a harness was driving bn).
+        /// Only entries a dispatched agent recorded (a harness was driving workspan).
         #[arg(long)]
         agent: bool,
     },
 
     /// Plan-review gate (#349): the human-in-the-loop checkpoint on a dispatched agent's plan. A
-    /// `bn dispatch --plan` agent proposes a plan, registers it here, and pauses before implementing
-    /// / opening a PR. Bare `bn review` lists; `approve` unblocks
+    /// `workspan dispatch --plan` agent proposes a plan, registers it here, and pauses before implementing
+    /// / opening a PR. Bare `workspan review` lists; `approve` unblocks
     /// the agent, `request-changes --notes` loops it back, `reject` stops it. `submit`/`status` are
-    /// the agent's write/poll side of the gate. Distinct from `bn reviews` (the PR review queue).
+    /// the agent's write/poll side of the gate. Distinct from `workspan reviews` (the PR review queue).
     Review {
         #[command(subcommand)]
         action: Option<ReviewCmd>,
@@ -318,7 +318,7 @@ pub(crate) enum CmdPlanning {
         dir: bool,
     },
 
-    /// The task list — one configured file or Forge provider for every repo. Bare `bn task`
+    /// The task list — one configured file or Forge provider for every repo. Bare `workspan task`
     /// shows what's actionable today: work dated today or earlier, plus
     /// anything unscheduled. `--all` is the whole backlog; `--repo .` (or a name) narrows to one
     /// repo. No git repo needed — it works from anywhere.
@@ -334,8 +334,8 @@ pub(crate) enum CmdPlanning {
         repo: Option<String>,
     },
 
-    /// Daily goals — a day-scoped, cross-branch todo list. Bare `bn daily` shows today
-    /// (carrying forward yesterday's unfinished goals); `bn daily add/done/edit` manage it.
+    /// Daily goals — a day-scoped, cross-branch todo list. Bare `workspan daily` shows today
+    /// (carrying forward yesterday's unfinished goals); `workspan daily add/done/edit` manage it.
     #[command(visible_alias = "day")]
     Daily {
         #[command(subcommand)]
@@ -372,7 +372,7 @@ pub(crate) enum CmdInsights {
         fetch: bool,
     },
     /// Informational-cron inbox: items surfaced by feed jobs (PRs to review, today's meetings,
-    /// …), grouped by source. Bare `bn feed` renders; `bn feed ingest <source>` is the write path
+    /// …), grouped by source. Bare `workspan feed` renders; `workspan feed ingest <source>` is the write path
     /// a feed cron's script pipes JSON into.
     Feed {
         #[command(subcommand)]
@@ -390,8 +390,8 @@ pub(crate) enum CmdInsights {
         #[arg(long)]
         trend: bool,
     },
-    /// Append a productivity event to the synced metrics log: bn event <kind> [--field k=v]...
-    /// The write path for job scripts (e.g. pr-observe → `bn event pr_merged --field number=52`).
+    /// Append a productivity event to the synced metrics log: workspan event <kind> [--field k=v]...
+    /// The write path for job scripts (e.g. pr-observe → `workspan event pr_merged --field number=52`).
     Event {
         /// Event kind (e.g. pr_opened, pr_merged, pr_closed, deploy, pr_review).
         kind: String,
@@ -447,16 +447,16 @@ pub(crate) enum CmdInsights {
         #[arg(long)]
         no_momentum: bool,
         /// Size the plan to the gap until your next meeting (#247): show only daily goals whose
-        /// expected duration (`est` × your `bn calib` multiplier) fits the time left, minus a
+        /// expected duration (`est` × your `workspan calib` multiplier) fits the time left, minus a
         /// short wrap-up buffer. Un-estimated goals move to an "unsized" tail rather than hide;
         /// broken/waiting bands are never filtered. A no-op when no meeting is upcoming.
         #[arg(long)]
         fit: bool,
     },
     /// The gap until your next meeting, read from the offline meetings cache the `meetings` cron
-    /// maintains (#247) — no live calendar call. `bn gap` prints `38m until standup (10:30)`, or
+    /// maintains (#247) — no live calendar call. `workspan gap` prints `38m until standup (10:30)`, or
     /// `no upcoming events` when there's no fresh upcoming event (a stale cache reads as none).
-    /// `bn gap ingest` is the cron's write path: JSON/JSONL of `{start,title,url}` on stdin.
+    /// `workspan gap ingest` is the cron's write path: JSON/JSONL of `{start,title,url}` on stdin.
     Gap {
         #[command(subcommand)]
         action: Option<GapCmd>,
@@ -464,8 +464,8 @@ pub(crate) enum CmdInsights {
     /// The cron findings store (#576): durable, queryable records of what crons *gather*, not just
     /// transient log output. Where the feed mirrors current state (a run replaces its source), the
     /// findings store keeps history — every run appends `{source, run_id, gathered_at, items,
-    /// raw?}`. `bn findings record <source>` is the write path (a script cron pipes JSON in, an
-    /// agent calls the same path); `bn findings query`/`bn findings sources` read it back.
+    /// raw?}`. `workspan findings record <source>` is the write path (a script cron pipes JSON in, an
+    /// agent calls the same path); `workspan findings query`/`workspan findings sources` read it back.
     Findings {
         #[command(subcommand)]
         action: FindingsCmd,
@@ -492,7 +492,7 @@ pub(crate) use worker_cmd::WorkerCmd;
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum CmdGitPr {
-    /// Link/open the PR for the current branch. `bn pr <url>` records it; bare `bn pr`
+    /// Link/open the PR for the current branch. `workspan pr <url>` records it; bare `workspan pr`
     /// resolves the stored PR (or `gh pr view`) and opens it (--copy / --show to copy/print).
     Pr {
         /// PR URL to record. Omit to read/open the stored (or gh-discovered) PR.
@@ -504,8 +504,8 @@ pub(crate) enum CmdGitPr {
         #[arg(long, short = 's')]
         show: bool,
     },
-    /// Link the work item for the current branch. `bn link <id>` records it; bare
-    /// `bn link` prints the stored work-item id.
+    /// Link the work item for the current branch. `workspan link <id>` records it; bare
+    /// `workspan link` prints the stored work-item id.
     #[command(visible_alias = "wi")]
     Link {
         /// Work-item id to record. Omit to read the stored work item.
@@ -550,19 +550,19 @@ pub(crate) enum CmdGitPr {
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum CmdMisc {
-    /// Print a shell completion script: bn completion <bash|zsh|fish|elvish|powershell>.
-    /// Source it from your shell rc, e.g. `source <(bn completion zsh)`.
+    /// Print a shell completion script: workspan completion <bash|zsh|fish|elvish|powershell>.
+    /// Source it from your shell rc, e.g. `source <(workspan completion zsh)`.
     Completion {
         /// Shell to generate completions for.
         shell: Shell,
     },
     /// Print the shell wrappers that make agent placement enforceable: inside a git repo, `claude`
-    /// and `copilot` route through `bn agent launch`, which keeps the main worktree agent-free
+    /// and `copilot` route through `workspan agent launch`, which keeps the main worktree agent-free
     /// (asking what the work is and dispatching into a warm pool slot instead) and refuses a second
     /// agent in a worktree that already has one. Outside a repo they refuse to start, so every
     /// session — including planning — is backed by a repository branch. `agency claude` /
     /// `agency copilot` remain explicit aliases. Source from your shell rc, e.g.
-    /// `source <(bn shell-init zsh)` (bash|zsh).
+    /// `source <(workspan shell-init zsh)` (bash|zsh).
     ShellInit {
         /// Shell to emit wrappers for (bash or zsh).
         shell: Shell,
@@ -589,7 +589,7 @@ pub(crate) enum CmdMisc {
     /// Unified token usage + **$ cost** across all agent work (#381), categorized by work-class
     /// (Orchestration / Coding / Scheduled / …). Two clearly-labeled units: **AIC** (the real
     /// Copilot bill) and **$ (API-equiv)** (a cache-aware price-table benchmark). Defaults to a
-    /// unified month-to-date report: `bn cost [--by category|repo|model|harness|machine|day]
+    /// unified month-to-date report: `workspan cost [--by category|repo|model|harness|machine|day]
     /// [--window <days>] [--live] [--json]`.
     Cost {
         /// Breakdown dimension: category, repo, model, harness, machine, day (omitted = unified).
@@ -602,16 +602,16 @@ pub(crate) enum CmdMisc {
         #[arg(long)]
         live: bool,
     },
-    /// Auto-file a bn issue on an identified problem (#345 proposal 4): the orchestrator or an
+    /// Auto-file a workspan issue on an identified problem (#345 proposal 4): the orchestrator or an
     /// agent captures a bug / friction / blocker as a labeled, **deduped** GitHub issue instead of
-    /// relying on a human to file it. `bn issue file "<title>"` checks the repo's OPEN issues first
+    /// relying on a human to file it. `workspan issue file "<title>"` checks the repo's OPEN issues first
     /// and reports the existing one when a title already matches — so re-running is idempotent.
     Issue {
         #[command(subcommand)]
         action: IssueCmd,
     },
     /// A curated index of important, repeatedly useful links.
-    /// Bare `bn links` opens the fzf picker (this repo's links first, then most used); `bn links
+    /// Bare `workspan links` opens the fzf picker (this repo's links first, then most used); `workspan links
     /// <query>` opens the one match. `add` requires a category; `group` opens a category-scoped
     /// multi-select picker; `copy` puts selections on the clipboard as Teams-ready hyperlinks.
     /// `check` reports dead and merged links, and `prune` deletes expired ones. Nothing is captured
@@ -626,9 +626,9 @@ pub(crate) enum CmdMisc {
     /// seams are, which failures mislead), stored beside its branch notes as
     /// `<notes>/<machine>/<repo>/reference/<name>.md` and outliving any one branch.
     ///
-    /// Bare `bn ref` lists (name + one-line summary); `bn ref <name>` prints one (fuzzy/prefix
-    /// match); `bn ref edit <name>` opens it in $EDITOR (creating from a template if missing);
-    /// `bn ref add <name>` scaffolds a new one; `bn ref append <name> <text>` records one fact.
+    /// Bare `workspan ref` lists (name + one-line summary); `workspan ref <name>` prints one (fuzzy/prefix
+    /// match); `workspan ref edit <name>` opens it in $EDITOR (creating from a template if missing);
+    /// `workspan ref add <name>` scaffolds a new one; `workspan ref append <name> <text>` records one fact.
     /// Repo notes may nest (`architecture/runtime-concepts`) and keep an `images/` sibling.
     #[command(args_conflicts_with_subcommands = true)]
     Ref {
@@ -640,11 +640,11 @@ pub(crate) enum CmdMisc {
         scope: RefScopeArg,
     },
     /// Fresh-context CRITIC stage (#649): dispatch a leak-proof critic over a PR's diff, then
-    /// drive the execute↔critique loop. `bn critic dispatch --branch <b> --pr <url>` cuts a
+    /// drive the execute↔critique loop. `workspan critic dispatch --branch <b> --pr <url>` cuts a
     /// **fresh worktree off the PR head** with plan-free execution context and launches a `--fresh` critic
     /// lane seeded with ONLY the diff + done-when criteria (never the approved plan) — so the
     /// critic starts with zero prior turns and can't rationalize the code. The critic reports via
-    /// `bn critic verdict --pass` / `--fail --findings-file <p>`: PASS advances to shippable; FAIL
+    /// `workspan critic verdict --pass` / `--fail --findings-file <p>`: PASS advances to shippable; FAIL
     /// raises a `task_type=critique` item and re-enters execution, bounded by `--max-iterations`
     /// (default 3), then escalates to a `task_type=planning` human-steer item on exhaustion.
     Critic {
@@ -652,9 +652,9 @@ pub(crate) enum CmdMisc {
         action: CriticCmd,
     },
     /// A durable, worker-local record of dispatch attempts, queryable over SSH (#719, epic #707
-    /// M1). `bn worker status [--json]` reports this node's capabilities/labels, a capacity
+    /// M1). `workspan worker status [--json]` reports this node's capabilities/labels, a capacity
     /// snapshot (RAM/swap/load/disk), its READY/PRESSURE admission verdict, and the SQLite attempt
-    /// registry (4-state QUEUED→RUNNING→SUCCEEDED|FAILED; LOST derived at reconcile). `bn worker
+    /// registry (4-state QUEUED→RUNNING→SUCCEEDED|FAILED; LOST derived at reconcile). `workspan worker
     /// finish <request_id>` closes a running attempt — the tail of the fire-and-forget spawn line.
     Worker {
         #[command(subcommand)]
@@ -663,12 +663,12 @@ pub(crate) enum CmdMisc {
     /// Work Forge activities assigned to an agent member. On automatically when ~/.claude.json has
     /// a Forge MCP server with an agent `fam_` key (`[forge_agent] enabled = false` turns it off);
     /// the `forge-agent` job runs a tick every five minutes: heartbeat or report held runs, then
-    /// claim and dispatch at most one task. `bn forge-agent status|run-once|release <id>`.
+    /// claim and dispatch at most one task. `workspan forge-agent status|run-once|release <id>`.
     ForgeAgent {
         #[command(subcommand)]
         action: crate::cmd::forge_agent::ForgeAgentCmd,
     },
-    /// A task's place in the pipeline. **Bare** `bn pipeline` infers it read-only from task and execution state,
+    /// A task's place in the pipeline. **Bare** `workspan pipeline` infers it read-only from task and execution state,
     /// plan reviews, attention, verify/PR markers, and live agents (#657); `--all` lists the
     /// fleet, `--repo`/`--branch` targets another worktree. **Subcommands** drive the explicit
     /// per-worktree stage machine (PIPE-A, EPIC #746) through the observable stages
@@ -705,13 +705,13 @@ pub(crate) enum CmdMisc {
         action: Option<ReposCmd>,
     },
     /// The `--json` contract: the envelope's fields, its version, and what each script-facing
-    /// command puts in `data`. `bn schema <command>` prints one command's shape.
+    /// command puts in `data`. `workspan schema <command>` prints one command's shape.
     Schema {
-        /// A command tag from `bn schema` (e.g. `repos`, `wt-list`).
+        /// A command tag from `workspan schema` (e.g. `repos`, `wt-list`).
         command: Option<String>,
     },
-    /// React to the event log with your own commands: `bn on add pr_merged -- <cmd>`. Bare
-    /// `bn on` lists the rules; `bn on tick` is the pass the `reactor` cron runs.
+    /// React to the event log with your own commands: `workspan on add pr_merged -- <cmd>`. Bare
+    /// `workspan on` lists the rules; `workspan on tick` is the pass the `reactor` cron runs.
     #[command(args_conflicts_with_subcommands = true)]
     On {
         #[command(subcommand)]
@@ -750,7 +750,7 @@ pub(crate) enum Command {
 #[derive(Subcommand, Debug)]
 pub(crate) enum DailyCmd {
     /// Add a goal/activity to today (or schedule it for a future day with --on/--in):
-    /// bn daily add <text...> [--task <id>] [--link <url>] [--on <date> | --in <days>].
+    /// workspan daily add <text...> [--task <id>] [--link <url>] [--on <date> | --in <days>].
     Add {
         #[arg(required = true)]
         text: Vec<String>,
@@ -766,15 +766,15 @@ pub(crate) enum DailyCmd {
         /// Schedule N days from today instead of today.
         #[arg(long = "in")]
         in_days: Option<i64>,
-        /// Attach a time estimate (`90m`, `2h`, `1h30m`) for calibration (`bn calib`). The actual
+        /// Attach a time estimate (`90m`, `2h`, `1h30m`) for calibration (`workspan calib`). The actual
         /// is derived from punch-log intervals linked to this goal when you close it.
         #[arg(long, value_name = "DUR")]
         est: Option<String>,
-        /// Tag this goal to a quarter goal by its key (`bn daily add … --q ship-v1`).
+        /// Tag this goal to a quarter goal by its key (`workspan daily add … --q ship-v1`).
         #[arg(long, value_name = "GOAL_KEY")]
         q: Option<String>,
     },
-    /// Mark today's goal done by id (g3) or text substring: bn daily done <id|substring...>.
+    /// Mark today's goal done by id (g3) or text substring: workspan daily done <id|substring...>.
     Done {
         #[arg(required = true)]
         query: Vec<String>,
@@ -782,14 +782,14 @@ pub(crate) enum DailyCmd {
         #[arg(long, value_parser = clap::value_parser!(u8).range(1..=100))]
         pct: Option<u8>,
     },
-    /// Remove a goal from today outright: bn daily drop <id|substring...>. For a goal that should
+    /// Remove a goal from today outright: workspan daily drop <id|substring...>. For a goal that should
     /// never have been raised (a stale agent ping, a duplicate) — unlike `done` it records no
     /// completion, so it stays out of standup, brag, and the metrics.
     Drop {
         #[arg(required = true)]
         query: Vec<String>,
     },
-    /// Move an open goal to a future day: bn daily defer <id|substring...> --on <date> | --in <days>.
+    /// Move an open goal to a future day: workspan daily defer <id|substring...> --on <date> | --in <days>.
     Defer {
         #[arg(required = true)]
         query: Vec<String>,
@@ -808,7 +808,7 @@ pub(crate) enum DailyCmd {
 pub(crate) enum FeedCmd {
     /// Replace a source's items from JSON on stdin — the write path for feed cron scripts.
     /// Accepts a JSON array or JSONL (one `{"key","text","url"}` object per line):
-    /// `az repos pr list ... | jq -c '.[] | {...}' | bn feed ingest ado-reviews`.
+    /// `az repos pr list ... | jq -c '.[] | {...}' | workspan feed ingest ado-reviews`.
     Ingest {
         source: String,
         /// Also mirror items onto the attention list, reconciling against current state: raise
@@ -819,7 +819,7 @@ pub(crate) enum FeedCmd {
         #[arg(long, default_value = "warn")]
         severity: String,
     },
-    /// Drop a source's items (e.g. retire a feed cron): bn feed clear <source>.
+    /// Drop a source's items (e.g. retire a feed cron): workspan feed clear <source>.
     Clear { source: String },
 }
 
@@ -896,7 +896,7 @@ pub(crate) enum FindingsCmd {
     /// Record one run's findings for a source from JSON on stdin — the write path a cron (script
     /// or headless agent) pipes into. Accepts a JSON array or JSONL (one `{"key","text","url"}`
     /// object per line), same as `feed ingest`:
-    /// `gh pr list ... | jq -c '.[] | {...}' | bn findings record gh-prs`.
+    /// `gh pr list ... | jq -c '.[] | {...}' | workspan findings record gh-prs`.
     Record {
         source: String,
         /// Stable id for this run; defaults to a timestamp-derived id when omitted.
@@ -937,7 +937,7 @@ pub(crate) enum FindingsCmd {
 pub(crate) enum GapCmd {
     /// Replace the meetings cache from JSON on stdin — the `meetings` cron's write path. Accepts a
     /// JSON array or JSONL (one `{"start","title","url"}` object per line), so it drops straight
-    /// out of `jq`: `... | jq -c '{start, title: .subject, url: .joinUrl}' | bn gap ingest`.
+    /// out of `jq`: `... | jq -c '{start, title: .subject, url: .joinUrl}' | workspan gap ingest`.
     /// A run REPLACES the cache, so finished meetings and prior days drop off on the next ingest.
     Ingest {
         /// The local date (`YYYY-MM-DD`) the events belong to, so each `HH:MM` resolves to an
@@ -949,7 +949,7 @@ pub(crate) enum GapCmd {
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum McpCmd {
-    /// Wire the current repo for the bn MCP server: write a project-scoped MCP config and an
+    /// Wire the current repo for the workspan MCP server: write a project-scoped MCP config and an
     /// instruction block for the chosen harness. `[mcp] extras` in config.toml (or
     /// `--with-extras`) also wires the curated planning/productivity MCP servers.
     Init {
@@ -962,7 +962,7 @@ pub(crate) enum McpCmd {
         with_extras: bool,
     },
     /// Serve command, reference and link tools over **stdio**, pinned to the current worktree. This is the
-    /// per-worktree launcher an MCP client (`{command:"bn", args:["mcp","serve"]}`) spawns: it
+    /// per-worktree launcher an MCP client (`{command:"workspan", args:["mcp","serve"]}`) spawns: it
     /// execs the sibling `bn-mcp` binary, which derives its `(repo, branch)` from the launch cwd —
     /// so no per-call scope headers are needed. `--orchestrate` serves the cross-worktree
     /// "friend" toolset instead of the scoped tools.
@@ -1054,7 +1054,7 @@ pub(crate) enum ReviewCmd {
     /// Print a plan-review's current status (pending | approved | changes-requested | rejected) —
     /// the agent's poll read while paused. `--json` prints the full record (status + notes).
     Status { id: String },
-    /// List plan-reviews, newest first (pending ones need you). Bare `bn review` runs this.
+    /// List plan-reviews, newest first (pending ones need you). Bare `workspan review` runs this.
     List,
     /// Show one plan-review in full: the plan text, status, and any reviewer notes.
     Show {
@@ -1132,7 +1132,7 @@ pub(crate) enum ReviewCmd {
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum AttnCmd {
-    /// List open (to-start) attention items, urgent-first. Bare `bn attn` shows the fuller
+    /// List open (to-start) attention items, urgent-first. Bare `workspan attn` shows the fuller
     /// three-lane board (needs-you / in-progress / to-start).
     List {
         /// Filter to these task types (repeatable or comma-separated): coding | planning |
@@ -1148,13 +1148,13 @@ pub(crate) enum AttnCmd {
     /// a `skip` when there is genuinely nothing to look at.
     Gather,
     /// Attention lifecycle rollup over a trailing window: raised (by mode), started/done/closed,
-    /// and time-in-flight. bn attn metrics [--window 30].
+    /// and time-in-flight. workspan attn metrics [--window 30].
     Metrics {
         /// Trailing window in days.
         #[arg(long, default_value_t = 30)]
         window: i64,
     },
-    /// Raise an item: bn attn add "<text>" [--severity warn] [--link URL] [--key K].
+    /// Raise an item: workspan attn add "<text>" [--severity warn] [--link URL] [--key K].
     Add {
         #[arg(required = true)]
         text: Vec<String>,
@@ -1196,9 +1196,9 @@ pub(crate) enum AttnCmd {
         #[arg(long)]
         replace: bool,
     },
-    /// Resolve an item: bn attn ack <id>.
+    /// Resolve an item: workspan attn ack <id>.
     Ack { id: String },
-    /// Edit an open item in place: bn attn update <id> [--title T] [--severity S] [--link URL]
+    /// Edit an open item in place: workspan attn update <id> [--title T] [--severity S] [--link URL]
     /// [--repo R] [--branch B] [--detail TEXT]. Only the flags you pass change.
     Update {
         id: String,
@@ -1225,11 +1225,11 @@ pub(crate) enum AttnCmd {
         #[arg(long)]
         prompt: Option<String>,
     },
-    /// Remove an item: bn attn remove <id>. Dismiss as cancelled or raised in error — distinct
+    /// Remove an item: workspan attn remove <id>. Dismiss as cancelled or raised in error — distinct
     /// from `ack` (resolved/done) so metrics can tell the two apart.
     #[command(alias = "rm")]
     Remove { id: String },
-    /// Mark an in-flight item done — awaiting your review: bn attn done <id> [--notes TEXT|-].
+    /// Mark an in-flight item done — awaiting your review: workspan attn done <id> [--notes TEXT|-].
     /// The work is finished but the item stays visible until you `ack` it (the human gate on
     /// autonomous work). An `auto` agent runs this to report completion.
     Done {
@@ -1250,7 +1250,7 @@ pub(crate) enum AttnCmd {
         #[arg(long)]
         agent: bool,
     },
-    /// Promote a task into a loop-ready attention item (the inverse of `plan`): bn attn
+    /// Promote a task into a loop-ready attention item (the inverse of `plan`): workspan attn
     /// promote <todo-id> [--mode auto] [--repo R --branch B]. The prompt names the task and its
     /// summary; the launched agent reads the task document. Re-promoting an
     /// already-queued todo is a no-op. The todo stays open — the agent checks it off as the work.
@@ -1274,7 +1274,7 @@ pub(crate) enum AttnCmd {
     /// its concurrency cap (`BN_ATTN_AUTO_MAX`, default 1) or nothing is eligible. The
     /// `attention-auto-trigger` cron applies the idle gate and actually starts them.
     NextAuto,
-    /// Promote an item to a branch todo, then resolve it off the list: bn attn plan <id>
+    /// Promote an item to a branch todo, then resolve it off the list: workspan attn plan <id>
     /// [--section todo]. Lands on the item's repo/branch if it carries them, else the current
     /// branch.
     Plan {
@@ -1283,8 +1283,8 @@ pub(crate) enum AttnCmd {
         #[arg(long, default_value = "todo")]
         section: String,
     },
-    /// Start an agent on an item through `bn dispatch`, then resolve it off the list (#460):
-    /// bn attn dispatch <id> [--repo R]. Targets the item's own repo when it carries one, else
+    /// Start an agent on an item through `workspan dispatch`, then resolve it off the list (#460):
+    /// workspan attn dispatch <id> [--repo R]. Targets the item's own repo when it carries one, else
     /// `--repo` or the current worktree's.
     Dispatch {
         id: String,
@@ -1292,23 +1292,23 @@ pub(crate) enum AttnCmd {
         #[arg(long)]
         repo: Option<String>,
     },
-    /// Hide an item until a date: bn attn snooze <id> <YYYY-MM-DD>.
+    /// Hide an item until a date: workspan attn snooze <id> <YYYY-MM-DD>.
     Snooze { id: String, until: String },
     /// Styled status-bar fragment of raised attention (cron failures + open items), urgent in
-    /// red. Empty when nothing's raised. For tmux `#(...)` — like `bn cron running`.
+    /// red. Empty when nothing's raised. For tmux `#(...)` — like `workspan cron running`.
     Badge,
     /// Urgent open items not yet pushed as a notification — the `notify` job's work queue.
     /// `--json` for scripting.
     ToNotify,
     /// Record that an item was pushed as a notification (so it never re-fires): the notify
-    /// job calls this after toasting. bn attn notified <id>.
+    /// job calls this after toasting. workspan attn notified <id>.
     Notified { id: String },
 }
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum NotifyCmd {
     /// Today's toast budget, the open quiet window, and what the gate held back. Same as bare
-    /// `bn notify`.
+    /// `workspan notify`.
     Status,
 }
 

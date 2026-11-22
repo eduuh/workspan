@@ -1,7 +1,7 @@
 //! `bn worker` subcommands, split out of `cli.rs` to keep it under its size ratchet.
 use crate::*;
 
-/// The `bn worker` subcommands (#719 — the attempt-registry slice of epic #707 M1).
+/// The `workspan worker` subcommands (#719 — the attempt-registry slice of epic #707 M1).
 #[derive(Subcommand, Debug)]
 pub(crate) enum WorkerCmd {
     /// Report this worker's capabilities/labels, a capacity snapshot (RAM/swap/load/disk), its
@@ -9,7 +9,7 @@ pub(crate) enum WorkerCmd {
     /// global flag) emits the versioned machine payload; the plain form prints a human summary.
     Status,
     /// Close a running attempt: RUNNING → SUCCEEDED (default) or FAILED (`--fail`). Called by the
-    /// spawn wrapper (`tmux ... 'agent-cmd ; bn worker finish <request_id>'`). Records the exit
+    /// spawn wrapper (`tmux ... 'agent-cmd ; workspan worker finish <request_id>'`). Records the exit
     /// code so the outcome is retrievable by id. Resolves the request's most recent RUNNING
     /// attempt.
     Finish {

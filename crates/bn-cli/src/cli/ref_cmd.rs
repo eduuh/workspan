@@ -2,7 +2,7 @@
 
 use crate::*;
 
-/// The `--repo [NAME]` scope switch every `bn ref` form accepts. Absent means the person-scoped
+/// The `--repo [NAME]` scope switch every `workspan ref` form accepts. Absent means the person-scoped
 /// standards store; bare `--repo` means the repo you are standing in; `--repo <name>` targets
 /// another repo and works from anywhere, including outside a git repo.
 ///
@@ -19,7 +19,7 @@ pub(crate) struct RefScopeArg {
 #[derive(Subcommand, Debug)]
 pub(crate) enum RefCmd {
     /// Open a reference in $EDITOR, creating it from a template if it doesn't exist yet:
-    /// `bn ref edit javascript`, or `bn ref edit architecture/runtime-concepts --repo`.
+    /// `workspan ref edit javascript`, or `workspan ref edit architecture/runtime-concepts --repo`.
     Edit {
         /// Reference name to open/create (exact name; the file is `<store>/<name>.md`). A repo
         /// note may nest: `architecture/runtime-concepts`.
@@ -27,7 +27,7 @@ pub(crate) enum RefCmd {
         #[command(flatten)]
         scope: RefScopeArg,
     },
-    /// Scaffold a new reference file from a small template: `bn ref add react`. Reports if one
+    /// Scaffold a new reference file from a small template: `workspan ref add react`. Reports if one
     /// already exists (no overwrite).
     Add {
         /// Reference name to create (the file is `<store>/<name>.md`).
@@ -36,7 +36,7 @@ pub(crate) enum RefCmd {
         scope: RefScopeArg,
     },
     /// Record one durable fact in a repo's reference notes, as a bullet under a section:
-    /// `bn ref append build-and-run --repo --section gotchas "port 3001 serves the client
+    /// `workspan ref append build-and-run --repo --section gotchas "port 3001 serves the client
     /// chunks (observed, 2026-09-03)"`. Creates the note if it doesn't exist yet, and reports
     /// (without writing) when that exact fact is already recorded — the write path an agent
     /// uses mid-session, so a discovery lands where the next session will find it.

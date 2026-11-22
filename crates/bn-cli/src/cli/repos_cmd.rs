@@ -22,7 +22,7 @@ pub(crate) enum ReposCmd {
     /// Pipe through `sh -c '…'` yourself when you want shell syntax.
     ///
     /// Note that `--json` is a global flag: it must come before `foreach`
-    /// (`bn --json repos foreach git status`), since everything after `foreach` is the argv.
+    /// (`workspan --json repos foreach git status`), since everything after `foreach` is the argv.
     #[command(trailing_var_arg = true, allow_hyphen_values = true)]
     Foreach {
         /// Run in the worktree checked out on this branch instead of the default-branch one; a

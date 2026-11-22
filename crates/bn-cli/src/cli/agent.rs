@@ -8,7 +8,7 @@ use crate::*;
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum AgentCmd {
-    /// Recent agent sessions for a branch (default — same as bare `bn agent`). Resolves the
+    /// Recent agent sessions for a branch (default — same as bare `workspan agent`). Resolves the
     /// current worktree, or pass --repo/--branch to target another.
     Sessions {
         #[arg(long)]
@@ -16,7 +16,7 @@ pub(crate) enum AgentCmd {
         #[arg(long)]
         branch: Option<String>,
     },
-    /// Fold not-yet-seen Claude + Copilot sessions into the metrics log: bn agent ingest.
+    /// Fold not-yet-seen Claude + Copilot sessions into the metrics log: workspan agent ingest.
     /// Idempotent by session id; called by the `agent-observe` job.
     Ingest {
         /// Re-read every session still on disk, replacing its recorded row, instead of only
@@ -30,7 +30,7 @@ pub(crate) enum AgentCmd {
 
     /// Live-agent fleet: every *running* Claude session with its health (active / idle / stuck),
     /// flagging any idle past `--stuck` minutes. The supervisor pass behind the FLEET cockpit
-    /// panel and `--json`. bn agent supervise.
+    /// panel and `--json`. workspan agent supervise.
     Supervise {
         /// Minutes of quiet before an agent is *idle*.
         #[arg(long, default_value_t = bn_core::agent::DEFAULT_IDLE_MINS)]
@@ -42,7 +42,7 @@ pub(crate) enum AgentCmd {
     /// Joined live fleet across BOTH harnesses: every agent seen by its tmux window (@bn_agent
     /// working/waiting/done) and/or the session-log health (active/idle/stuck), one row per
     /// repo:branch. The machine-readable "what are all my agents doing" behind the fleet board;
-    /// `bn agent live [--json]`.
+    /// `workspan agent live [--json]`.
     Live {
         /// Minutes of quiet before an agent is *idle*.
         #[arg(long, default_value_t = bn_core::agent::DEFAULT_IDLE_MINS)]
@@ -50,13 +50,13 @@ pub(crate) enum AgentCmd {
         /// Minutes of quiet before an agent is flagged *stuck*.
         #[arg(long, default_value_t = bn_core::agent::DEFAULT_STUCK_MINS)]
         stuck: i64,
-        /// Also list the live agents on every other mesh machine (the `bn tunnel` and `bn mesh`
-        /// blocks in ~/.ssh/config), asked over ssh at once: who `bn agent msg` can reach.
+        /// Also list the live agents on every other mesh machine (the `workspan tunnel` and `workspan mesh`
+        /// blocks in ~/.ssh/config), asked over ssh at once: who `workspan agent msg` can reach.
         #[arg(long)]
         mesh: bool,
     },
-    /// Messages `bn agent msg` could not deliver yet, parked for retry so none is ever lost:
-    /// bn agent outbox [--flush]. The tunnel watchdog flushes every minute.
+    /// Messages `workspan agent msg` could not deliver yet, parked for retry so none is ever lost:
+    /// workspan agent outbox [--flush]. The tunnel watchdog flushes every minute.
     Outbox {
         /// Send every parked message again now; keep the ones that still do not land.
         #[arg(long)]
@@ -68,7 +68,7 @@ pub(crate) enum AgentCmd {
     },
     /// Self-schedule a check-in nudge: in `<mins>` minutes, deliver `<note>` to this worktree's
     /// agent pane. A one-shot reminder watchdog, so it survives a reboot and is listed and
-    /// stopped with `bn watchdog`. bn agent checkin <mins> "<note>".
+    /// stopped with `workspan watchdog`. workspan agent checkin <mins> "<note>".
     Checkin {
         /// Minutes from now to fire the nudge.
         mins: i64,
@@ -81,7 +81,7 @@ pub(crate) enum AgentCmd {
     /// Recover an interrupted ship turn: a worktree with commits ahead of base but no PR (its agent
     /// died before pushing). Dry-run by default (reports candidates); `--yes` pushes the branch and
     /// opens a PR (`gh pr create --fill`), recording it on the governing task. Targets the current worktree,
-    /// `--repo/--branch`, or `--all` (sweep every worktree). bn agent recover.
+    /// `--repo/--branch`, or `--all` (sweep every worktree). workspan agent recover.
     Recover {
         #[arg(long)]
         repo: Option<String>,
@@ -99,9 +99,9 @@ pub(crate) enum AgentCmd {
     },
     /// Signal completion back to the orchestrator (the agent runs this when it finishes) — the
     /// event-driven push. Raises a durable, keyed attention item (source `agent`, carrying repo/
-    /// branch/PR link) that surfaces in `bn next` / the orchestrator's attention read, sets the
+    /// branch/PR link) that surfaces in `workspan next` / the orchestrator's attention read, sets the
     /// window's `@bn_agent done` badge, and records the execution outcome. `--notify` also fires a desktop
-    /// toast. Run inside the worktree, or target it with --repo/--branch. bn agent done.
+    /// toast. Run inside the worktree, or target it with --repo/--branch. workspan agent done.
     Done {
         /// One-line summary of what was accomplished.
         #[arg(long)]
@@ -128,7 +128,7 @@ pub(crate) enum AgentCmd {
     /// channel (harness + session id from recorded launch state) — works for both harnesses even against a
     /// live session, and returns the agent's answer. `--keys` instead pastes into the live tmux
     /// window and submits with a raw CR, verifying the pane took it (visible there; use when the
-    /// agent is idle). `<target>` is `repo:branch`. bn agent send.
+    /// agent is idle). `<target>` is `repo:branch`. workspan agent send.
     Send {
         /// `repo:branch` of the agent (its launch state holds the recorded session id).
         target: String,
@@ -148,20 +148,20 @@ pub(crate) enum AgentCmd {
         channel: Option<String>,
         /// Fire-and-forget: run the `-p --resume` turn DETACHED (own process group, survives the
         /// caller exiting) and return immediately, instead of blocking for the whole turn. For long
-        /// ship tasks — the agent reports back with `bn agent done` when finished. Output is logged.
+        /// ship tasks — the agent reports back with `workspan agent done` when finished. Output is logged.
         #[arg(long)]
         detach: bool,
     },
     /// Message another LIVE agent, peer to peer — one agent asking another for something, and the
     /// reply is just another `msg` back. Your own `repo:branch` (from the cwd, or `--from`) rides in
-    /// the delivered line as `[bn msg from <repo:branch>] …`, so the receiver knows who asked and how
+    /// the delivered line as `[workspan msg from <repo:branch>] …`, so the receiver knows who asked and how
     /// to answer. The text lands in the target's live pane as its next prompt; a target mid-turn
     /// queues it. Live-only: a target with no window is refused (never a headless `--resume` turn) —
-    /// `bn agent live` lists who can be reached. A target not live here is looked for on the other
-    /// machines of the tunnel mesh and delivered by that machine's bn, so an agent on a Cloud PC can
-    /// answer the laptop the same way. bn agent msg <repo:branch> "<text>".
+    /// `workspan agent live` lists who can be reached. A target not live here is looked for on the other
+    /// machines of the tunnel mesh and delivered by that machine's workspan, so an agent on a Cloud PC can
+    /// answer the laptop the same way. workspan agent msg <repo:branch> "<text>".
     Msg {
-        /// `repo:branch` of the agent to message (the `target` column of `bn agent live`).
+        /// `repo:branch` of the agent to message (the `target` column of `workspan agent live`).
         target: String,
         /// What to ask or answer. Keep it to one message; a reply comes back the same way.
         text: String,
@@ -170,24 +170,24 @@ pub(crate) enum AgentCmd {
         from: Option<String>,
     },
     /// Kill a running agent: its process tree, its tmux window, its agent lease and its warm pool
-    /// slot (`repo:branch`, the `target` from `bn agent live`). The hard stop the web dashboard's
+    /// slot (`repo:branch`, the `target` from `workspan agent live`). The hard stop the web dashboard's
     /// kill button and the orchestrator's give-up path call — it genuinely frees the slot, rather
     /// than closing the window and leaving the harness reparented and running. Idempotent: a target
     /// with no window is reported as already gone. A slot holding uncommitted work is left leased
-    /// and said so, never reset. bn agent kill <target>.
+    /// and said so, never reset. workspan agent kill <target>.
     Kill {
         /// `repo:branch` of the agent — its tmux window name (slashes already dashed).
         target: String,
     },
     /// Force-kill a repo's WHOLE tmux session — every agent under it at once (session is repo,
     /// window is branch). The last-resort valve for a session that is wedged as a whole; to stop one
-    /// stuck agent use `bn agent kill <repo>:<branch>` instead.
+    /// stuck agent use `workspan agent kill <repo>:<branch>` instead.
     ///
     /// Each window goes down the same path `kill` uses, so leases are released and warm pool slots
     /// are handed back rather than left leased to windows that no longer exist. Worktrees are left
     /// on disk and a slot holding uncommitted changes stays leased — what a force kill discards is
     /// the agents' in-flight context, not their files. Idempotent: a repo with no live session is
-    /// reported as already gone. bn agent kill-repo <repo>.
+    /// reported as already gone. workspan agent kill-repo <repo>.
     KillRepo {
         /// The repo whose tmux session to kill — a bare repo name, not `repo:branch`.
         repo: String,
@@ -195,11 +195,11 @@ pub(crate) enum AgentCmd {
     /// Restart EVERY agent in a repo, each in the worktree it was already in — the repair a wedged
     /// repo usually wants, where `kill-repo` only stops the work.
     ///
-    /// Runs one `bn agent relaunch` per live agent, sequentially: respawning a repo's harnesses at
+    /// Runs one `workspan agent relaunch` per live agent, sequentially: respawning a repo's harnesses at
     /// once spikes RAM on a box already struggling enough to need this. The unit is a live fleet
     /// agent, so plain shell windows in the session are left alone. One agent failing does not stop
     /// the rest, and the outcome is reported per target.
-    /// bn agent relaunch-repo <repo> [--hard] [--harness claude|copilot].
+    /// workspan agent relaunch-repo <repo> [--hard] [--harness claude|copilot].
     RelaunchRepo {
         /// The repo whose agents to restart — a bare repo name, not `repo:branch`.
         repo: String,
@@ -220,9 +220,9 @@ pub(crate) enum AgentCmd {
     /// default the new session RESUMES the old transcript; `--hard` starts a fresh one seeded from
     /// task and execution context. The warm pool slot is kept (that is what `kill` frees), and a
     /// relaunch that could not happen exits non-zero rather than reporting success.
-    /// bn agent relaunch <target> [--hard] [--harness claude|copilot].
+    /// workspan agent relaunch <target> [--hard] [--harness claude|copilot].
     Relaunch {
-        /// `repo:branch` of the agent — the `target` from `bn agent live`.
+        /// `repo:branch` of the agent — the `target` from `workspan agent live`.
         target: String,
         /// Start a FRESH session seeded from task and execution context instead of resuming the
         /// recorded transcript. For an agent whose context is the problem.
@@ -234,8 +234,8 @@ pub(crate) enum AgentCmd {
         harness: Option<String>,
     },
     /// Capture the last N lines of a running agent's tmux pane (read-only). Powers the web
-    /// dashboard's live-pane view; `<target>` is `repo:branch` (the `target` from `bn agent live`).
-    /// bn agent pane <target> [--lines N].
+    /// dashboard's live-pane view; `<target>` is `repo:branch` (the `target` from `workspan agent live`).
+    /// workspan agent pane <target> [--lines N].
     Pane {
         /// `repo:branch` of the agent — its tmux window name (slashes already dashed).
         target: String,
@@ -254,10 +254,10 @@ pub(crate) enum AgentCmd {
     /// approve button, quick-steer submenu and auto-approve rule is built on, so nothing has to
     /// guess a digit. Exits non-zero when the agent is not blocked on a dialog.
     ///
-    /// The `fingerprint` it prints is the `--expect` token for `bn agent answer`: pass it back and
-    /// the answer is refused if the pane has moved on. bn agent prompt <target> [--json].
+    /// The `fingerprint` it prints is the `--expect` token for `workspan agent answer`: pass it back and
+    /// the answer is refused if the pane has moved on. workspan agent prompt <target> [--json].
     Prompt {
-        /// `repo:branch` of the agent — the `target` from `bn agent live`.
+        /// `repo:branch` of the agent — the `target` from `workspan agent live`.
         target: String,
         /// How many trailing pane lines to scan. A permission dialog is a bordered box carrying a
         /// title, the command, the question and its options, so the default is deliberately much
@@ -272,9 +272,9 @@ pub(crate) enum AgentCmd {
     /// It refuses rather than guesses: no pending dialog, an `--expect` fingerprint that no longer
     /// matches (the pane moved — approving now would answer a different question), or a semantic
     /// the harness never offered are all non-zero exits that send nothing.
-    /// bn agent answer <target> (--option N | --approve | --approve-session | --reject).
+    /// workspan agent answer <target> (--option N | --approve | --approve-session | --reject).
     Answer {
-        /// `repo:branch` of the agent — the `target` from `bn agent live`.
+        /// `repo:branch` of the agent — the `target` from `workspan agent live`.
         target: String,
         /// Pick this exact option number. Verified against the parsed dialog before it is sent.
         #[arg(long, conflicts_with_all = ["approve", "approve_session", "reject"])]
@@ -291,15 +291,15 @@ pub(crate) enum AgentCmd {
         /// lane blocked in a new way.
         #[arg(long)]
         reject: bool,
-        /// The `fingerprint` from `bn agent prompt`. The answer is refused if the pane has changed
+        /// The `fingerprint` from `workspan agent prompt`. The answer is refused if the pane has changed
         /// since. Always pass it from an automated or remote caller.
         #[arg(long)]
         expect: Option<u64>,
     },
-    /// Show the auto-approval policy in force and the recent decisions it produced — what bn is
+    /// Show the auto-approval policy in force and the recent decisions it produced — what workspan is
     /// allowed to answer on your behalf, and what it actually answered while you were away.
     ///
-    /// With no `approvals.toml`, bn's built-in default applies and nothing else: an orchestrated
+    /// With no `approvals.toml`, workspan's built-in default applies and nothing else: an orchestrated
     /// `--yolo` ship lane's command approvals are cleared with the session-scoped allow. Write a
     /// policy with `--init`; nothing in it takes effect until you set `enabled = true`.
     /// A `question-menu` is never auto-answered, at any setting.
@@ -309,7 +309,7 @@ pub(crate) enum AgentCmd {
         init: bool,
         /// Run the policy over every live agent that is blocked on a dialog right now, answering
         /// the ones it allows and leaving the rest for you. This is how an agent started outside a
-        /// `bn orchestrate` wave gets the policy at all — nothing else watches it.
+        /// `workspan orchestrate` wave gets the policy at all — nothing else watches it.
         #[arg(long, conflicts_with = "init")]
         sweep: bool,
         /// With `--sweep`: decide and report, but send nothing. See what a policy would do before
@@ -322,12 +322,12 @@ pub(crate) enum AgentCmd {
     },
     /// Give a running agent a **standing** instruction: recorded under `## Directives` in its
     /// task document *and* delivered to the live session. The durable copy is the point — a directive
-    /// is re-seeded into a `bn agent relaunch --hard` and into a fresh dispatch, so resetting an
+    /// is re-seeded into a `workspan agent relaunch --hard` and into a fresh dispatch, so resetting an
     /// agent's context no longer discards what you told it.
     ///
-    /// bn agent instruct <target> "<text>" [--no-send] | --list | --drop <id>.
+    /// workspan agent instruct <target> "<text>" [--no-send] | --list | --drop <id>.
     Instruct {
-        /// `repo:branch` of the agent — the `target` from `bn agent live`.
+        /// `repo:branch` of the agent — the `target` from `workspan agent live`.
         target: String,
         /// The instruction. Omit it with `--list` or `--drop`.
         text: Vec<String>,
@@ -345,7 +345,7 @@ pub(crate) enum AgentCmd {
     /// consecutive tool calls collapsed into one summary row. Powers the web dashboard's agent
     /// activity feed — unlike `pane`, it works for a session whose tmux window has already closed,
     /// because the transcript is on disk. `<session>` is the harness session id (the `session_id`
-    /// from `bn agent live`). bn agent activity <session> [--limit N].
+    /// from `workspan agent live`). workspan agent activity <session> [--limit N].
     Activity {
         /// The harness session id — a Claude transcript or a Copilot session directory.
         session: String,
@@ -356,9 +356,9 @@ pub(crate) enum AgentCmd {
 
     /// Launch an AI coding agent in the current directory, resuming this directory's recorded
     /// session if one exists, else starting fresh — the single home of the resume-or-fresh rule
-    /// (tmux keybinds, `bn dispatch`, and a plain `cd <wt> && bn agent launch` all behave
+    /// (tmux keybinds, `workspan dispatch`, and a plain `cd <wt> && workspan agent launch` all behave
     /// identically). Replaces the `workflow/bin/agent` zsh launcher. Execs the harness (this
-    /// process is replaced), so it never returns on success. bn agent launch [copilot|claude].
+    /// process is replaced), so it never returns on success. workspan agent launch [copilot|claude].
     Launch {
         /// Harness to launch: `copilot` (default) or `claude`.
         #[arg(value_name = "HARNESS")]
@@ -380,7 +380,7 @@ pub(crate) enum AgentCmd {
         /// (recovery re-seed, #383).
         #[arg(long)]
         fresh: bool,
-        /// Pin the harness session id (so `bn agent send` can steer this exact session via resume).
+        /// Pin the harness session id (so `workspan agent send` can steer this exact session via resume).
         #[arg(long)]
         session: Option<String>,
         /// Prefer this exact recorded session before falling back to a fresh launch.
@@ -401,11 +401,11 @@ pub(crate) enum AgentCmd {
         passthrough: Vec<String>,
     },
     /// Launch a catalog agent or workflow skill BY NAME, seeded with an instruction — the join
-    /// between `bn agents list` (what exists) and `bn agent launch` (how one starts). Agents and
-    /// skills share one namespace; an agent wins a name they both hold. Bare `bn agent run` opens
+    /// between `workspan agents list` (what exists) and `workspan agent launch` (how one starts). Agents and
+    /// skills share one namespace; an agent wins a name they both hold. Bare `workspan agent run` opens
     /// an fzf picker over everything launchable. Runs in the current directory (execs the harness,
     /// so it never returns on success); `--worktree` runs it in a fresh isolated one instead.
-    /// bn agent run <name> "<instruction>"
+    /// workspan agent run <name> "<instruction>"
     Run {
         /// Agent or skill to launch. Omit for the picker.
         name: Option<String>,
@@ -415,7 +415,7 @@ pub(crate) enum AgentCmd {
         /// Harness override. Defaults to the manifest's `harness:`, else the launcher's default.
         #[arg(long)]
         harness: Option<String>,
-        /// Run in a fresh worktree via `bn dispatch` rather than the current directory.
+        /// Run in a fresh worktree via `workspan dispatch` rather than the current directory.
         #[arg(long)]
         worktree: bool,
         /// Target repo for `--worktree` (a bare repo under the bare root).
@@ -431,7 +431,7 @@ pub(crate) enum AgentCmd {
         #[arg(long = "arg", value_name = "KEY=VALUE")]
         args: Vec<String>,
         /// Let the agent reach this directory too, on top of the one it is launched in.
-        /// Repeatable. See `bn agent launch --add-dir`.
+        /// Repeatable. See `workspan agent launch --add-dir`.
         #[arg(long = "add-dir", value_name = "DIR")]
         add_dir: Vec<String>,
         /// List everything launchable and exit, instead of opening the picker (for scripts).

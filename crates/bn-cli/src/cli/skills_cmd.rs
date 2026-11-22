@@ -6,13 +6,13 @@ use crate::*;
 pub(crate) enum SkillsCmd {
     /// List skills across all tiers (default).
     List,
-    /// Rank skills by relevance to a task: bn skills find wrap up my work.
+    /// Rank skills by relevance to a task: workspan skills find wrap up my work.
     Find {
         /// Free-text task/intent to match against skill names, keywords, when, and descriptions.
         #[arg(value_name = "QUERY", required = true)]
         query: Vec<String>,
     },
-    /// Create a new skill: bn skills new <name> --desc <text> [--scope <tier>].
+    /// Create a new skill: workspan skills new <name> --desc <text> [--scope <tier>].
     New {
         name: String,
         /// One-line description shown in the prompt list.
@@ -28,7 +28,7 @@ pub(crate) enum SkillsCmd {
     },
     /// Render a skill's prompt body to stdout (headless — no MCP server needed), with
     /// `{{name}}` placeholders filled from repeatable `--arg key=value`. For cron/scripts:
-    /// `prompt=$(bn skills render m365-email-query)`.
+    /// `prompt=$(workspan skills render m365-email-query)`.
     Render {
         name: String,
         /// Fill a `{{key}}` placeholder: repeatable, e.g. `--arg branch=main`.
@@ -36,7 +36,7 @@ pub(crate) enum SkillsCmd {
         args: Vec<String>,
     },
     /// Open a skill in $EDITOR, or the skills folder itself when no name is given:
-    /// `bn skills edit` opens the global-shared skills dir; `bn skills edit debug` opens that
+    /// `workspan skills edit` opens the global-shared skills dir; `workspan skills edit debug` opens that
     /// skill's file. `--scope <tier>` picks a different tier's folder.
     Edit {
         /// Skill to open (its effective definition). Omit to open the skills folder.
@@ -47,9 +47,9 @@ pub(crate) enum SkillsCmd {
         scope: String,
     },
     /// Internal (run by install.sh): (re)generate the native Agent Skills under `~/.copilot/skills`
-    /// and `~/.claude/skills` from the global bn skills, so the shipped prompts + personal skills
+    /// and `~/.claude/skills` from the global workspan skills, so the shipped prompts + personal skills
     /// appear as `/name` in Copilot CLI and Claude Code. Idempotent; only ever writes or removes
-    /// bn-managed files. Reports a same-named skill bn doesn't own without failing the install.
+    /// bn-managed files. Reports a same-named skill workspan doesn't own without failing the install.
     #[command(hide = true)]
     Install,
 }

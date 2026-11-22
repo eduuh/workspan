@@ -6,7 +6,7 @@
 //! variant carries `args_conflicts_with_subcommands` (the `bn ref` shape).
 use crate::*;
 
-/// `bn links`' own arguments: bare, a query, a tag filter, or one of [`LinksCmd`].
+/// `workspan links`' own arguments: bare, a query, a tag filter, or one of [`LinksCmd`].
 #[derive(clap::Args, Debug)]
 pub(crate) struct LinksArgs {
     #[command(subcommand)]
@@ -49,7 +49,7 @@ pub(crate) enum LinksCmd {
     /// Drop a link by id or by enough of its name.
     Rm { needle: String },
     /// Put a link in or take it out of groups without restating its other tags:
-    /// `bn links tag <link> +standup -dri`. A bare tag adds, like `+`.
+    /// `workspan links tag <link> +standup -dri`. A bare tag adds, like `+`.
     Tag {
         /// Id or enough of a link's name, tag or URL.
         needle: String,
@@ -75,7 +75,7 @@ pub(crate) enum LinksCmd {
     },
     /// Explicitly store the governing task's PR and work item after deciding they are durable links.
     Capture {
-        /// Broad category these links fill. Must be in `bn links tags`.
+        /// Broad category these links fill. Must be in `workspan links tags`.
         #[arg(long)]
         category: String,
     },
@@ -116,13 +116,13 @@ pub(crate) enum LinksCmd {
 #[derive(clap::Args, Debug)]
 pub(crate) struct LinksAddArgs {
     pub(crate) url: String,
-    /// Broad category this link fills. Must be in `bn links tags`.
+    /// Broad category this link fills. Must be in `workspan links tags`.
     #[arg(long)]
     pub(crate) category: String,
     /// What to call it in the picker. Defaults to host + last path segment.
     #[arg(long)]
     pub(crate) name: Option<String>,
-    /// Comma-separated tags. See `bn links tags` for the configured vocabulary.
+    /// Comma-separated tags. See `workspan links tags` for the configured vocabulary.
     #[arg(long)]
     pub(crate) tags: Option<String>,
     /// Repository this link belongs to — its links sort first when you are in that repo.
@@ -130,7 +130,7 @@ pub(crate) struct LinksAddArgs {
     #[arg(long)]
     pub(crate) repo: Option<String>,
     /// Hide the link from every listing after this long: `7d`, `2w`, or bare days. For
-    /// incident bridges and one-off meeting links. `bn links prune` deletes expired ones.
+    /// incident bridges and one-off meeting links. `workspan links prune` deletes expired ones.
     #[arg(long)]
     pub(crate) ttl: Option<String>,
 }

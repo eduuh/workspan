@@ -4,7 +4,7 @@
 //! one place every new command must touch, so a self-contained sub-enum is what moves out.
 use crate::*;
 
-/// The `bn critic` subcommands (#649 Phase 3).
+/// The `workspan critic` subcommands (#649 Phase 3).
 #[derive(Subcommand, Debug)]
 pub(crate) enum CriticCmd {
     /// Cut a fresh critic worktree off the PR head and launch a `--fresh`, plan-free critic lane

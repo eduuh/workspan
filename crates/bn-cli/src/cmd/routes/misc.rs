@@ -241,40 +241,40 @@ pub(super) fn route(cfg: &Config, action: CmdMisc, json: bool) {
 /// untouched, so `claude --resume <id>` and `claude "just a prompt"` cannot change meaning, and a
 /// future catalog entry named like a real harness flag or a file cannot silently capture one.
 /// A bare `@` (no name) opens the picker.
-const SHELL_WRAPPERS: &str = r#"# bn shell wrappers (bn shell-init) — `claude` / `copilot` route through
-# `bn agent launch`, which requires a git worktree and enforces where an agent may run: the main
+const SHELL_WRAPPERS: &str = r#"# Workspan shell wrappers (workspan shell-init) — `claude` / `copilot` route through
+# `workspan agent launch`, which requires a git worktree and enforces where an agent may run: the main
 # worktree hosts none (it asks what the work is and dispatches into a warm pool slot instead), and a
 # worktree that already has a live agent refuses a second one.
 # Escape hatch for within-repo placement rules: BN_AGENT_GUARD=0 claude …
 #
-# A leading @ names a bn agent or skill (`bn agent run`); a bare @ opens the picker. Everything
+# A leading @ names a Workspan agent or skill (`workspan agent run`); a bare @ opens the picker. Everything
 # else is passed through untouched, so `claude --resume <id>` still means what it always did:
 #   claude @debug "panic in resolver"    copilot @implement "add a command"
 #
-# The marker below is how `bn doctor` can tell these wrappers are actually live in your shell: a
+# The marker below is how `workspan doctor` can tell these wrappers are actually live in your shell: a
 # child process cannot see its parent's functions, only its environment.
 export BN_SHELL_WRAPPERS=1
 
-# True when the argument is an @-sigil selecting a bn agent or skill. A pure test, so the callers
-# below keep `bn agent run`'s own exit status instead of reporting whether routing happened.
+# True when the argument is an @-sigil selecting a Workspan agent or skill. A pure test, so the callers
+# below keep `workspan agent run`'s own exit status instead of reporting whether routing happened.
 _bn_is_at() { case "${1-}" in @|@?*) return 0 ;; *) return 1 ;; esac; }
 
-# `<harness> @name [args...]` -> `bn agent run name --harness <harness> [args...]`.
+# `<harness> @name [args...]` -> `workspan agent run name --harness <harness> [args...]`.
 # A bare `@` drops the name and opens the picker.
 _bn_run_at() {
   local _bn_h="$1"; shift
   local _bn_a="${1#@}"; shift
   if [ -n "$_bn_a" ]; then
-    bn agent run "$_bn_a" --harness "$_bn_h" "$@"
+    workspan agent run "$_bn_a" --harness "$_bn_h" "$@"
   else
-    bn agent run --harness "$_bn_h" "$@"
+    workspan agent run --harness "$_bn_h" "$@"
   fi
 }
 
 _bn_launch() {
   local _bn_h="$1"; shift
   if _bn_is_at "${1-}"; then _bn_run_at "$_bn_h" "$@"; return $?; fi
-  bn agent launch "$_bn_h" -- "$@"
+  workspan agent launch "$_bn_h" -- "$@"
 }
 
 claude() { _bn_launch claude "$@"; }
@@ -296,7 +296,7 @@ agency() {
 
 # Opening WSL starts tmux. A new WSL tab (the Ubuntu profile, `wsl` from a prompt) used to land in
 # a bare shell while the work lives in the tmux session `main`, which the WSL keeper keeps running.
-# Only an interactive shell in WSL, outside tmux, not over ssh (bn connect and the remote agent view
+# Only an interactive shell in WSL, outside tmux, not over ssh (workspan connect and the remote agent view
 # attach tmux themselves) and not inside nvim or a VS Code terminal. Not `exec`: detaching drops
 # you back at this shell. BN_TMUX_AUTOSTART=0 turns it off.
 case $- in *i*)
@@ -308,20 +308,27 @@ case $- in *i*)
 esac
 "#;
 
-/// Emit the shell wrappers to stdout — source them with `source <(bn shell-init zsh)`.
+/// Emit the shell wrappers to stdout — source them with `source <(workspan shell-init zsh)`.
 ///
-/// `claude`/`copilot` inside a git work tree route through `bn agent launch`, the chokepoint that
+/// `claude`/`copilot` inside a git work tree route through `workspan agent launch`, the chokepoint that
 /// enforces agent placement and refuses to create sessions outside a git worktree.
 /// `agency <claude|copilot> <args>` is an explicit alias of the same harness wrapper.
 fn emit_shell_init(shell: Shell) {
     match shell {
         Shell::Bash | Shell::Zsh => {}
         other => {
-            eprintln!("bn shell-init: only bash and zsh are supported (got {other})");
+            eprintln!(
+                "{} shell-init: only bash and zsh are supported (got {other})",
+                crate::identity::name()
+            );
             std::process::exit(2);
         }
     }
-    print!("{SHELL_WRAPPERS}");
+    print!("{}", shell_wrappers(crate::identity::name()));
+}
+
+fn shell_wrappers(executable: &'static str) -> String {
+    SHELL_WRAPPERS.replace("workspan agent", &format!("{executable} agent"))
 }
 
 #[cfg(test)]
@@ -330,19 +337,22 @@ mod tests {
 
     #[test]
     fn agency_uses_the_normal_launcher_and_preserves_arguments() {
-        let script = format!(
-            "{SHELL_WRAPPERS}\nbn() {{ printf '%s\\n' \"$@\"; }}\n\
-             agency copilot 'fix the bug'\nagency claude @debug 'find the failure'"
-        );
-        let out = std::process::Command::new("sh")
-            .args(["-c", &script])
-            .output()
-            .expect("shell wrappers run");
-        assert!(out.status.success());
-        assert_eq!(
-            String::from_utf8(out.stdout).unwrap(),
-            "agent\nlaunch\ncopilot\n--\nfix the bug\n\
-             agent\nrun\ndebug\n--harness\nclaude\nfind the failure\n"
-        );
+        for executable in ["workspan", "bn"] {
+            let wrappers = shell_wrappers(executable);
+            let script = format!(
+                "{wrappers}\n{executable}() {{ printf '%s\\n' \"$@\"; }}\n\
+                 agency copilot 'fix the bug'\nagency claude @debug 'find the failure'"
+            );
+            let out = std::process::Command::new("sh")
+                .args(["-c", &script])
+                .output()
+                .expect("shell wrappers run");
+            assert!(out.status.success());
+            assert_eq!(
+                String::from_utf8(out.stdout).unwrap(),
+                "agent\nlaunch\ncopilot\n--\nfix the bug\n\
+                 agent\nrun\ndebug\n--harness\nclaude\nfind the failure\n"
+            );
+        }
     }
 }

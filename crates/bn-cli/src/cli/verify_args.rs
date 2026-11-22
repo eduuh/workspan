@@ -17,7 +17,7 @@ pub(crate) struct VerifyArgs {
     #[arg(long)]
     pub(crate) job: Option<String>,
     /// The done-when criteria (`w<N>`, comma-separated) this run is evidence for. The run is kept
-    /// as proof either way; this links it (`bn proof link` can do it later).
+    /// as proof either way; this links it (`workspan proof link` can do it later).
     #[arg(long = "for", value_delimiter = ',')]
     pub(crate) for_: Vec<String>,
 }

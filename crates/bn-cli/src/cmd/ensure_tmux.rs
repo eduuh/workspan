@@ -22,7 +22,7 @@ pub(crate) enum EnsureTmuxSkip {
 /// machine's clones is what makes "every session is a repo" enforceable rather than aspirational:
 /// a typo is refused with the list of real answers instead of silently creating a fake session.
 ///
-/// Order: the override, else bn (whose crons this keepalive exists to let fire), else any clone.
+/// Order: the override, else Workspan (including the legacy bn clone), else any clone.
 pub(crate) fn ensure_tmux_repo(
     asked: Option<&str>,
     cloned: &std::collections::BTreeSet<String>,
@@ -37,8 +37,10 @@ pub(crate) fn ensure_tmux_repo(
                 known: cloned.iter().cloned().collect(),
             });
     }
-    if let Some(bn) = cloned.iter().find(|repo| *repo == "bn") {
-        return Ok(bn.clone());
+    for preferred in ["workspan", "bn"] {
+        if let Some(repo) = cloned.get(preferred) {
+            return Ok(repo.clone());
+        }
     }
     cloned.iter().next().cloned().ok_or(EnsureTmuxSkip::NoRepos)
 }
@@ -68,7 +70,7 @@ pub(crate) fn job_ensure_tmux(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
             return 1;
         }
         Err(EnsureTmuxSkip::NoRepos) => {
-            println!("ensure-tmux: no bn-managed repo clone on this machine — no session to ensure");
+            println!("ensure-tmux: no Workspan-managed repo clone on this machine — no session to ensure");
             return 0;
         }
     };
@@ -100,6 +102,23 @@ mod ensure_tmux_tests {
     fn bn_hosts_the_keepalive_when_nothing_is_asked_for() {
         assert_eq!(
             ensure_tmux_repo(None, &repos(&["bigmono", "bn", "dotfiles"])),
+            Ok("bn".to_string())
+        );
+    }
+
+    #[test]
+    fn workspan_hosts_the_keepalive_with_a_new_clone_name() {
+        for names in [
+            vec!["bigmono", "workspan"],
+            vec!["bn", "dotfiles", "workspan"],
+        ] {
+            assert_eq!(
+                ensure_tmux_repo(None, &repos(&names)),
+                Ok("workspan".to_string())
+            );
+        }
+        assert_eq!(
+            ensure_tmux_repo(Some("bn"), &repos(&["bn", "workspan"])),
             Ok("bn".to_string())
         );
     }

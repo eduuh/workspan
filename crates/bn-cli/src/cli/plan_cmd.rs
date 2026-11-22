@@ -20,7 +20,7 @@ pub(crate) enum PlanCmd {
     /// Open this branch's newest plan HTML in the local browser. With `--host`, the one an agent on
     /// that machine made (copied over ssh); with `--port`, a live page forwarded from it instead.
     View {
-        /// The machine the plan is on, as `ssh <machine>` knows it (see `bn tunnels`).
+        /// The machine the plan is on, as `ssh <machine>` knows it (see `workspan tunnels`).
         #[arg(long)]
         host: Option<String>,
         /// Forward this port from `--host` and open http://localhost:<port> (a live page).

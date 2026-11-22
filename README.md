@@ -20,7 +20,8 @@ workspace every time. Entire captures agent sessions and checkpoints; Workspan h
   checkpoint destination. Workspan does not replace Entire or move your code hosting.
 - **Dotfiles.** Shipped tmux, Claude, Copilot, and Git configuration live in `config/`.
 
-`workspan --help` lists the command surface. Commands support `--json`.
+`workspan --help` lists the command surface. `ws` is the short command alias.
+Commands support `--json`.
 
 ## Install
 
@@ -33,7 +34,7 @@ curl -fsSL https://raw.githubusercontent.com/eduuh/workspan/main/install.sh | ba
 From source (Rust toolchain pinned in `rust-toolchain.toml`):
 
 ```sh
-bn wt clone https://github.com/eduuh/workspan
+workspan wt clone https://github.com/eduuh/workspan
 # In the checkout reported by the worktree manager:
 ./build.sh
 ```
@@ -61,7 +62,8 @@ See [the setup reference](config/reference/entire-setup.md).
 ## Compatibility
 
 Workspan was previously named `bn`. The installer provides `workspan` as the primary entry point
-while keeping `bn` as an executable compatibility alias. Set `WORKSPAN_INSTALL_WP=1` during
+and `ws` as its short alias while keeping `bn` as an executable compatibility alias.
+An existing unrelated `ws` command is never replaced. Set `WORKSPAN_INSTALL_WP=1` during
 installation to request an optional `wp` alias; an existing `wp` command is never replaced.
 
 Existing `BN_*` environment
@@ -69,7 +71,9 @@ variables, `~/.config/bn`, `.bn` project files, worktree paths, internal crate n
 binary names remain compatible. Branch-note commands and MCP tools are retired. Workspan tasks
 (file or Forge), task context, plans, and execution state do not require a branch note. Entire
 owns session history. Existing historical note files are preserved, not imported or deleted;
-existing users do not need to move their configuration or task data.
+existing users do not need to move their configuration or task data. New clones use
+`bare/workspan.git` and `worktree/workspan/<branch>`; existing `bn` clones and active worktrees
+stay where they are.
 
 Configuration: [docs/config.md](docs/config.md). Releases: [docs/releases.md](docs/releases.md).
 The name overlaps an existing WorkSpan software brand; this project is independent of that company.

@@ -9,7 +9,7 @@ pub(crate) enum CmdCoord {
     /// Durable scheduled checks that wake a seat, because a seat cannot wake itself. Stored in the
     /// coordination DB, so they survive a reboot; the `coord-tick` job evaluates the due ones.
     /// Kinds: reminder (deliver a message), keepalive (nudge only if idle), context (warn past a
-    /// context-window threshold). Bare `bn watchdog` lists the active ones.
+    /// context-window threshold). Bare `workspan watchdog` lists the active ones.
     Watchdog {
         #[command(subcommand)]
         action: Option<WatchdogCmd>,
@@ -17,7 +17,7 @@ pub(crate) enum CmdCoord {
     /// Evidence for the governing task's done-when criteria, kept in branch-scoped `proof/`. A proof
     /// (`p<N>`) says what was checked, at which commit, by whom; a verdict from someone other
     /// than its author accepts or rejects it; readiness per criterion is derived from both, never
-    /// written by hand. `bn verify --for w1` records one for you. Bare `bn proof` shows readiness.
+    /// written by hand. `workspan verify --for w1` records one for you. Bare `workspan proof` shows readiness.
     Proof {
         #[command(subcommand)]
         action: Option<ProofCmd>,
@@ -26,14 +26,14 @@ pub(crate) enum CmdCoord {
     /// Context profiles: the standing context a seat is handed, composed from atoms (directives,
     /// goal, proof readiness, reference index or sections, skills, file sections) with a
     /// token budget. Declared in `<repo>/.bn/context.toml`; `ship`,
-    /// `compact-restore` and `orient` are built in. Bare `bn context` lists profiles.
+    /// `compact-restore` and `orient` are built in. Bare `workspan context` lists profiles.
     Context {
         #[command(subcommand)]
         action: Option<ContextCmd>,
     },
     /// Compact session bootstrap without branch-note changes: context and up to three task-relevant
     /// workflows with invocation and next commands. Run at session start or when changing tasks.
-    /// Without a task, orient without guessing a workflow. Includes bn workflows and installed
+    /// Without a task, orient without guessing a workflow. Includes workspan workflows and installed
     /// native skills, with native /name versus Claude MCP /bn:name invocation guidance.
     /// Works outside a repo with global skills. --json data: task, context (nullable),
     /// workflows (max 3), workflows_truncated (result cap), workflows_filtered (weak matches
@@ -113,7 +113,7 @@ pub(crate) struct ProofTarget {
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum ProofCmd {
-    /// Register evidence: bn proof add --kind test --for w1 --title "…" [--file log.txt].
+    /// Register evidence: workspan proof add --kind test --for w1 --title "…" [--file log.txt].
     Add {
         /// verify | gate | test | screenshot | log | review | manual.
         #[arg(long)]
@@ -177,7 +177,7 @@ pub(crate) enum ProofCmd {
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum WatchdogCmd {
-    /// Register a watchdog: bn watchdog register --kind reminder --at 30m --text "check CI".
+    /// Register a watchdog: workspan watchdog register --kind reminder --at 30m --text "check CI".
     Register {
         /// reminder | keepalive | context.
         #[arg(long)]

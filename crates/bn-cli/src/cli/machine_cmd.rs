@@ -8,26 +8,26 @@ use crate::*;
 #[derive(Subcommand, Debug)]
 pub(crate) enum MachineCmd {
     /// Every host this notes tree holds state for, newest activity first — the answer to "did
-    /// this laptop write history under more than one name?": bn machine list.
+    /// this laptop write history under more than one name?": workspan machine list.
     List,
-    /// Fold another host's append-only history into this machine's: bn machine merge <from>.
+    /// Fold another host's append-only history into this machine's: workspan machine merge <from>.
     ///
     /// Merges only the JSONL histories (event log, metrics, dojo decks), interleaved by timestamp
     /// and deduped against what is already here. Live stores and point-in-time snapshots are
     /// left alone — there is no correct way to combine two of those — and the source directory is
     /// never modified or deleted.
     Merge {
-        /// The machine name to merge *from* (as shown by `bn machine list`).
+        /// The machine name to merge *from* (as shown by `workspan machine list`).
         from: String,
         /// Print what would change and write nothing.
         #[arg(long)]
         dry_run: bool,
     },
-    /// Put a machine on the mesh over plain ssh, both ways: bn machine join <name> <user@host[:port]>.
+    /// Put a machine on the mesh over plain ssh, both ways: workspan machine join <name> <user@host[:port]>.
     ///
-    /// Writes a `bn mesh` block into ~/.ssh/config, trusts the machine's key here, and holds a
+    /// Writes a `workspan mesh` block into ~/.ssh/config, trusts the machine's key here, and holds a
     /// reverse forward open (tmux window bn-tunnels:mesh-<name>) so it can ssh back even when this
-    /// machine is behind NAT. Then `bn agent msg` reaches agents on either side. Runs the `mesh`
+    /// machine is behind NAT. Then `workspan agent msg` reaches agents on either side. Runs the `mesh`
     /// job (config/jobs/mesh.sh).
     Join {
         /// The name to reach it by (`ssh <name>`), letters, digits and dashes.
@@ -47,6 +47,6 @@ pub(crate) enum MachineCmd {
         /// The name it joined under.
         name: String,
     },
-    /// Every mesh node joined from here: whether ssh works each way, its bn, its live agents.
+    /// Every mesh node joined from here: whether ssh works each way, its workspan, its live agents.
     Mesh,
 }
