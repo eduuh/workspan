@@ -8,10 +8,10 @@ use crate::*;
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum TaskCmd {
-    /// List open tasks (default — same as bare `bn task`): today's work first, then unscheduled.
+    /// List open tasks (default — same as bare `workspan task`): today's work first, then unscheduled.
     List,
-    /// Add a task: bn task add "<text>" [-p A] [--due YYYY-MM-DD] [--src S]. The text may inline
-    /// +project, @context, and any `key:value` meta — so `bn task add "fix it repo:atlas day:
+    /// Add a task: workspan task add "<text>" [-p A] [--due YYYY-MM-DD] [--src S]. The text may inline
+    /// +project, @context, and any `key:value` meta — so `workspan task add "fix it repo:atlas day:
     /// 2026-08-03 est:2h"` sets those directly. `repo:` defaults to the repo you're standing in.
     Add {
         #[arg(required = true)]
@@ -38,7 +38,7 @@ pub(crate) enum TaskCmd {
         attach: Vec<std::path::PathBuf>,
     },
     /// Bind a task to the worktree working it, so the fleet can show which task an agent is on:
-    /// bn task claim <id> [--repo R] [--branch B]. Defaults to the repo/branch you're standing in,
+    /// workspan task claim <id> [--repo R] [--branch B]. Defaults to the repo/branch you're standing in,
     /// which is what an agent runs from inside its own checkout. Idempotent.
     Claim {
         id: String,
@@ -49,13 +49,13 @@ pub(crate) enum TaskCmd {
         #[arg(long)]
         branch: Option<String>,
     },
-    /// Mark a task done: bn task do <id>.
+    /// Mark a task done: workspan task do <id>.
     Do { id: String },
-    /// Mark a task in progress (@wip): bn task wip <id>.
+    /// Mark a task in progress (@wip): workspan task wip <id>.
     Wip { id: String },
-    /// Hide a task until a date: bn task snooze <id> <YYYY-MM-DD>.
+    /// Hide a task until a date: workspan task snooze <id> <YYYY-MM-DD>.
     Snooze { id: String, until: String },
-    /// Edit an existing task's scheduling fields: bn task set <id> key:value… Keys: day and due
+    /// Edit an existing task's scheduling fields: workspan task set <id> key:value… Keys: day and due
     /// (YYYY-MM-DD), est (90m, 2h, 1h30m), priority (A|B|C), repo, q (quarter goal key). An empty
     /// value (`day:`) clears the key. Every pair is validated before anything is written.
     Set {
@@ -63,7 +63,7 @@ pub(crate) enum TaskCmd {
         #[arg(required = true, value_name = "KEY:VALUE")]
         pairs: Vec<String>,
     },
-    /// Close a task as cancelled (distinct from done): bn task cancel <id> [reason…].
+    /// Close a task as cancelled (distinct from done): workspan task cancel <id> [reason…].
     Cancel {
         id: String,
         #[arg(trailing_var_arg = true)]
@@ -100,7 +100,7 @@ pub(crate) enum TaskCmd {
     /// that wrote it, and the doc syncs everywhere and moves when the task is picked up. This
     /// prints where they actually are, here, now.
     ///
-    /// `bn task attach t42` lists them; `--add` captures more; `--rm` drops one.
+    /// `workspan task attach t42` lists them; `--add` captures more; `--rm` drops one.
     Attach {
         /// Task id (e.g. t42).
         id: String,
@@ -158,7 +158,7 @@ pub(crate) enum TaskCmd {
         #[arg(long)]
         dry_run: bool,
     },
-    /// Absorb a legacy repo-local `TODO.txt` into the global store: bn task import <path>.
+    /// Absorb a legacy repo-local `TODO.txt` into the global store: workspan task import <path>.
     /// Idempotent — re-running imports only what's new. Ids are reminted globally, and `repo:` is
     /// stamped from `--repo` or the source file's directory name. The original is left in place.
     Import {

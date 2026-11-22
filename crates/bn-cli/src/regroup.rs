@@ -377,13 +377,26 @@ mod tests {
 
     #[test]
     fn workspan_group_help_uses_the_new_entry_point() {
-        let Plan::Help(text, code) =
-            plan(["workspan", "setup", "--help"].map(OsString::from).to_vec())
-        else {
-            panic!("expected group help");
-        };
-        assert_eq!(code, 0);
-        assert!(text.contains("Usage: workspan setup"));
+        for executable in ["workspan", "ws"] {
+            let Plan::Help(text, code) =
+                plan([executable, "setup", "--help"].map(OsString::from).to_vec())
+            else {
+                panic!("expected group help");
+            };
+            assert_eq!(code, 0);
+            assert!(text.contains("Usage: workspan setup"));
+        }
+    }
+
+    #[test]
+    fn command_help_uses_workspan_examples() {
+        let err = command_named("workspan")
+            .try_get_matches_from(["workspan", "skills", "--help"])
+            .unwrap_err();
+        let help = err.to_string();
+        assert!(help.contains("workspan skills find"));
+        assert!(help.contains("workspan skills render"));
+        assert!(!help.contains("bn skills"));
     }
 
     #[test]
@@ -445,8 +458,8 @@ mod tests {
 
         let skills = help_text(&["bn", "skills", "--help"]);
         assert!(!skills.contains("bn retro"));
-        assert!(skills.contains("bn skills find"));
-        assert!(skills.contains("bn skills render"));
+        assert!(skills.contains("workspan skills find"));
+        assert!(skills.contains("workspan skills render"));
     }
 
     #[test]

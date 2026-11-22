@@ -16,17 +16,17 @@ at all works on every repository it has cloned and runs cron and the dashboard.
 | `<notes_root>/<machine>/config.toml` | What this machine does differently. A key here overrides the shared file, key by key. |
 
 `<notes_root>` is `~/projects/branch-notes`, or the work notes tree (`~/projects/notes/bn`) on a
-machine that has only that one. `<machine>` is the name bn pinned in `~/.bn/config/machine` the
+machine that has only that one. `<machine>` is the name workspan pinned in `~/.bn/config/machine` the
 first time it ran.
 
-bn reads one notes tree. The old `~/projects/branch-notes-work/bn` fallback is merged into
-`~/projects/branch-notes` the first time a new `bn` runs: `tasks.txt` and `links.md` are unioned
+workspan reads one notes tree. The old `~/projects/branch-notes-work/bn` fallback is merged into
+`~/projects/branch-notes` the first time a new `workspan` runs: `tasks.txt` and `links.md` are unioned
 line by line, other files are copied unless already present, and the old tree is kept as
 `~/projects/branch-notes-work.migrated`.
 
 Both files are optional. Leave out anything you do not want to change.
 
-An old `~/.bn/config/config.toml` moves into these files the first time a new `bn` runs. The old
+An old `~/.bn/config/config.toml` moves into these files the first time a new `workspan` runs. The old
 file is kept as `config.toml.bak`, and `~/.bn/config/config-migration.txt` lists what moved.
 
 ## What is not a setting
@@ -60,8 +60,8 @@ What a machine should do less of. Usually set in that machine's own file.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `weekly_anchor` | `"monday"` | Day the `bn weekly` window starts: a name, or `0` (Sunday) to `6`. |
-| `sla_first_review_hours` | `4` | Hours before a PR waiting on your review counts as late in `bn next`. |
+| `weekly_anchor` | `"monday"` | Day the `workspan weekly` window starts: a name, or `0` (Sunday) to `6`. |
+| `sla_first_review_hours` | `4` | Hours before a PR waiting on your review counts as late in `workspan next`. |
 | `harness` | the running harness | Harness the auto-review agent uses: `claude` or `copilot`. |
 | `diff_gate` | `false` | Require diff-only reviews before a dispatched ship PR lands. |
 | `diff_gate_reviews` | `2` | Approving diff-only reviews the gate requires. |
@@ -71,8 +71,8 @@ What a machine should do less of. Usually set in that machine's own file.
 | Key | Default | Meaning |
 |---|---|---|
 | `freshness` | `"exact"` | How current accepted evidence must be: `exact` (at HEAD), `ancestor`, or `any`. |
-| `done_requires` | `"warn"` | What `bn done w<N>` does without accepted evidence: `off`, `warn`, or `refuse`. |
-| `capture` | `true` | Keep `bn verify` and `bn verify --rebased` runs as proof, with their output attached. |
+| `done_requires` | `"warn"` | What `workspan done w<N>` does without accepted evidence: `off`, `warn`, or `refuse`. |
+| `capture` | `true` | Keep `workspan verify` and `workspan verify --rebased` runs as proof, with their output attached. |
 
 ### `[harness]`
 
@@ -85,7 +85,7 @@ What a machine should do less of. Usually set in that machine's own file.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `max_age_hours` | `24` | Time-aged items older than this drop off `bn next`. Wider on Mondays. |
+| `max_age_hours` | `24` | Time-aged items older than this drop off `workspan next`. Wider on Mondays. |
 
 ### `[calib]`
 
@@ -99,8 +99,8 @@ What a machine should do less of. Usually set in that machine's own file.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `screenshot_dir` | none | Folder `bn note shot` takes screenshots from. |
-| `gif_dir` | none | Folder `bn note shot --gif` takes recordings from. |
+| `screenshot_dir` | none | Folder `workspan note shot` takes screenshots from. |
+| `gif_dir` | none | Folder `workspan note shot --gif` takes recordings from. |
 
 ### `[wrap]`, `[standup]`, `[dxi]`
 
@@ -137,14 +137,14 @@ What a machine should do less of. Usually set in that machine's own file.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `extras` | `[]` | Curated MCP servers `bn setup mcp init` wires beside bn's own. |
+| `extras` | `[]` | Curated MCP servers `workspan setup mcp init` wires beside workspan's own. |
 
 ### `[mcp.servers.<name>]`
 
 Your own MCP servers, registered at **user** scope on every machine. `[mcp].extras` is a closed,
 vetted catalog written into *committable* per-repo configs; this is the opposite case — a personal
 server that belongs to you rather than to any repo, and that should exist in every MCP client
-wherever you sit down. `bn setup mcp sync-user` writes them into Claude Code, Claude Desktop, the VS Code
+wherever you sit down. `workspan setup mcp sync-user` writes them into Claude Code, Claude Desktop, the VS Code
 Copilot extension, and the Copilot CLI, whichever are present. `install.sh` runs it too, so a new
 machine picks them up on install.
 
@@ -167,14 +167,14 @@ a legal character elsewhere. Inside a composed argument — such as mcp-remote's
 mis-expansion: sync refuses it and names the fix.
 
 Unlike `extras`, sync **overwrites** the entry under each declared name: this file is the source of
-truth, and an edit here is meant to reach every machine. Servers bn does not declare are untouched.
+truth, and an edit here is meant to reach every machine. Servers workspan does not declare are untouched.
 Remote HTTP entries cannot use `args`, `env`, or `secret_file`, and custom HTTP headers are not
 supported yet. The synced Context7 example therefore uses its unauthenticated endpoint.
 
 #### `[mcp.servers.<name>.secret_file]`
 
 A credential the server needs, which must not live in this file — `config.toml` is a synced git
-repo. Declare only the *shape* of the secret; `bn setup mcp sync-user` prompts for the values once per
+repo. Declare only the *shape* of the secret; `workspan setup mcp sync-user` prompts for the values once per
 machine, writes them as a flat JSON object, and `chmod 600`s it. An existing file is never read or
 rewritten, so re-running is a no-op. A server whose secret is missing is **skipped** rather than
 registered, since a client would otherwise show it as permanently failing instead of absent.
@@ -211,19 +211,19 @@ account guidance if you need higher rate limits.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `repos` | `[]` | Clone URLs bn keeps checked out under `~/.bn/repos`. |
+| `repos` | `[]` | Clone URLs workspan keeps checked out under `~/.bn/repos`. |
 
 ### `[links]`
 
 | Key | Default | Meaning |
 |---|---|---|
-| `tags` | bn's built-in list | Tag vocabulary for `bn links`. `[]` means none. |
+| `tags` | workspan's built-in list | Tag vocabulary for `workspan links`. `[]` means none. |
 
 ### `[forge_agent]`
 
-Works Forge activities assigned to a family's agent member. The machine opts in by having an HTTP MCP server in `~/.claude.json` whose `Authorization` header carries an agent `fam_` key (Forge Settings → Family → Create agent key). The `forge-agent` job runs every five minutes from `tick-5m`. Each tick heartbeats or reports the runs this machine holds, then claims at most one task whose project repo URL matches a repo cloned here and runs `bn dispatch --agent` on it.
+Works Forge activities assigned to a family's agent member. The machine opts in by having an HTTP MCP server in `~/.claude.json` whose `Authorization` header carries an agent `fam_` key (Forge Settings → Family → Create agent key). The `forge-agent` job runs every five minutes from `tick-5m`. Each tick heartbeats or reports the runs this machine holds, then claims at most one task whose project repo URL matches a repo cloned here and runs `workspan dispatch --agent` on it.
 
-A claim is a lease, not a lock. While the agent runs, the tick renews it. If the machine dies, the lease expires and another machine can claim the task. When the agent runs `bn agent done`, bn kills its window and completes the activity, with the branch's PR in a comment. If the window disappears first, or the run passes `max_runtime_mins`, bn marks the activity Blocked instead. Use `bn forge agent status`, `run-once` and `release <id>` to inspect or steer it by hand.
+A claim is a lease, not a lock. While the agent runs, the tick renews it. If the machine dies, the lease expires and another machine can claim the task. When the agent runs `workspan agent done`, workspan kills its window and completes the activity, with the branch's PR in a comment. If the window disappears first, or the run passes `max_runtime_mins`, workspan marks the activity Blocked instead. Use `workspan forge agent status`, `run-once` and `release <id>` to inspect or steer it by hand.
 
 | Key | Default | Meaning |
 |---|---|---|
@@ -254,7 +254,7 @@ A claim is a lease, not a lock. While the agent runs, the tick renews it. If the
 
 | Key | Default | Meaning |
 |---|---|---|
-| `plan_review` | `false` | Make the plan-review gate the default for `bn dispatch`. |
+| `plan_review` | `false` | Make the plan-review gate the default for `workspan dispatch`. |
 | `plan_reviewers` | `3` | Independent plan reviewers. |
 | `plan_review_quorum` | a majority | Approvals required. |
 
@@ -276,21 +276,21 @@ inherits from the wider layer.
 
 | Key | Default | Meaning |
 |---|---|---|
-| `verify` | bn's build, test and lint jobs | The repository's own verify command. |
+| `verify` | workspan's build, test and lint jobs | The repository's own verify command. |
 | `requires` | `[]` | Node capabilities a target must have. |
 | `excludes` | `[]` | Node capabilities that rule a target out. |
 
-Use `bn verify --dry-run` to inspect the gate before running it. Resolution matches normal
+Use `workspan verify --dry-run` to inspect the gate before running it. Resolution matches normal
 verification: `--job <name>` selects a job script, otherwise `verify` selects the configured
 shell command, otherwise all available build, test and lint jobs run in that order.
 The preview shows the actual working directory and resolved command or script paths; it does
 not execute checks, take a build slot, or record note progress or proof. A missing gate or
-explicit job still fails. `--dry-run` cannot be combined with `--for`, and is not a `bn gate` flag.
+explicit job still fails. `--dry-run` cannot be combined with `--for`, and is not a `workspan gate` flag.
 
-`bn verify --dry-run --json` returns `data.dry_run: true`, `job`, `cwd`, and ordered `steps`.
+`workspan verify --dry-run --json` returns `data.dry_run: true`, `job`, `cwd`, and ordered `steps`.
 Each step has `kind` and `label`, plus `command` for configured commands or `path` for scripts.
 It deliberately omits `pass`, `code`, and `proof`: a successful preview is not a passing
-verification run. `bn schema verify` documents both output forms.
+verification run. `workspan schema verify` documents both output forms.
 
 ### `[orchestrate]`
 
@@ -310,18 +310,18 @@ verification run. `bn schema verify` documents both output forms.
 | Key | Default | Meaning |
 |---|---|---|
 | `provider` | `"file"` | Where the task list lives. `"file"` is `<notes_root>/tasks.txt`. `"forge"` is the Forge app (forge.wira360.com), read and written through its MCP endpoint. It never falls back to the file. An unknown word is reported and uses `"file"`. |
-| `forge_url` | `"https://api.wira360.com/mcp"` | The Forge MCP endpoint that `provider = "forge"` and `bn forge` talk to. |
+| `forge_url` | `"https://api.wira360.com/mcp"` | The Forge MCP endpoint that `provider = "forge"` and `workspan forge` talk to. |
 
-With `provider = "forge"`, bn needs a Forge key for the family's agent member:
+With `provider = "forge"`, workspan needs a Forge key for the family's agent member:
 
 - `BN_FORGE_TOKEN`, when set, wins.
-- Otherwise `<config_dir>/forge-token`, written with mode 0600 by `bn forge login`. The command
+- Otherwise `<config_dir>/forge-token`, written with mode 0600 by `workspan forge login`. The command
   opens Forge in a browser through `playwright-cli` (install `@playwright/cli`), waits for you to
-  sign in, and mints the key inside the page. `bn forge login --paste` reads a key from stdin
+  sign in, and mints the key inside the page. `workspan forge login --paste` reads a key from stdin
   instead.
-- Without a key, every task read and write fails and says to run `bn forge login`.
+- Without a key, every task read and write fails and says to run `workspan forge login`.
 
-`bn forge status` shows where the key comes from (never the key), whether the MCP session opens,
+`workspan forge status` shows where the key comes from (never the key), whether the MCP session opens,
 the goals that carry a repository, and how many agent tasks are open and claimed.
 
 In Forge mode an activity maps to a task like this: the title is the description, `src:forge:<id>`
@@ -329,19 +329,19 @@ links it back, `repo:` comes from the activity's meta or else the goal's reposit
 Urgent/High/Medium are `(A)`/`(B)`/`(C)`. A save sends only the fields that changed, and a meta
 write that finds the activity changed since it was loaded fails instead of overwriting it. A new
 task is created under the goal whose repository matches its `repo:`, or else under the goal named
-Inbox. bn ids are never reused: the highest per endpoint is kept in `<state_dir>/forge-ids.json`.
+Inbox. workspan ids are never reused: the highest per endpoint is kept in `<state_dir>/forge-ids.json`.
 
-`bn forge sweep` runs the agent loop once in Forge mode (the `forge-task` skill walks through it).
+`workspan forge sweep` runs the agent loop once in Forge mode (the `forge-task` skill walks through it).
 Nothing runs it automatically: run it by hand, or from your own cron.
 
 - **Claim.** At most once a minute, an open task assigned to the agent member that nothing has
   started is claimed when its repository is cloned here, `[machine] repos` allows it, and this
   machine holds fewer than `--max` (default 1) claims without a PR. The claim writes
-  `repo:<local clone>`, comments `claimed by bn@<node>`, and starts the task with
-  `bn dispatch --task <id>`.
-- **Comments.** Stage transitions, SMART refusals and `bn agent done` comment on the task. A failed
+  `repo:<local clone>`, comments `claimed by workspan@<node>`, and starts the task with
+  `workspan dispatch --task <id>`.
+- **Comments.** Stage transitions, SMART refusals and `workspan agent done` comment on the task. A failed
   comment is logged and never fails the step.
-- **Merge.** `bn agent done --pr <url>` stores `pr:` and leaves the task open. The sweep asks
+- **Merge.** `workspan agent done --pr <url>` stores `pr:` and leaves the task open. The sweep asks
   `gh pr view` about it at most every ten minutes and completes the task once the PR is merged.
 
 ### `[jobs.only_on]`
@@ -352,21 +352,21 @@ Nothing runs it automatically: run it by hand, or from your own cron.
 
 ### `[hosts.<alias>]` and `[nodes.<id>]`
 
-`[hosts.<alias>]` adds what `~/.ssh/config` cannot say to `bn machine connect`. `[nodes.<id>]` declares
+`[hosts.<alias>]` adds what `~/.ssh/config` cannot say to `workspan machine connect`. `[nodes.<id>]` declares
 worker machines for placement, with `target`, `labels`, `ram_total_mb` and `repos`. Both are empty
 by default.
 
 ## Environment
 
-No setting is read from the environment. What bn does read:
+No setting is read from the environment. What workspan does read:
 
 | Variable | Purpose |
 |---|---|
-| `BN_HOME`, `BN_CONFIG_DIR`, `BN_CONFIG`, `BN_NOTES_DIR`, `BN_NOTES_DIR_WORK`, `BN_WORKTREE_DIR`, `BN_STATE_DIR`, `BN_JOBS_DIR`, `BN_AGENTS_DIR`, `BN_REFERENCES_DIR`, `BN_MANAGED_REPOS_DIR`, `BN_BIN_DIR`, `BN_MACHINE_FILE`, `BN_APPROVALS`, `BN_HOSTNAME`, `BN_OVERLAY_DIR`, `BN_PERSONAL_NOTES_DIR` | Path anchors. Test sandboxes use them to isolate a whole bn universe, and `BN_CONFIG` makes one file the entire config. |
+| `BN_HOME`, `BN_CONFIG_DIR`, `BN_CONFIG`, `BN_NOTES_DIR`, `BN_NOTES_DIR_WORK`, `BN_WORKTREE_DIR`, `BN_STATE_DIR`, `BN_JOBS_DIR`, `BN_AGENTS_DIR`, `BN_REFERENCES_DIR`, `BN_MANAGED_REPOS_DIR`, `BN_BIN_DIR`, `BN_MACHINE_FILE`, `BN_APPROVALS`, `BN_HOSTNAME`, `BN_OVERLAY_DIR`, `BN_PERSONAL_NOTES_DIR` | Path anchors. Test sandboxes use them to isolate a whole workspan universe, and `BN_CONFIG` makes one file the entire config. |
 | `BN_VERBOSE`, `BN_LOG` | Turn the action log on for one run. `BN_LOG` may also name a level. |
 | `BN_COLOR` | `always` or `never` for terminal colour. `NO_COLOR` is honoured too. |
 | `BN_AGENT_GUARD=0`, `BN_NO_CATCHUP` | One-run escape hatches: skip agent placement rules, skip cron catch-up. |
-| `BN_DISPATCH_PIPELINE=1` | Make the legacy multi-stage pipeline the `bn dispatch` default. |
+| `BN_DISPATCH_PIPELINE=1` | Make the legacy multi-stage pipeline the `workspan dispatch` default. |
 | `BN_FORGE_TOKEN` | The Forge key for `[tasks] provider = "forge"`. Wins over `<config_dir>/forge-token`. |
 
 Job scripts under `config/jobs/` read their own `BN_*` parameters, documented at the top of each

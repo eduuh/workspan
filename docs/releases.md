@@ -3,7 +3,7 @@
 Workspan follows a **strict release** rule:
 
 > A commit reaches `main` only through CI, and every commit that reaches `main` becomes a
-> versioned GitHub Release built for every supported platform. No machine ever compiles bn to
+> versioned GitHub Release built for every supported platform. No machine ever compiles workspan to
 > run it.
 
 Everything below exists to make those three sentences true at the same time.
@@ -33,9 +33,9 @@ Each arrow is a `needs:` edge, so each is enforced rather than merely intended:
    `ci.yml` via `workflow_call` rather than copying its jobs, so "passed CI" means the same fmt /
    clippy / test / web / gates / e2e lanes a PR faces — one definition of green, used twice.
 2. **Nothing publishes unless every platform built.** A partial release is worse than none: it
-   hands one machine a new bn while another silently keeps an old one.
-3. **No machine compiles bn to install it.** `install.sh` downloads these assets and nothing
-   else. `cargo build` is for developing bn.
+   hands one machine a new workspan while another silently keeps an old one.
+3. **No machine compiles workspan to install it.** `install.sh` downloads these assets and nothing
+   else. `cargo build` is for developing workspan.
 4. **A tag never exists without its release.** `publish` uploads every asset to a *draft*
    release (a draft creates no tag), then publishes it in one call, which is when GitHub creates
    the tag. A failure before that leaves no tag, so the next run computes the same version and
@@ -64,9 +64,9 @@ The version is `max(floor, latest_tag + one patch)`, so an un-bumped `Cargo.toml
 A local build has no `BN_RELEASE_VERSION` and reports the floor, exactly as it always did:
 
 ```
-$ bn --version
-bn 0.5.0 (git de967f24a5ca, built 2026-09-08, aarch64-apple-darwin)   # local build
-bn 0.5.1 (git de967f24a5ca, built 2026-09-08, aarch64-apple-darwin)   # released build
+$ workspan --version
+workspan 0.5.0 (git de967f24a5ca, built 2026-09-08, aarch64-apple-darwin)   # local build
+workspan 0.5.1 (git de967f24a5ca, built 2026-09-08, aarch64-apple-darwin)   # released build
 ```
 
 ## Installing and updating
@@ -79,7 +79,7 @@ curl -fsSL https://raw.githubusercontent.com/eduuh/workspan/main/install.sh | sh
 `releases/latest` — through an authenticated `gh` first (which also reaches a private fork's
 releases), falling back to `curl`. There is
 deliberately **no** compile-from-source fallback behind it: a silent local build is how machines
-end up running different bn than the one that passed CI. To build a checkout on purpose — an
+end up running different workspan than the one that passed CI. To build a checkout on purpose — an
 unmerged branch, a local patch, a platform the release skips — run `./build.sh`.
 
 Workspan is CLI-only. Installs ship `workspan` and the stdio `bn-mcp` companion, with no dashboard,
@@ -105,7 +105,7 @@ binary with the same or an older commit, so a lagging release can never walk a m
 | target | built on | why |
 | --- | --- | --- |
 | `aarch64-apple-darwin` | self-hosted macOS runner | GitHub-hosted macOS bills at 10x on a private repo |
-| `x86_64-unknown-linux-gnu` | `ubuntu-22.04` | the oldest glibc we link against is the oldest machine bn installs on — this pin is the support floor, not an accident |
+| `x86_64-unknown-linux-gnu` | `ubuntu-22.04` | the oldest glibc we link against is the oldest machine workspan installs on — this pin is the support floor, not an accident |
 
 Adding a platform is one entry in `release.yml`'s build matrix plus a target triple in
 `scripts/install-toolchain.sh`, which is what `install.sh` uses to pick its asset. Adding a
@@ -113,7 +113,7 @@ Adding a platform is one entry in `release.yml`'s build matrix plus a target tri
 
 ## What this replaced
 
-Two mechanisms both claimed to ship bn, and between them neither did it reliably:
+Two mechanisms both claimed to ship workspan, and between them neither did it reliably:
 
 - **`release-plz` + `cargo-dist`** (`release-plz.yml`, `release.yml`, `release-plz.toml`) — a
   bot opened a version-bump PR whose merge pushed a tag that triggered a cargo-dist build. The

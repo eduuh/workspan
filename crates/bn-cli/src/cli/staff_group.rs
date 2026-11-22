@@ -25,7 +25,7 @@ pub(crate) enum CmdStaff {
     },
     /// Structured session resume packet (#120): the five layers — state snapshot, narrative,
     /// decisions made/deferred, open questions, priority queue — composed from the note and
-    /// stored beside it. `bn handoff write` captures it (markdown + JSON); bare `bn handoff`
+    /// stored beside it. `workspan handoff write` captures it (markdown + JSON); bare `workspan handoff`
     /// (or `read`) prints the session-start orientation. Wire it at session end so the next
     /// session is oriented in one read.
     Handoff {
@@ -35,12 +35,12 @@ pub(crate) enum CmdStaff {
     /// Switch harnesses mid-task without losing context: capture the session you're leaving (a
     /// live one if it's still running, else the last recorded), write the handoff resume packet,
     /// and print the orientation plus the command to start the target harness in this worktree.
-    /// Run it when you hit a limit in one harness and want to finish in another. `bn switch
-    /// copilot` / `bn switch claude`; bare `bn switch` picks the other harness from the one
-    /// currently driving bn.
+    /// Run it when you hit a limit in one harness and want to finish in another. `workspan switch
+    /// copilot` / `workspan switch claude`; bare `workspan switch` picks the other harness from the one
+    /// currently driving workspan.
     Switch {
         /// Target harness to resume in: claude | copilot. Omit to pick the opposite of the
-        /// harness currently driving bn (falling back to the review harness, else copilot).
+        /// harness currently driving workspan (falling back to the review harness, else copilot).
         harness: Option<String>,
         /// Override the first prompt handed to the target harness (default: load the handoff
         /// packet, then continue the priority queue).
@@ -51,7 +51,7 @@ pub(crate) enum CmdStaff {
         /// read the handoff. Falls back to printing when no tmux window is found.
         #[arg(long)]
         in_place: bool,
-        /// Why you're switching, recorded to the metrics log so `bn metrics` can tell a
+        /// Why you're switching, recorded to the metrics log so `workspan metrics` can tell a
         /// rate-limit-driven hop from a manual one: limit | manual | stuck (default: manual).
         #[arg(long)]
         reason: Option<String>,
@@ -60,7 +60,7 @@ pub(crate) enum CmdStaff {
         #[arg(long)]
         branch: Option<String>,
     },
-    /// Run a persisted job script, recording its outcome to the event log: bn run <job>.
+    /// Run a persisted job script, recording its outcome to the event log: workspan run <job>.
     /// Resolves branch → repo → global; pass --repo/--branch to target a branch from cron.
     Run {
         job: String,
@@ -69,17 +69,17 @@ pub(crate) enum CmdStaff {
         #[arg(long)]
         branch: Option<String>,
         /// Catch-up guard: skip (clean no-op, exit 0) when this job already had a successful
-        /// run today, per the event log. Lets a job fire once on the first bn event of the day
+        /// run today, per the event log. Lets a job fire once on the first workspan event of the day
         /// without double-running when its systemd timer already covered it.
         #[arg(long = "if-stale")]
         if_stale: bool,
     },
     /// Your own commands: the thing you do over and over, written once as `cmds/<name>.sh` and
-    /// run with arguments — by you, or by an agent through the `bn_cmd` MCP tool. Bare `bn cmd`
-    /// lists them with their `# description:` line; `bn cmd <name> [args...]` runs one in the
-    /// current directory; `bn cmd --pick` chooses one in fzf (tmux `prefix c`);
-    /// `bn cmd --new <name>` scaffolds one (`--scope` global, repo, project or
-    /// branch; default global). Resolves branch → project → repo → global, like `bn run`.
+    /// run with arguments — by you, or by an agent through the `bn_cmd` MCP tool. Bare `workspan cmd`
+    /// lists them with their `# description:` line; `workspan cmd <name> [args...]` runs one in the
+    /// current directory; `workspan cmd --pick` chooses one in fzf (tmux `prefix c`);
+    /// `workspan cmd --new <name>` scaffolds one (`--scope` global, repo, project or
+    /// branch; default global). Resolves branch → project → repo → global, like `workspan run`.
     Cmd {
         /// The command to run. Omit to list them.
         name: Option<String>,
@@ -105,7 +105,7 @@ pub(crate) enum CmdStaff {
         #[command(subcommand)]
         action: MachineCmd,
     },
-    /// Cron observability and job scripts. Bare `bn cron` shows the unified dashboard.
+    /// Cron observability and job scripts. Bare `workspan cron` shows the unified dashboard.
     Cron {
         #[command(subcommand)]
         action: Option<CronCmd>,
@@ -117,29 +117,29 @@ pub(crate) enum CmdStaff {
     },
     /// Workflow prompts and reusable automation snippets. Served to Claude Code as MCP prompts
     /// (`/bn:<name>`) and installed for Copilot CLI as native skills referred to by name.
-    /// Bare `bn skills` lists them across every tier (global shared/personal, per-repo
-    /// shared/personal); `bn skills find <task...>` ranks likely matches, `bn skills render`
-    /// prints one headlessly for scripts, and `bn skills new <name>` scaffolds one.
+    /// Bare `workspan skills` lists them across every tier (global shared/personal, per-repo
+    /// shared/personal); `workspan skills find <task...>` ranks likely matches, `workspan skills render`
+    /// prints one headlessly for scripts, and `workspan skills new <name>` scaffolds one.
     Skills {
         #[command(subcommand)]
         action: Option<SkillsCmd>,
-        /// Pick a skill in an fzf popup and launch it (`bn agent run`), instead of listing.
-        /// Bare `bn skills` stays a plain list, because crons and scripts parse it.
+        /// Pick a skill in an fzf popup and launch it (`workspan agent run`), instead of listing.
+        /// Bare `workspan skills` stays a plain list, because crons and scripts parse it.
         #[arg(long)]
         pick: bool,
     },
-    /// Strict Markdown agent catalog. Bare `bn agents` lists every explicit kind and schedule;
+    /// Strict Markdown agent catalog. Bare `workspan agents` lists every explicit kind and schedule;
     /// `validate` checks every visible manifest, `render` resolves a prompt body, and specialist
     /// show/install/bootstrap commands compile repo-gated reviewers for Copilot CLI / Claude Code.
     Agents {
         #[command(subcommand)]
         action: Option<AgentsCmd>,
-        /// Pick an agent in an fzf popup and launch it (`bn agent run`), instead of listing.
-        /// Bare `bn agents` stays a plain list, because crons and scripts parse it.
+        /// Pick an agent in an fzf popup and launch it (`workspan agent run`), instead of listing.
+        /// Bare `workspan agents` stays a plain list, because crons and scripts parse it.
         #[arg(long)]
         pick: bool,
     },
-    /// MCP server helpers. `bn mcp init <claude|copilot>` wires the current repo: the
+    /// MCP server helpers. `workspan mcp init <claude|copilot>` wires the current repo: the
     /// project-scoped MCP config(s) plus an instruction block in the harness's memory file
     /// (copilot wires both the VS Code extension and the Copilot CLI). Idempotent and
     /// committable — the per-repo counterpart to install.sh's global registration.
@@ -163,7 +163,7 @@ mod tests {
             .expect("skills command")
             .render_help()
             .to_string();
-        assert!(help.contains("bn skills find <task...>"));
+        assert!(help.contains("workspan skills find <task...>"));
         assert!(!help.contains("bn retro"));
     }
 }
@@ -171,7 +171,7 @@ mod tests {
 #[derive(Subcommand, Debug)]
 pub(crate) enum HandoffCmd {
     /// Capture the resume packet (markdown + JSON) beside the note from its current state, plus
-    /// any author-supplied forward-looking layers: bn handoff write.
+    /// any author-supplied forward-looking layers: workspan handoff write.
     Write {
         /// The narrative (layer 2): a few sentences on why it looks this way. Repeatable words
         /// are joined.
@@ -197,7 +197,7 @@ pub(crate) enum HandoffCmd {
         branch: Option<String>,
     },
     /// Print the session-start orientation from the stored packet (default — same as bare
-    /// `bn handoff`). Falls back to composing one from the note when none was written.
+    /// `workspan handoff`). Falls back to composing one from the note when none was written.
     Read {
         #[arg(long)]
         repo: Option<String>,

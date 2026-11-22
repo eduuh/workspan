@@ -183,7 +183,7 @@ struct Cli {
     #[arg(long = "json", global = true)]
     json: bool,
 
-    /// Write a structured action log (verbose/debug mode) of every high-value action bn performs
+    /// Write a structured action log (verbose/debug mode) of every high-value action Workspan performs
     /// to a rotating file under the state dir. Also enabled by `BN_VERBOSE`/`BN_LOG` or `[log]`
     /// in config.toml. `--debug` is an alias.
     #[arg(long = "verbose", visible_alias = "debug", global = true)]

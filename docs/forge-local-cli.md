@@ -1,10 +1,10 @@
 # Forge local CLI
 
-`bn forge` is the local bridge from Forge claimable tasks into bn agent dispatch.
+`workspan forge` is the local bridge from Forge claimable tasks into workspan agent dispatch.
 
 ## Profile
 
-Each local agent profile lives outside bn config at:
+Each local agent profile lives outside workspan config at:
 
 ```text
 ~/.config/wira360/agents/<agent>.json
@@ -25,7 +25,7 @@ The nested schema is also accepted for tests/manual profiles:
 ```json
 {
   "claimer": {
-    "id": "bn@example-machine",
+    "id": "workspan@example-machine",
     "displayName": "Example Forge Agent"
   },
   "forgeMcp": {
@@ -48,9 +48,9 @@ credentials, and other embedded secrets are rejected. Forge access is OAuth MCP 
 ## Commands
 
 ```text
-bn forge list <agent> [--task <id>] [--limit <n>] [--json]
-bn forge claim <agent> --task <id> [--lease-seconds <seconds>] [--json]
-bn forge dispatch <agent> --task <id> [--repo <repo>] [--agent <harness>] [--name <name>] [--verify] [--json]
+workspan forge list <agent> [--task <id>] [--limit <n>] [--json]
+workspan forge claim <agent> --task <id> [--lease-seconds <seconds>] [--json]
+workspan forge dispatch <agent> --task <id> [--repo <repo>] [--agent <harness>] [--name <name>] [--verify] [--json]
 ```
 
 `list` is side-effect free. It validates the profile and calls Forge MCP `list_bn_tasks` with
@@ -59,16 +59,16 @@ bn forge dispatch <agent> --task <id> [--repo <repo>] [--agent <harness>] [--nam
 `claim` calls Forge MCP `claim_activity` for exactly one task id using the profile's configured
 claimer. It does not dispatch local work.
 
-`dispatch` claims first, then starts existing `bn dispatch` with traceable item text in the form
-`Forge task <id>: <title>`. If dispatch fails after a successful claim, bn records a blocker in the
+`dispatch` claims first, then starts existing `workspan dispatch` with traceable item text in the form
+`Forge task <id>: <title>`. If dispatch fails after a successful claim, workspan records a blocker in the
 current branch note and exits non-zero. The claim is not released unless Forge release semantics are
 implemented explicitly.
 
 ## MCP transport
 
-`bn forge` uses the Forge server registered in `~/.copilot/mcp-config.json` when it exists. That
+`workspan forge` uses the Forge server registered in `~/.copilot/mcp-config.json` when it exists. That
 registration is written by `setup:forge-agent` and launches `mcp-remote` with the static OAuth
-client metadata needed by Forge. If no Copilot registration exists, `bn forge` falls back to:
+client metadata needed by Forge. If no Copilot registration exists, `workspan forge` falls back to:
 
 ```text
 npx -y mcp-remote@latest <forgeMcp.endpoint|forgeMcpUrl> --protocol auto
@@ -81,7 +81,7 @@ documented Forge tools, and parses JSON tool content:
 - `claim_activity(claimer, id, leaseSeconds)`
 
 If the local MCP bridge is missing, cannot authenticate, or returns an unexpected response shape,
-`bn forge` exits non-zero with a stable JSON error instead of falling back to API keys.
+`workspan forge` exits non-zero with a stable JSON error instead of falling back to API keys.
 
 The `bn/main` checkout is reference-only evidence for this work. Do not edit or
 copy code there for the Forge local CLI.

@@ -2,7 +2,7 @@ use crate::*;
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum CmdTracking {
-    /// Weekly auto-retro: mine the telemetry bn already collects (punch log, focus blocks, PR
+    /// Weekly auto-retro: mine the telemetry workspan already collects (punch log, focus blocks, PR
     /// metrics, todo ages, daily goals) into a metric table + one heuristic suggestion. Anchored
     /// to the configured weekly window; read-only and network-free.
     /// This is the *objective* retro.

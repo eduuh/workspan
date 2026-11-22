@@ -3,7 +3,7 @@ use std::path::Path;
 
 pub(crate) fn name_from_arg(arg: Option<&OsStr>) -> &'static str {
     match arg.and_then(|arg| Path::new(arg).file_stem()?.to_str()) {
-        Some("workspan" | "wp") => "workspan",
+        Some("workspan" | "ws" | "wp") => "workspan",
         _ => "bn",
     }
 }
@@ -23,6 +23,8 @@ mod tests {
             "workspan"
         );
         assert_eq!(name_from_arg(Some(OsStr::new("wp.exe"))), "workspan");
+        assert_eq!(name_from_arg(Some(OsStr::new("/tools/ws"))), "workspan");
+        assert_eq!(name_from_arg(Some(OsStr::new("ws.exe"))), "workspan");
         assert_eq!(name_from_arg(Some(OsStr::new("/tools/bn"))), "bn");
         assert_eq!(name_from_arg(None), "bn");
     }

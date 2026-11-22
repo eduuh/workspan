@@ -254,7 +254,7 @@ pub enum WtCmd {
         #[arg(long)]
         pr: bool,
     },
-    /// Treehouse-style pool of warm, reusable worktrees — every repo bn has a clone of, with no
+    /// Treehouse-style pool of warm, reusable worktrees — every repo workspan has a clone of, with no
     /// registration and nothing to size. Slots live at `<root>/worktree/<repo>/_pool/<n>` and keep
     /// their deps/build cache between uses, so an agent gets an isolated checkout without a cold
     /// build.
@@ -264,7 +264,7 @@ pub enum WtCmd {
     },
 }
 
-/// `bn wt pool` subcommands. Handlers live in the sibling `wt_pool` module; the enum stays here so
+/// `workspan wt pool` subcommands. Handlers live in the sibling `wt_pool` module; the enum stays here so
 /// clap derives it in the same context as its `WtCmd` parent.
 #[derive(Subcommand, Debug)]
 pub enum PoolCmd {
@@ -303,7 +303,7 @@ pub enum PoolCmd {
         repo: Option<String>,
     },
     /// Pre-build every slot so they're warm and ready: create each slot's checkout (up to the
-    /// configured size) and run the repo's `build.sh` (the same script `bn build` uses) in it.
+    /// configured size) and run the repo's `build.sh` (the same script `workspan build` uses) in it.
     /// Scaffolds a `build.sh` template if none exists. Re-run after changing deps to re-warm.
     /// Leased slots (an agent is using them) and dirty slots (uncommitted work) are always skipped
     /// — warming would disrupt them — so only idle-clean and brand-new slots are built. `--new`

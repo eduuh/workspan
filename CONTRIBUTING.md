@@ -21,7 +21,7 @@ runs on GitHub-hosted runners.
 - Match the surrounding code: its naming, comment density and error handling.
 - Skills live in `config/prompts/<name>.md`. Every description reads "what it does. Use when ...".
 - Keep machine-specific or private material out of the repo: personal skills and jobs belong in
-  your notes tree or `~/.config/bn/`, which bn already reads.
+  your notes tree or `~/.config/bn/`, which workspan already reads.
 
 ## License
 

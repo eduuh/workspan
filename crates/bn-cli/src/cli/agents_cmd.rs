@@ -28,7 +28,7 @@ pub(crate) enum AgentsCmd {
         #[arg(long)]
         claude: bool,
     },
-    /// Scaffold a new specialist source file: bn agents new <name> --repo <r> [--source <ado-repo>].
+    /// Scaffold a new specialist source file: workspan agents new <name> --repo <r> [--source <ado-repo>].
     New {
         name: String,
         /// Repository this specialist is gated to (its description/instruction gate).
@@ -37,7 +37,7 @@ pub(crate) enum AgentsCmd {
         /// One-line description shown to the harness (synthesized from --repo when omitted).
         #[arg(long = "desc", value_name = "TEXT")]
         description: Option<String>,
-        /// ADO repo whose merged-PR review comments `bn agents bootstrap` mines.
+        /// ADO repo whose merged-PR review comments `workspan agents bootstrap` mines.
         #[arg(long, value_name = "ADO_REPO")]
         source: Option<String>,
         /// Tier to scaffold into: global-personal | global-shared (default global-personal).

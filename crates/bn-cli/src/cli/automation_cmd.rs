@@ -6,8 +6,8 @@ use crate::*;
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum CmdAutomation {
-    /// The Forge app as bn's task store (`[tasks] provider = "forge"`). `bn forge login` mints the
-    /// agent member's key through your signed-in browser; `bn forge status` checks it.
+    /// The Forge app as workspan's task store (`[tasks] provider = "forge"`). `workspan forge login` mints the
+    /// agent member's key through your signed-in browser; `workspan forge status` checks it.
     Forge {
         #[command(subcommand)]
         action: crate::cli::ForgeAppCmd,
@@ -15,13 +15,13 @@ pub(crate) enum CmdAutomation {
     /// What each agent harness serves — the model ids and reasoning-effort levels it accepts.
     /// Discovered from the harness itself (Copilot enumerates them in its shell completion) and
     /// cached for a day, so a pipeline stage is never configured with a model that will be silently
-    /// dropped at launch. Falls back to the aliases bn validates when a harness offers no list.
+    /// dropped at launch. Falls back to the aliases workspan validates when a harness offers no list.
     Harness {
         #[command(subcommand)]
         action: HarnessCmd,
     },
     /// Jump to whatever needs you (prefix `j`): an fzf popup stacking live tmux windows that need
-    /// you (waiting / done / blocker badges) over the cross-repo `bn next` queue. ↵ switches to the
+    /// you (waiting / done / blocker badges) over the cross-repo `workspan next` queue. ↵ switches to the
     /// window or opens the link; ctrl-r reloads. Plain list when fzf is absent.
     Jump {
         /// Fast-path (prefix Tab): jump straight to the top-ranked window, no picker.
@@ -65,8 +65,8 @@ pub(crate) enum CmdAutomation {
         pick_arg: Option<String>,
     },
     /// Remote connect (the cross-machine `tat`): an fzf picker over your `~/.ssh/config` hosts
-    /// (enriched by config.toml `[hosts]`), preview shows the remote's live `bn summary`. ↵ or
-    /// `bn connect <alias>` opens `ssh -t` into `tmux new-session -A -s bn` on the target, so a
+    /// (enriched by config.toml `[hosts]`), preview shows the remote's live `workspan summary`. ↵ or
+    /// `workspan connect <alias>` opens `ssh -t` into `tmux new-session -A -s workspan` on the target, so a
     /// dropped pipe re-attaches instead of killing work. Degrades to a plain ssh shell when the
     /// remote has no tmux, and to a numbered list when fzf is absent. `--window` wraps that
     /// connection in a local `host:<alias>` tmux session; `--read-only` observes an existing
@@ -78,7 +78,7 @@ pub(crate) enum CmdAutomation {
         /// or switch to that session; outside tmux, attach to it.
         #[arg(long)]
         window: bool,
-        /// Attach to the remote `bn` tmux session read-only. If it does not exist, degrade to the
+        /// Attach to the remote `workspan` tmux session read-only. If it does not exist, degrade to the
         /// remote login shell instead of creating it.
         #[arg(long)]
         read_only: bool,
@@ -90,16 +90,16 @@ pub(crate) enum CmdAutomation {
     /// route ssh takes to it (LAN or tunnel), whether it answers, and why not. Runs the `tunnels`
     /// job (config/jobs/tunnels.sh); reads only.
     Tunnels,
-    /// GitHub Codespaces as ssh hosts. `bn cs connect <codespace>` writes a managed
-    /// `# >>> bn codespace <alias> >>>` block (from `gh cs ssh --config`, renamed to `cs-<word>`,
-    /// with connection reuse) into ~/.ssh/config, so `ssh <alias>`, `bn connect` and
-    /// `bn agent launch --host` reach it; `bn tunnels` lists it. Never wakes a stopped codespace.
+    /// GitHub Codespaces as ssh hosts. `workspan cs connect <codespace>` writes a managed
+    /// `# >>> workspan codespace <alias> >>>` block (from `gh cs ssh --config`, renamed to `cs-<word>`,
+    /// with connection reuse) into ~/.ssh/config, so `ssh <alias>`, `workspan connect` and
+    /// `workspan agent launch --host` reach it; `workspan tunnels` lists it. Never wakes a stopped codespace.
     Cs {
         #[command(subcommand)]
         action: CsCmd,
     },
-    /// commits since the note was last touched, `bn done` for todos a commit closed, and (on a
-    /// MERGED PR) `bn close` + `wt cleanup`. Interactive confirm by default; nothing is written
+    /// commits since the note was last touched, `workspan done` for todos a commit closed, and (on a
+    /// MERGED PR) `workspan close` + `wt cleanup`. Interactive confirm by default; nothing is written
     /// without confirm or `--yes`. Silent when already in sync.
     Sync {
         /// Apply every proposal without prompting.
@@ -107,7 +107,7 @@ pub(crate) enum CmdAutomation {
         yes: bool,
     },
     /// Attention items: hand-, script-, or agent-raised entries on the attention list.
-    /// Bare `bn attn` lists the open set; they also fold into `bn doctor`. Resolve with `ack`
+    /// Bare `workspan attn` lists the open set; they also fold into `workspan doctor`. Resolve with `ack`
     /// (done), `remove` (cancelled), or `plan` (promote to a todo); edit with `update`.
     Attn {
         #[command(subcommand)]
@@ -118,13 +118,13 @@ pub(crate) enum CmdAutomation {
         type_filter: Vec<String>,
     },
     /// Desktop-notification policy: what toasted today, what was held back, and why. A toast
-    /// means work has stopped and needs your decision; everything else stays in `bn next`.
+    /// means work has stopped and needs your decision; everything else stays in `workspan next`.
     Notify {
         #[command(subcommand)]
         action: Option<NotifyCmd>,
     },
-    /// AI-agent session telemetry. Bare `bn agent` lists this branch's recent Claude/Copilot
-    /// sessions; `bn agent ingest` folds new sessions into the metrics log (the poller's call).
+    /// AI-agent session telemetry. Bare `workspan agent` lists this branch's recent Claude/Copilot
+    /// sessions; `workspan agent ingest` folds new sessions into the metrics log (the poller's call).
     Agent {
         #[command(subcommand)]
         action: Option<AgentCmd>,
@@ -155,7 +155,7 @@ pub(crate) enum CmdAutomation {
         /// before the crash. Reports in the tmux status line.
         #[arg(long, requires = "all", conflicts_with_all = ["dry_run", "slots"])]
         auto: bool,
-        /// Restore only these pool slots (repeatable). A plain `bn resume 2` stays a session query,
+        /// Restore only these pool slots (repeatable). A plain `workspan resume 2` stays a session query,
         /// so the slot filter needs its own flag.
         #[arg(long = "slot", value_name = "N", requires = "all")]
         slots: Vec<u32>,
@@ -167,7 +167,7 @@ pub(crate) enum CmdAutomation {
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum CsCmd {
-    /// Write (or refresh) the ssh alias for a codespace. Bare `bn cs connect` lists your
+    /// Write (or refresh) the ssh alias for a codespace. Bare `workspan cs connect` lists your
     /// codespaces and the alias each would get.
     Connect {
         /// Codespace name, unique name prefix, or display name (from `gh cs list`).
@@ -178,7 +178,7 @@ pub(crate) enum CsCmd {
     },
     /// Remove a codespace's managed block from ~/.ssh/config. The codespace itself is untouched.
     Disconnect {
-        /// The alias `bn cs connect` wrote (e.g. cs-umbrella).
+        /// The alias `workspan cs connect` wrote (e.g. cs-umbrella).
         alias: String,
     },
 }
