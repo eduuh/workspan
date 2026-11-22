@@ -20,7 +20,13 @@ use crate::resolver;
 const BEGIN: &str = "<!-- BEGIN bn (managed by `bn mcp init`) -->";
 const END: &str = "<!-- END bn -->";
 
-const MCP_SESSION_TOOLS: &[&str] = &["bn_context", "bn_add", "bn_done", "bn_cat"];
+const MCP_TOOLS: &[&str] = &[
+    "bn_ref",
+    "bn_ref_append",
+    "bn_cmd",
+    "bn_links_search",
+    "bn_links_add",
+];
 
 /// The agent-facing instructions dropped into the harness's memory file. Mirrors the MCP
 /// server's own `with_instructions`, framed for an editor that has the scoped bn tools available.
@@ -30,45 +36,29 @@ const INSTRUCTIONS: &str = "\
 Workspan coordinates workspaces, agents, machines, and execution. Entire handles captured
 agent-session history. The `bn` command and MCP tool names remain compatibility interfaces.
 
-### Legacy note tools
+### Session capture and repository setup
 
-This repo's branch-note tools are served by a per-worktree stdio launcher (`bn mcp serve`) that
-your MCP client spawns automatically. They are scoped to the current worktree's branch note — the
-launcher derives its (repo, branch) from your working directory, so nothing needs to be running
-first. Workflows that still use legacy notes can access these compatibility tools:
+Branch notes and their dependent tools are retired. Start from Git/workspace context and the
+task and agent registries. Do not create branch notes or use them as a session ledger.
 
-- `bn_context` — compact session-start orientation (goal, counts, top todos, blockers, PR,
-  next-step hints) in one call.
-- `bn_add` — record a todo / blocker / decision / research / collab / ask as it comes up.
-- `bn_done` — close a todo the moment it's finished.
-- `bn_cat` — read only the current branch note.
+Repository onboarding must enable Entire for the selected harness through the approved setup
+helper (`workspan-setup-entire copilot` or `workspan-setup-entire claude`). Checkpoint capture
+requires an explicitly approved private destination; never default to uploading session history
+alongside the code remote. Setup failure is an onboarding blocker.
 
-This is a deliberately slim tool surface for efficiency. The single-purpose tools (`bn_goal`,
-`bn_pr`, `bn_status`, `bn_sync`, `bn_handoff_read`, `bn_handoff_write`) are not advertised over
-MCP — use the `bn` CLI (`bn goal`, `bn pr`, `bn status`, `bn sync`, `bn handoff …`) when needed.
-If the MCP server is unavailable, keep working through the CLI instead of blocking: each `bn_*`
-tool maps to the same words after `bn` (`bn_context` → `bn status`, `bn_cat` → `bn cat`,
-`bn_add` → `bn add`, and `bn_done` → `bn done`).
+### MCP tools
 
-The MCP surface intentionally cannot target another repo or branch and does not expose
-cross-branch rollups, search, daily goals, reviews, metrics, attention queues, cron status, or
-agent fleet/session mining. Use the `bn` CLI explicitly for those broader workflows.
+The client starts `bn mcp serve` over stdio in its worktree. The server offers:
 
-Fleet orchestration is driven natively from the `bn` CLI — no tmux dashboard required. Drive and
-monitor agents across repos with `bn orchestrate` (`status`, `supervise [--all-repos]`,
-`scale`, `add`, `--queue`, `ask` / `answers`, `backlog --all-repos`) alongside `bn next` and
-`bn doctor`.
+- `bn_ref` and `bn_ref_append` — read repository/global reference docs and record durable facts.
+  Read the index first; include sources and verification dates when recording facts.
+- `bn_cmd` — discover and run reusable commands in the current worktree.
+- `bn_links_search` and `bn_links_add` — search before saving a deliberately curated link.
+  Save only important, repeatedly useful links that fill a real gap, not routine PRs or work items.
 
-Timing matters: every mutation is timestamped as it happens, so mark `bn_done` when the work
-actually happens — not batched at session end — and only record what genuinely occurred.
-
-Prompts are reusable workflows in `config/prompts/`. In Claude Code they are served as MCP prompts
-(`/bn:<name>`); in Copilot CLI they are installed as native skills referred to by their name (not
-`/mcp.bn.<name>` — Copilot does not surface MCP prompts). Every effective skill is served, so a
-prompt exists for each workflow the tiers define; use the CLI for cross-branch workflows, and note
-that some prompts (PR review, orchestration) describe steps whose commands live only in the CLI.
-Reference skills sit in `config/skills/` and are referred to by name from a prompt's body
-rather than invoked directly.";
+Use the Workspan CLI for task, machine and agent operations. MCP prompts are reusable workflows
+from `config/prompts/`; Copilot installs them as native skills. Prompts supply instructions, not
+permissions. Reference skills in `config/skills/` provide standards, not branch session state.";
 
 /// One curated MCP server (#323). `command` is normally a package *runner* (`npx` / `uvx`) so the
 /// server installs itself on first launch; where no such runner exists it is the server binary
@@ -188,7 +178,7 @@ const COPILOT_WORKSPACE_MCP_FILES: &[&str] = &[".mcp.json", ".github/mcp.json"];
 /// unattended agent can't complete an interactive auth flow, so a project server that blocks the
 /// MCP handshake wedges the whole session before it ever reaches its prompt. bn's own server
 /// (the conventional name `bn`, or the legacy `bn-mcp` command) is kept — it's the local
-/// `bn mcp serve` stdio launcher and the source of the branch-note tools the workflow drives.
+/// `bn mcp serve` stdio launcher and the source of reference, command and link tools.
 /// The curated [`EXTRAS`] are kept for the same reason: bn wired them, they are vetted, and none
 /// of them can ask an unattended agent to authenticate.
 ///
@@ -227,7 +217,7 @@ fn collect_non_bn_servers(root: &Value, out: &mut std::collections::BTreeSet<Str
 
 /// Whether a configured server entry is bn's own — matched by the conventional server name or,
 /// robustly, by the launched command's basename (`bn-mcp`), so a repo that renames the server
-/// still keeps it instead of suppressing the branch-note tools. bn's HTTP entry (#640) is always
+/// still keeps it instead of suppressing the Workspan tools. bn's HTTP entry (#640) is always
 /// written under the name `bn`, so the name check covers it; a generic "url ends in /mcp" test is
 /// deliberately avoided since many third-party servers share that path and must stay suppressed.
 fn is_bn_server(name: &str, entry: &Value) -> bool {
@@ -402,7 +392,7 @@ impl Harness {
     }
 }
 
-/// The per-worktree stdio launcher an MCP client spawns for the scoped branch-note tools:
+/// The per-worktree stdio launcher an MCP client spawns for reference, command and link tools:
 /// `bn mcp serve`. The child (`bn-mcp`) derives its `(repo, branch)` from the launch cwd, so the
 /// committed config stays branch-agnostic and needs no per-call scope headers. `bn` is resolved off
 /// the client's `PATH` (install.sh puts it there); a from-source checkout can point the generated
@@ -437,7 +427,7 @@ impl Flavor {
     /// The bn server entry: the per-worktree **stdio** launcher `bn mcp serve`, which pins its
     /// scope to the client's cwd so no per-call headers are needed. Claude / VS Code get a
     /// `{type:"stdio", command, args}` entry; the GitHub Copilot CLI gets `{type:"local", …}` and
-    /// additionally pins the curated session-tools allow-list.
+    /// additionally pins the supported tools allow-list.
     fn bn_entry(self) -> Value {
         match self {
             Flavor::Stdio => json!({
@@ -449,7 +439,7 @@ impl Flavor {
                 "type": "local",
                 "command": BN_COMMAND,
                 "args": BN_SERVE_ARGS,
-                "tools": MCP_SESSION_TOOLS,
+                "tools": MCP_TOOLS,
             }),
         }
     }
@@ -848,6 +838,70 @@ mod extra_tests {
         assert_eq!(
             out.into_iter().collect::<Vec<_>>(),
             vec!["some-repo-server".to_string()]
+        );
+    }
+
+    #[test]
+    fn rewiring_replaces_legacy_note_tools_and_preserves_other_servers_and_instructions() {
+        let root = tempfile::tempdir().expect("tempdir");
+        let config = root.path().join("mcp.json");
+        let instructions = root.path().join("instructions.md");
+        let unrelated = json!({"command": "custom-server", "args": ["--custom"]});
+        std::fs::write(
+            &config,
+            json!({
+                "mcpServers": {
+                    "bn": {"command": "bn", "tools": ["bn_context", "bn_add", "bn_done", "bn_cat"]},
+                    "custom": unrelated,
+                },
+                "other": true,
+            })
+            .to_string(),
+        )
+        .expect("legacy config");
+        std::fs::write(
+            &instructions,
+            format!("Before\n{BEGIN}\nUse bn_context and bn_add.\n{END}\nAfter\n"),
+        )
+        .expect("legacy instructions");
+
+        let entry = Flavor::Local.bn_entry();
+        let (report, ()) =
+            write_server_json(&config, "mcpServers", &entry, |_| ()).expect("rewire config");
+        assert_eq!(report.action, "updated");
+        let wired: Value =
+            serde_json::from_str(&std::fs::read_to_string(&config).expect("read config"))
+                .expect("parse config");
+        let tools = wired["mcpServers"]["bn"]["tools"]
+            .as_array()
+            .expect("tools");
+        assert!(tools.contains(&json!("bn_cmd")));
+        for retired in ["bn_context", "bn_add", "bn_done", "bn_cat"] {
+            assert!(!tools.contains(&json!(retired)), "{retired} still wired");
+        }
+        assert_eq!(wired["mcpServers"]["custom"], unrelated);
+        assert_eq!(wired["other"], true);
+        assert_eq!(
+            write_server_json(&config, "mcpServers", &entry, |_| ())
+                .expect("rewire again")
+                .0
+                .action,
+            "unchanged"
+        );
+
+        assert_eq!(
+            write_instructions(&instructions).expect("rewrite").action,
+            "updated"
+        );
+        let text = std::fs::read_to_string(&instructions).expect("read instructions");
+        assert!(text.starts_with("Before\n"));
+        assert!(text.ends_with("\nAfter\n"));
+        assert!(text.contains("workspan-setup-entire"));
+        assert!(!text.contains("bn_context"));
+        assert!(!text.contains("bn_add"));
+        assert_eq!(
+            write_instructions(&instructions).expect("rerun").action,
+            "unchanged"
         );
     }
 }

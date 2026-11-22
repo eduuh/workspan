@@ -32,8 +32,8 @@ struct EmptyArgs {}
 struct SpinUpArgs {
     /// Target repo by name (a bare repo under the bare root). Works from anywhere.
     repo: String,
-    /// The goal / item to work on — becomes the new branch note's Goal and the agent's seed. May be
-    /// free text, or an issue/PR URL (its title is resolved).
+    /// The goal / item to work on, passed to the agent as its seed. May be free text, or an
+    /// issue/PR URL (its title is resolved).
     goal: String,
     /// Branch to create (default: derived from the goal as `dispatch/<slug>`). For attention
     /// fanout, pass a unique branch (e.g. `dispatch/<slug>-<attn-id>`) so items can't collide.
@@ -200,7 +200,7 @@ impl BnOrchestratorServer {
 
     #[tool(
         name = "spin_up_work",
-        description = "Spin up isolated work on any repo from anywhere: create a worktree off the base branch, seed its branch note with the goal, open a window in the repo's tmux session, and launch an agent (copilot default; claude also). Each call is fully isolated — its own worktree, tmux window, and note. Re-calling the same branch is idempotent (won't clobber a live note)."
+        description = "Spin up isolated work on any repo from anywhere: create a worktree off the base branch, open a window in the repo's tmux session, and launch an agent with the goal as its seed (copilot default; claude also). Each call has its own worktree and tmux window."
     )]
     async fn spin_up_work(
         &self,

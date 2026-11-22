@@ -5,44 +5,28 @@
 Workspan coordinates workspaces, agents, machines, and execution. Entire handles captured
 agent-session history. The `bn` command and MCP tool names remain compatibility interfaces.
 
-### Legacy note tools
+### Session capture and repository setup
 
-This repo's branch-note tools are served by a per-worktree stdio launcher (`bn mcp serve`) that
-your MCP client spawns automatically. They are scoped to the current worktree's branch note — the
-launcher derives its (repo, branch) from your working directory, so nothing needs to be running
-first. Workflows that still use legacy notes can access these compatibility tools:
+Branch notes and their dependent tools are retired. Start from Git/workspace context and the
+task and agent registries. Do not create branch notes or use them as a session ledger.
 
-- `bn_context` — compact session-start orientation (goal, counts, top todos, blockers, PR,
-  next-step hints) in one call.
-- `bn_add` — record a todo / blocker / decision / research / collab / ask as it comes up.
-- `bn_done` — close a todo the moment it's finished.
-- `bn_cat` — read only the current branch note.
+Repository onboarding must enable Entire for the selected harness through the approved setup
+helper (`workspan-setup-entire copilot` or `workspan-setup-entire claude`). Checkpoint capture
+requires an explicitly approved private destination; never default to uploading session history
+alongside the code remote. Setup failure is an onboarding blocker.
 
-This is a deliberately slim tool surface for efficiency. The single-purpose tools (`bn_goal`,
-`bn_pr`, `bn_status`, `bn_sync`, `bn_handoff_read`, `bn_handoff_write`) are not advertised over
-MCP — use the `bn` CLI (`bn goal`, `bn pr`, `bn status`, `bn sync`, `bn handoff …`) when needed.
-If the MCP server is unavailable, keep working through the CLI instead of blocking: each `bn_*`
-tool maps to the same words after `bn` (`bn_context` → `bn status`, `bn_cat` → `bn cat`,
-`bn_add` → `bn add`, and `bn_done` → `bn done`).
+### MCP tools
 
-The MCP surface intentionally cannot target another repo or branch and does not expose
-cross-branch rollups, search, daily goals, reviews, metrics, attention queues, cron status, or
-agent fleet/session mining. Use the `bn` CLI explicitly for those broader workflows.
+The client starts `bn mcp serve` over stdio in its worktree. The server offers:
 
-Fleet orchestration is driven natively from the `bn` CLI — no tmux dashboard required. Drive and
-monitor agents across repos with `bn orchestrate` (`status`, `supervise [--all-repos]`,
-`scale`, `add`, `--queue`, `ask` / `answers`, `backlog --all-repos`) alongside `bn next` and
-`bn doctor`.
+- `bn_ref` and `bn_ref_append` — read repository/global reference docs and record durable facts.
+  Read the index first; include sources and verification dates when recording facts.
+- `bn_cmd` — discover and run reusable commands in the current worktree.
+- `bn_links_search` and `bn_links_add` — search before saving a deliberately curated link.
+  Save only important, repeatedly useful links that fill a real gap, not routine PRs or work items.
 
-Timing matters: every mutation is timestamped as it happens, so mark `bn_done` when the work
-actually happens — not batched at session end — and only record what genuinely occurred.
-
-Prompts are reusable workflows in `config/prompts/`. In Claude Code they are served as MCP prompts
-(`/bn:<name>`); in Copilot CLI they are installed as native skills referred to by their name (not
-`/mcp.bn.<name>` — Copilot does not surface MCP prompts). Every effective skill is served, so a
-prompt exists for each workflow the tiers define; use the CLI for cross-branch workflows, and note
-that some prompts (PR review, orchestration) describe steps whose commands live only in the CLI.
-Reference skills sit in `config/skills/` and are referred to by name from a prompt's body
-rather than invoked directly.
+Use the Workspan CLI for task, machine and agent operations. MCP prompts are reusable workflows
+from `config/prompts/`; Copilot installs them as native skills. Prompts supply instructions, not
+permissions. Reference skills in `config/skills/` provide standards, not branch session state.
 
 <!-- END bn -->

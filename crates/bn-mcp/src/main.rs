@@ -1,5 +1,5 @@
-//! `bn-mcp` — the per-worktree Model Context Protocol server for branch notes, spoken over
-//! **stdio**. A third interface (after the CLI and nvim plugin) driving the same bn-core engine.
+//! `bn-mcp` — the per-worktree Model Context Protocol server for references, commands, links
+//! and workflow prompts, spoken over **stdio**. Entire owns session capture.
 //!
 //! This binary pins the [`bn_mcp`] tool-router to its launch cwd. `bn mcp serve` execs it;
 //! `--orchestrate` selects the separate, opt-in cross-worktree server.

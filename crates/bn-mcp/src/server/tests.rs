@@ -2,6 +2,57 @@ use super::*;
 use std::path::Path;
 use std::process::Command;
 
+#[tokio::test]
+async fn mcp_rejects_branch_note_tools_without_creating_notes() {
+    use rmcp::model::CallToolRequestParams;
+    use rmcp::ServiceExt;
+
+    let root = tempfile::tempdir().expect("tempdir");
+    let worktrees = root.path().join("worktrees");
+    let cfg = Config {
+        worktree_dir: worktrees.clone(),
+        ..bn_core::test_support::config(root.path())
+    };
+    let server = BnServer::new(cfg, worktree(&worktrees, "repo", "topic"), vec![]);
+    let note_dir = server.cfg.note_dir(&server.resolve().expect("scope"));
+    let (client_io, server_io) = tokio::io::duplex(8192);
+    let serving = tokio::spawn(async move { server.serve(server_io).await.expect("server") });
+    let client = ().serve(client_io).await.expect("client");
+    let service = serving.await.expect("server task");
+    let tools = client.list_all_tools().await.expect("list tools");
+
+    for name in [
+        "bn_add",
+        "bn_drop",
+        "bn_reopen",
+        "bn_reword",
+        "bn_done",
+        "bn_pr",
+        "bn_goal",
+        "bn_cat",
+        "bn_context",
+        "bn_status",
+        "bn_sync",
+        "bn_handoff_read",
+        "bn_handoff_write",
+    ] {
+        assert!(!tools.iter().any(|tool| tool.name == name), "{name} listed");
+        assert!(
+            client
+                .call_tool(CallToolRequestParams::new(name))
+                .await
+                .is_err(),
+            "{name} accepted"
+        );
+    }
+    assert!(tools.iter().any(|tool| tool.name == "bn_cmd"));
+    assert!(tools.iter().any(|tool| tool.name == "bn_links_search"));
+    assert!(!note_dir.exists(), "MCP created branch-note storage");
+
+    client.cancel().await.expect("stop client");
+    service.cancel().await.expect("stop server");
+}
+
 fn git(dir: &Path, args: &[&str]) {
     let output = Command::new("git")
         .arg("-C")
@@ -130,7 +181,7 @@ async fn bn_cmd_lists_and_runs_a_branch_command_with_its_args() {
 }
 
 #[tokio::test]
-async fn note_items_can_be_estimated_repaired_and_links_searched() {
+async fn links_can_be_searched_by_query_and_tag() {
     let root = tempfile::tempdir().expect("tempdir");
     let worktrees = root.path().join("worktrees");
     let cfg = Config {
@@ -141,53 +192,6 @@ async fn note_items_can_be_estimated_repaired_and_links_searched() {
     let data = |r: Result<CallToolResult, ErrorData>| {
         r.expect("tool ok").structured_content.expect("json")
     };
-
-    // #1528: reading before the first note exists is a state, not an io error.
-    let cat = data(server.bn_cat(Parameters(EmptyArgs {})).await);
-    assert_eq!(cat["rendered"], json!("repo/topic: no note"));
-
-    let add = |text: &str, est: Option<&str>| {
-        server.bn_add(Parameters(AddArgs {
-            section: "todo".into(),
-            text: text.into(),
-            if_absent: None,
-            est: est.map(str::to_string),
-            q: Some("ship-v1".into()),
-        }))
-    };
-    data(add("write the parser", Some("2h")).await);
-    assert!(add("bad estimate", Some("soon")).await.is_err());
-    let note = bn_core::store::read(&server.cfg.note_file(&server.resolve().unwrap())).unwrap();
-    let t1 = &note.front.todos[0];
-    assert_eq!(
-        (t1.est.as_deref(), t1.q.as_deref()),
-        (Some("2h"), Some("ship-v1"))
-    );
-
-    let item = |q: &str| Parameters(ItemArgs { query: q.into() });
-    let reworded = data(
-        server
-            .bn_reword(Parameters(RewordArgs {
-                query: "t1".into(),
-                text: "write the lexer".into(),
-            }))
-            .await,
-    );
-    assert_eq!(reworded["item"]["previous"], json!("write the parser"));
-    data(
-        server
-            .bn_done(Parameters(DoneArgs {
-                query: "t1".into(),
-                pct: None,
-            }))
-            .await,
-    );
-    assert_eq!(
-        data(server.bn_reopen(item("lexer")).await)["item"]["id"],
-        json!("t1")
-    );
-    data(server.bn_drop(item("t1")).await);
-    assert!(server.bn_drop(item("t1")).await.is_err());
 
     links::add(
         &server.cfg,
