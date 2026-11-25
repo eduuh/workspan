@@ -26,7 +26,7 @@ use std::collections::BTreeMap;
 /// item lifetime, so a legitimate window always terminates on the `>= to` break first.
 const MAX_WINDOW_DAYS: usize = 4000;
 
-/// Coarse t-shirt sizes for an `--est`, in seconds — so sizing (and `bn next --fit`) works before
+/// Coarse t-shirt sizes for an `--est`, in seconds — so sizing (and `workspan next --fit`) works before
 /// the calibration habit forms and you have real duration estimates. `S|M|L` (case-insensitive)
 /// map here; anything else is parsed as a normal duration. Overridable per machine via
 /// `[calib] s|m|l` in config.toml (see [`crate::resolver`]); the defaults are the issue's
@@ -62,7 +62,7 @@ impl CoarseSizes {
 }
 
 /// Resolve an `est:` stamp to seconds: a coarse t-shirt size (`S`/`M`/`L`, from `sizes`) first,
-/// else the `bn focus start` duration grammar (`90m`, `2h`, `1h30m`). `None` for a missing,
+/// else the `workspan focus start` duration grammar (`90m`, `2h`, `1h30m`). `None` for a missing,
 /// malformed, or non-positive value. A bare `m`/`s`/`l` can't be a valid duration on its own
 /// (the grammar needs a number), so the coarse and duration namespaces never collide.
 pub fn est_secs(sizes: &CoarseSizes, est: &str) -> Option<i64> {
@@ -71,9 +71,9 @@ pub fn est_secs(sizes: &CoarseSizes, est: &str) -> Option<i64> {
         .or_else(|| focus::parse_duration(est).filter(|&n| n > 0))
 }
 
-/// Parse an `actual:` stamp to seconds via the `bn focus start` duration grammar. `None` for a
+/// Parse an `actual:` stamp to seconds via the `workspan focus start` duration grammar. `None` for a
 /// missing, malformed, or non-positive value — so a hand-edited garbage stamp folds the item out
-/// of the report rather than skewing it. Actuals are always real durations (bn stamps them), so
+/// of the report rather than skewing it. Actuals are always real durations (workspan stamps them), so
 /// coarse sizes don't apply here.
 fn dur_secs(s: Option<&str>) -> Option<i64> {
     focus::parse_duration(s?).filter(|&n| n > 0)
@@ -91,7 +91,7 @@ fn ratio(sizes: &CoarseSizes, item: &Item) -> Option<f64> {
 /// The calibration multiplier that best applies to a plan item, most-specific first: its
 /// `repo:<repo>` bucket, then any of its `tag:<tag>` buckets, then the whole-corpus `overall`.
 /// `None` when nothing has been calibrated yet — the caller then sizes on the raw estimate.
-/// Backs `bn next --fit` (see [`crate::next`]); daily goals carry no repo/tags, so they resolve
+/// Backs `workspan next --fit` (see [`crate::next`]); daily goals carry no repo/tags, so they resolve
 /// straight to `overall`.
 pub fn multiplier_for(report: &Report, repo: Option<&str>, tags: &[String]) -> Option<f64> {
     let find = |label: &str| {
@@ -295,7 +295,7 @@ fn calibration_hint(m: f64) -> String {
     }
 }
 
-/// Human render for `bn calib`: a header, one aligned row per bucket (`label ×mult (n=…)`), the
+/// Human render for `workspan calib`: a header, one aligned row per bucket (`label ×mult (n=…)`), the
 /// overall row carrying a plain-language hint. Empty corpus prints an actionable nudge.
 pub fn render(report: &Report) -> String {
     let mut out = String::from("Calibration — median actual÷est\n");

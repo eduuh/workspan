@@ -12,7 +12,7 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::process::{Command, Stdio};
 
-/// A Windows Task Scheduler task that runs `bn run <job>`.
+/// A Windows Task Scheduler task that runs `workspan run <job>`.
 #[derive(Debug, Clone)]
 pub struct WinTask {
     pub job: String,
@@ -51,7 +51,7 @@ const CACHE_TTL_SECS: i64 = 3600;
 // ExecStart. Disabled tasks are included (not filtered) so the dashboard can flag a dead schedule.
 const PS_QUERY: &str = "Get-ScheduledTask | Where-Object { ($_.Actions | ForEach-Object Arguments) -match 'bn run' } | ForEach-Object { $a=($_.Actions|ForEach-Object Arguments) -join ' '; $j=if($a -match 'bn run (\\S+)'){$Matches[1]}else{''}; $i=$_|Get-ScheduledTaskInfo; $n=$i.NextRunTime; $e=if($n){[int64]([DateTimeOffset]$n).ToUnixTimeSeconds()}else{0}; $lr=if($i.LastTaskResult -ne $null){$i.LastTaskResult}else{''}; \"$j`t$e`t$($_.State)`t$lr`t$($_.TaskName)\" }";
 
-/// Windows tasks running a `bn run <job>`, served from cache for speed. Empty off WSL. May spawn
+/// Windows tasks running a `workspan run <job>`, served from cache for speed. Empty off WSL. May spawn
 /// a detached background refresh when the cache is stale; pays the live query only on a cold miss.
 pub fn registered() -> Vec<WinTask> {
     if !has_wsl_interop() {
@@ -69,7 +69,7 @@ pub fn registered() -> Vec<WinTask> {
 }
 
 /// Run the live (slow) query, write the cache, and return the tasks. The detached background
-/// refresh process (`bn cron refresh-windows`) calls this; so does a cold-miss `registered()`.
+/// refresh process (`workspan cron refresh-windows`) calls this; so does a cold-miss `registered()`.
 pub fn refresh() -> Vec<WinTask> {
     let tasks = query();
     write_cache(bn_core::util::now_epoch_secs(), &tasks);
@@ -126,7 +126,7 @@ fn run_powershell(script: &str) -> Option<String> {
         .then(|| String::from_utf8_lossy(&out.stdout).into_owned())
 }
 
-/// Re-exec `bn cron refresh-windows` detached so the dashboard returns now and the cache is fresh
+/// Re-exec `workspan cron refresh-windows` detached so the dashboard returns now and the cache is fresh
 /// for the next call. Fire-and-forget: the handle is dropped, orphaning the child to finish alone.
 ///
 /// **Only when this process really is `bn`.** `current_exe()` is whatever is running, and under

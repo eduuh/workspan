@@ -20,7 +20,7 @@ use std::process::{Command, Stdio};
 
 use crate::proc::{tmux, tmux_raw, tmux_run_try, warn_unreachable};
 
-/// The hidden callback stages a `jump` fzf session re-invokes (`bn jump --pick-stage <s>`).
+/// The hidden callback stages a `jump` fzf session re-invokes (`workspan jump --pick-stage <s>`).
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub enum JumpStage {
     /// Emit the unified row list (the `start`/`ctrl-r` reload feed).
@@ -36,7 +36,7 @@ pub enum JumpStage {
 const TAB: char = '\t';
 
 /// One unified row: what fzf shows, plus the hidden `kind`/`target`/`title`/`id` columns its
-/// bindings reference. `target` is a `window_id` for window rows and a link for `bn next` rows;
+/// bindings reference. `target` is a `window_id` for window rows and a link for `workspan next` rows;
 /// `id` is the underlying attention-item id (empty unless this row is a startable attn item).
 struct Row {
     display: String,
@@ -202,8 +202,8 @@ fn kind_str(k: ActionKind) -> &'static str {
     }
 }
 
-/// Map a `bn next` action to a display row, matching `tmux-attention-all.sh`'s `bn_rows` glyphs
-/// and colors (its own simpler set, distinct from the `bn next` human view's glyphs).
+/// Map a `workspan next` action to a display row, matching `tmux-attention-all.sh`'s `bn_rows` glyphs
+/// and colors (its own simpler set, distinct from the `workspan next` human view's glyphs).
 fn next_row(a: &Action) -> Row {
     let ink = style::Ink::always();
     let (tone, mark) = match a.kind {
@@ -228,9 +228,9 @@ fn next_row(a: &Action) -> Row {
     }
 }
 
-/// Source 2 — the cross-repo `bn next` queue (already most-pressing first). Reads the warm cache
+/// Source 2 — the cross-repo `workspan next` queue (already most-pressing first). Reads the warm cache
 /// (`--cached` semantics) so the popup opens instantly; on a miss, computes once and warms it.
-/// Momentum-re-ranked at read time (#246), same as `bn next`, so the picker leads with actions
+/// Momentum-re-ranked at read time (#246), same as `workspan next`, so the picker leads with actions
 /// on the repo/branch you're punched into.
 fn next_rows(cfg: &Config) -> Vec<Row> {
     use bn_core::clock::Clock;
@@ -242,8 +242,8 @@ fn next_rows(cfg: &Config) -> Vec<Row> {
     actions.iter().map(next_row).collect()
 }
 
-/// `bn jump` — the interactive fzf popup. Streams rows in on `start` so the frame draws at once
-/// instead of blocking on the `bn next` walk; falls back to a plain list when fzf is absent.
+/// `workspan jump` — the interactive fzf popup. Streams rows in on `start` so the frame draws at once
+/// instead of blocking on the `workspan next` walk; falls back to a plain list when fzf is absent.
 pub fn run(cfg: &Config) {
     let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
     let bn = crate::shq(&exe.display().to_string());
@@ -326,7 +326,7 @@ pub fn run(cfg: &Config) {
 }
 
 /// Open `target` as a URL, or flash a tmux message when the action carries no link — the default
-/// Enter action for a `bn next` row that isn't a startable item.
+/// Enter action for a `workspan next` row that isn't a startable item.
 fn open_link_or_notify(target: &str) {
     if !target.is_empty() {
         crate::open_url(target);
@@ -338,7 +338,7 @@ fn open_link_or_notify(target: &str) {
     }
 }
 
-/// `bn jump --next` — the prefix-`Tab` fast-jump: switch straight to the top-ranked window with
+/// `workspan jump --next` — the prefix-`Tab` fast-jump: switch straight to the top-ranked window with
 /// no picker. Repeated presses cycle (each jump makes the prior window current, dropping it out).
 pub fn next() {
     use bn_core::clock::Clock;
@@ -392,7 +392,7 @@ pub fn stage(cfg: &Config, stage: JumpStage, fields: &[String]) {
 }
 
 /// Detail panel for the focused row (the `preview` stage). Window rows show a live tail of the
-/// active pane; `bn next` rows show the action's link / hint. `id` is the attn item id (for the
+/// active pane; `workspan next` rows show the action's link / hint. `id` is the attn item id (for the
 /// startable-vs-link hint).
 fn preview(kind: &str, target: &str, title: &str, id: &str) {
     if kind == "window" {
@@ -530,7 +530,7 @@ fn sess_state(agent: &str, done: &str, since: &str, now: i64) -> String {
 
 /// The note badges the tab bar carries: open blockers (red) then open todos (dim), each omitted
 /// when its window option is unset — the same lazily-written `@bn_blockers` / `@bn_todos` values
-/// `bn tmux sync` stamps.
+/// `workspan tmux sync` stamps.
 fn sess_badges(todos: &str, blockers: &str) -> String {
     let ink = style::Ink::always();
     let mut s = String::new();
@@ -606,7 +606,7 @@ fn session_rows(now: i64) -> Vec<SessWin> {
     wins
 }
 
-/// `bn jump --session` — the interactive fzf picker over this session's windows. Enter jumps to the
+/// `workspan jump --session` — the interactive fzf picker over this session's windows. Enter jumps to the
 /// highlighted window; ctrl-r re-reads the badges. Degrades to a plain list when fzf is absent.
 pub fn session() {
     use bn_core::clock::Clock;

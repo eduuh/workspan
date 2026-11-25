@@ -275,7 +275,7 @@ pub(super) fn row(cfg: &Config, roots: &Roots, project: &str, arg: &str) {
     }
 }
 
-/// A live window: tail its active pane, the same capture `bn jump` shows. Seeing what an agent is
+/// A live window: tail its active pane, the same capture `workspan jump` shows. Seeing what an agent is
 /// actually printing is the whole reason to look at a window row.
 fn window_row(project: &str, index: &str) {
     let target = exact_window_target(&ref_session(project), index);
@@ -363,7 +363,7 @@ fn pool_idle_row(cfg: &Config, project: &str, slot: &str) {
 ///
 /// Three things you otherwise had to open the worktree to learn, in the order you want them: what
 /// you were doing there (the branch note's goal, open todos and blockers), whether the tree is
-/// clean, and what has landed on it lately. The note is the part no other bn surface puts in front
+/// clean, and what has landed on it lately. The note is the part no other workspan surface puts in front
 /// of you at the moment you are choosing where to go.
 fn branch_row(cfg: &Config, roots: &Roots, project: &str, kind: &str, payload: &str) {
     let repo = ref_repo(project);

@@ -72,7 +72,7 @@ pub(crate) fn gate_fail(
     })
 }
 
-/// The pre-land gate core, shared by `bn gate` and the `bn wt merge` block. Rebase `head_ref` onto
+/// The pre-land gate core, shared by `workspan gate` and the `workspan wt merge` block. Rebase `head_ref` onto
 /// a freshly-fetched `origin/main` in a **disposable** worktree, then run the repo's verification
 /// gate on THAT rebased head. The caller's own worktree is never touched. This is
 /// what kills the stale-base class: the suite runs against *current* main + the branch's changes,
@@ -207,7 +207,7 @@ pub(crate) fn gate_head_to(
     })
 }
 
-/// `bn gate` — run the pre-land gate on THIS worktree's HEAD and report the verdict, recording it
+/// `workspan gate` — run the pre-land gate on THIS worktree's HEAD and report the verdict, recording it
 /// to the note's Progress. Returns whether the gate is green; the caller maps that to the process
 /// exit code, so an agent can gate "done" on it and never report done on a stale-base verify.
 pub(crate) fn cmd_gate(

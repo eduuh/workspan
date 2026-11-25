@@ -14,14 +14,14 @@
 use anyhow::Result;
 use std::path::Path;
 
-/// What a fake agent should do when bn launches it.
+/// What a fake agent should do when workspan launches it.
 #[derive(Debug, Clone)]
 pub enum Behavior {
     /// Announce itself, record the call, exit 0 immediately.
     Succeed,
     /// Exit with a specific non-zero code — the "agent crashed" path.
     Fail(i32),
-    /// Run until killed. The liveness/reap path: bn should see a live window and a live process.
+    /// Run until killed. The liveness/reap path: workspan should see a live window and a live process.
     Hang,
     /// Stay alive for N seconds, then exit 0 — a bounded run that finishes on its own.
     ExitAfter(u32),
@@ -51,7 +51,7 @@ impl Behavior {
 /// Write an executable `sh` shim named `name` into `dir`.
 ///
 /// Every shim appends its argv to `calls` before doing anything else, so a test can assert on how
-/// bn invoked it — which flags, which prompt, which working directory — not merely that it ran.
+/// workspan invoked it — which flags, which prompt, which working directory — not merely that it ran.
 pub fn write(dir: &Path, calls: &Path, name: &str, behavior: &Behavior) -> Result<()> {
     std::fs::create_dir_all(dir)?;
     let path = dir.join(name);

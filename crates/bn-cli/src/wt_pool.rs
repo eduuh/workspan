@@ -369,7 +369,7 @@ pub(crate) fn force_remove_worktree(bare_s: &str, slot: &Path) {
 /// This used to answer a flat `true` off Linux, which quietly disabled every "has the holder gone?"
 /// decision on macOS: a lease could never read as abandoned, so `pool status` never flagged one,
 /// the dead-holder sweep never freed one, and slots leaked until someone returned them by hand.
-/// `kill(pid, 0)` is the portable existence check the rest of bn already uses.
+/// `kill(pid, 0)` is the portable existence check the rest of workspan already uses.
 fn pid_alive(pid: u32) -> bool {
     i32::try_from(pid).is_ok_and(crate::cmd::killport::process_exists)
 }
@@ -409,7 +409,7 @@ fn slot_occupants_in(
 
 /// The tenant label the ledger records for an occupant: its branch, except in the controller's
 /// reserved slot, where the lease is keyed by the fixed [`CONTROLLER_LEASE_LABEL`] rather than by
-/// whatever branch `bn control`'s checkout happens to sit on.
+/// whatever branch `workspan control`'s checkout happens to sit on.
 fn occupant_label(occupant: &crate::agent_lease::Occupant, n: u32) -> String {
     if n == bn_core::agent::MAIN_POOL_SLOT {
         return CONTROLLER_LEASE_LABEL.to_string();
@@ -701,7 +701,7 @@ fn pool_get(
 }
 
 /// The result of leasing a slot: its path, plus whether this was a *fresh* lease of `branch` (a
-/// newly taken slot) versus an idempotent hand-back of the slot already leased to it. `bn dispatch`
+/// newly taken slot) versus an idempotent hand-back of the slot already leased to it. `workspan dispatch`
 /// maps `fresh` onto its "created" flag (seed the note / run setup only on a fresh lease).
 struct Leased {
     slot: PathBuf,
@@ -709,7 +709,7 @@ struct Leased {
     fresh: bool,
 }
 
-/// Which half of the pool a lease may draw from. Slot [`MAIN_POOL_SLOT`] is `bn control`'s
+/// Which half of the pool a lease may draw from. Slot [`MAIN_POOL_SLOT`] is `workspan control`'s
 /// alone; everything else leases from the worker range, so the two can never collide.
 ///
 /// [`MAIN_POOL_SLOT`]: bn_core::agent::MAIN_POOL_SLOT
@@ -733,7 +733,7 @@ impl SlotRole {
 /// this branch (idempotent warm hit), else picks — and if the pool is full, reclaims an abandoned
 /// — idle slot, creates it cold if it isn't warm yet, switches `branch` in, and persists the lease.
 /// Returns `None` (message already printed) when the pool is full or a git op failed. Shared by
-/// `wt pool get` and `bn dispatch --pool` so both lease identically. `class` decides which slots are
+/// `wt pool get` and `workspan dispatch --pool` so both lease identically. `class` decides which slots are
 /// even candidates: a worker never sees the controller's slot, and vice versa.
 fn acquire_slot(
     ctx: &PoolCtx,
@@ -905,7 +905,7 @@ fn acquire_slot(
         match class {
             SlotRole::Controller => ceprintln!(
                 "{RED}Controller slot {} is already leased.{NC} Stop the running controller with \
-                 `bn control stop <id>`, or hand the slot back with `wt pool return`.",
+                 `workspan control stop <id>`, or hand the slot back with `wt pool return`.",
                 bn_core::agent::MAIN_POOL_SLOT
             ),
             SlotRole::Worker => ceprintln!(
@@ -1082,7 +1082,7 @@ fn ensure_comparison_slot(
     Some(slot)
 }
 
-/// Lease a warm pool slot for a `bn dispatch` of `branch` in `repo` (#457) — the same primitive as
+/// Lease a warm pool slot for a `workspan dispatch` of `branch` in `repo` (#457) — the same primitive as
 /// `wt pool get`, minus the tmux-window / stdout side effects: dispatch owns the window (it launches
 /// the seeded agent there) and needs the slot path *returned*, not printed. Returns `(slot_path,
 /// fresh)` where `fresh` is true for a new lease of `branch` (dispatch seeds the note only then).
@@ -1230,7 +1230,7 @@ pub enum SpareSlot {
     /// An idle slot number is free but has no checkout yet; a warm was scheduled to build it.
     Warming(u32),
     /// Every slot is leased and the pool is at [`bn_core::pool::MAX_POOL_SIZE`]. Reported, not
-    /// papered over — `bn dispatch --on-pool-full` decides what happens next.
+    /// papered over — `workspan dispatch --on-pool-full` decides what happens next.
     Full(usize),
 }
 
@@ -1287,7 +1287,7 @@ fn schedule_warm(repo: &str) {
 /// stable label makes re-leasing idempotent.
 pub const CONTROLLER_LEASE_LABEL: &str = "control";
 
-/// Lease the controller's reserved slot (`_pool/1`) for `bn control start`. Returns the slot path
+/// Lease the controller's reserved slot (`_pool/1`) for `workspan control start`. Returns the slot path
 /// and whether the lease is fresh, or `None` when the repo has no bn-managed bare clone or the
 /// controller slot is already held (message printed). The controller never rotates through the
 /// worker range, so this can only ever hand back slot [`bn_core::agent::MAIN_POOL_SLOT`].
@@ -1305,7 +1305,7 @@ pub fn lease_controller_slot(cfg: &Config, repo: &str) -> Option<(PathBuf, bool)
 }
 
 /// Resolve the pool for a dispatch. Identical to [`resolve_pool`] except in how the repo is named:
-/// this takes it directly (the cron and `bn dispatch` both know it), while `resolve_pool` resolves
+/// this takes it directly (the cron and `workspan dispatch` both know it), while `resolve_pool` resolves
 /// the cwd or an fzf pick. Neither consults a registry any more — there isn't one — so the only way
 /// this returns `None` is a repo with no bn-managed bare clone, the one case a dispatch genuinely
 /// can't pool, and the caller cuts a cold worktree instead.

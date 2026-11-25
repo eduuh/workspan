@@ -17,10 +17,10 @@ use std::path::{Path, PathBuf};
 /// Which shape a worktree window is in, from the window-scoped `@bn_shape` option.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub(crate) enum Shape {
-    /// `bn wt open` — pane 0 is an interactive shell. The editor is a guest pane.
+    /// `workspan wt open` — pane 0 is an interactive shell. The editor is a guest pane.
     #[default]
     Shell,
-    /// `bn dispatch` — pane 0 is the harness. The editor is a guest pane.
+    /// `workspan dispatch` — pane 0 is the harness. The editor is a guest pane.
     Agent,
     /// nvim *is* the window; the agent lives in a terminal buffer inside it. There is no guest
     /// pane to park, so hiding is an in-editor act rather than a tmux one.
@@ -45,7 +45,7 @@ impl Shape {
     }
 }
 
-/// One tmux pane carrying bn's editor marker.
+/// One tmux pane carrying workspan's editor marker.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(crate) struct EditPane {
     pub(crate) pane: String,
@@ -57,7 +57,7 @@ pub(crate) struct EditPane {
     pub(crate) home: String,
 }
 
-/// What `bn edit` found.
+/// What `workspan edit` found.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub(crate) enum EditState {
     /// No live socket and no marked pane — nothing exists yet.
@@ -135,7 +135,7 @@ pub(crate) const PANE_FORMAT: &str = concat!(
     "#{@bn_edit}\t#{@bn_edit_home}"
 );
 
-/// Parse `list-panes -a -F PANE_FORMAT` output, keeping only panes carrying bn's marker.
+/// Parse `list-panes -a -F PANE_FORMAT` output, keeping only panes carrying workspan's marker.
 ///
 /// Pure, so the discovery half is testable from a captured string.
 pub(crate) fn parse_pane_rows(out: &str) -> Vec<EditPane> {
@@ -178,7 +178,7 @@ pub(crate) fn find_pane(worktree: &Path) -> Option<EditPane> {
 }
 
 /// Is an nvim listening on this socket? A plain `connect()` — a syscall, not a subprocess — so
-/// `bn edit where` and the picker's per-row badge stay cheap enough to call in a preview.
+/// `workspan edit where` and the picker's per-row badge stay cheap enough to call in a preview.
 pub(crate) fn nvim_alive(sock: &Path) -> bool {
     #[cfg(unix)]
     {

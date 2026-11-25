@@ -21,7 +21,7 @@ pub struct Manifest {
     pub profiles: BTreeMap<String, Profile>,
 }
 
-/// The profiles every repo has. `ship` is what `bn dispatch` seeds an agent with;
+/// The profiles every repo has. `ship` is what `workspan dispatch` seeds an agent with;
 /// `compact-restore` is what a session reads coming back from a compaction.
 pub const BUILTIN_PROFILES: &[(&str, &[&str], usize)] = &[
     ("ship", &["global-refs", "ref-index", "directives"], 4000),

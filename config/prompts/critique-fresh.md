@@ -31,7 +31,7 @@ below applies only when its envelope was supplied.
    actually satisfies it, with evidence (`path:line`, a command, a test). A criterion you can't
    confirm is a finding, not a pass.
 
-3. **Try to break it.** Run the repo gate — `bn verify` (build/test/lint). Then probe the seams
+3. **Try to break it.** Run the repo gate — `workspan verify` (build/test/lint). Then probe the seams
    the tests miss: edge cases, error paths, concurrency, the invariants the code touches. Prefer a
    failing command or test over an opinion. Include what you *ruled out* in the review evidence, not
    just what you found — the ruled-out paths are half the value.

@@ -37,7 +37,7 @@ pub(crate) fn repo_scope(cfg: &Config, repo: Option<&str>) -> RepoScope {
         None => RepoScope::Any,
         Some(".") => match crate::cmd::task::task_ctx_opt(cfg) {
             Some(ctx) => RepoScope::Named(ctx.repo.to_ascii_lowercase()),
-            None => fail("bn task --repo .: not in a git repo — pass a repo name instead"),
+            None => fail("workspan task --repo .: not in a git repo — pass a repo name instead"),
         },
         Some(name) => RepoScope::Named(name.trim().to_ascii_lowercase()),
     }

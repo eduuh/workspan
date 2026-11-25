@@ -194,7 +194,7 @@ fn read_windows() -> Vec<WinState> {
 }
 
 /// Collect the joined fleet: Plane B (supervise) + Plane A (tmux windows), merged. The shared core
-/// behind `bn agent live` and internal agent monitoring.
+/// behind `workspan agent live` and internal agent monitoring.
 pub fn collect(cfg: &Config, idle: i64, stuck: i64) -> Vec<LiveView> {
     let fleet = bn_core::agent::supervise(cfg, idle, stuck);
     let mut rows = join(&read_windows(), &fleet);
@@ -353,7 +353,7 @@ fn capture_tail(target: &str, n: usize) -> Vec<String> {
 pub(crate) const TAIL_SCAN_LINES: usize = 6;
 
 /// A pane tail's read on what the agent is doing *right now*, for when Plane A stayed silent. The
-/// fleet board and `bn agent live` already glance at the live pane; this classifies that glance so
+/// fleet board and `workspan agent live` already glance at the live pane; this classifies that glance so
 /// a Copilot paused at a "Shall I proceed?" prompt (which never fires a `waiting` hook) still
 /// surfaces as needs-you instead of a bare idle/active. Pure over the tail → unit-testable.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
@@ -532,7 +532,7 @@ pub(crate) fn submit_landed(tail: &[String], msg: &str) -> bool {
     tail_confirms_submit(tail) && !tail_shows_unsent(tail, msg)
 }
 
-/// Verify a `bn agent send --keys` submit landed in pane `target`: after the carriage return, poll
+/// Verify a `workspan agent send --keys` submit landed in pane `target`: after the carriage return, poll
 /// the pane for a working spinner (the turn started). Returns true as soon as one appears, else
 /// false after [`SUBMIT_BACKOFF`]'s verification window — the signal that the TUI swallowed the
 /// Enter and the message is sitting unsent in the box (#306), so the caller can retry or escalate
@@ -623,7 +623,7 @@ fn fmt_tokens(n: i64) -> String {
     }
 }
 
-/// Each mesh machine's live agents, as its own `bn agent live --json` reported them; `None` for a
+/// Each mesh machine's live agents, as its own `workspan agent live --json` reported them; `None` for a
 /// machine that did not answer.
 fn mesh_agents() -> Vec<(String, Option<Vec<serde_json::Value>>)> {
     let hosts = crate::cmd::agent::mesh::tunnel_hosts();
@@ -650,11 +650,11 @@ fn mesh_agents() -> Vec<(String, Option<Vec<serde_json::Value>>)> {
 
 fn print_mesh(mesh: &[(String, Option<Vec<serde_json::Value>>)]) {
     if mesh.is_empty() {
-        println!("No other mesh machines (bn machine join <name> <user@host> adds one).");
+        println!("No other mesh machines (workspan machine join <name> <user@host> adds one).");
     }
     for (host, agents) in mesh {
         match agents {
-            None => println!("{host}: did not answer (down, or no bn there)"),
+            None => println!("{host}: did not answer (down, or no workspan there)"),
             Some(a) if a.is_empty() => println!("{host}: no live agents"),
             Some(a) => {
                 println!("{host}: {} live agent(s):", a.len());
@@ -671,7 +671,7 @@ fn print_mesh(mesh: &[(String, Option<Vec<serde_json::Value>>)]) {
     }
 }
 
-/// `bn agent live [--mesh] [--json]` — collect and render the joined fleet.
+/// `workspan agent live [--mesh] [--json]` — collect and render the joined fleet.
 pub fn run(cfg: &Config, idle: i64, stuck: i64, with_mesh: bool, as_json: bool) {
     let rows = collect(cfg, idle, stuck);
     let mesh = if with_mesh { mesh_agents() } else { Vec::new() };

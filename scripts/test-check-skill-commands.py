@@ -33,7 +33,7 @@ class SkillCommandTests(unittest.TestCase):
         snippet = 'echo "$(bn task not-a-command)"'
         self.assertEqual(
             validator["check"](self.root, snippet),
-            ["`bn task` has no subcommand 'not-a-command'"],
+            ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_single_quoted_substitution_is_literal(self):
@@ -43,13 +43,13 @@ class SkillCommandTests(unittest.TestCase):
     def test_real_subshell_is_still_checked(self):
         self.assertEqual(
             validator["check"](self.root, "(bn task not-a-command)"),
-            ["`bn task` has no subcommand 'not-a-command'"],
+            ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_real_flag_is_still_checked(self):
         self.assertEqual(
             validator["check"](self.root, "bn --not-a-flag"),
-            ["`bn ` has no flag --not-a-flag"],
+            ["`workspan ` has no flag --not-a-flag"],
         )
 
     def test_valid_quoted_argument_is_accepted(self):
@@ -61,34 +61,47 @@ class SkillCommandTests(unittest.TestCase):
         snippet = 'echo "(bn dep-prs)" && bn task not-a-command'
         self.assertEqual(
             validator["check"](self.root, snippet),
-            ["`bn task` has no subcommand 'not-a-command'"],
+            ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_command_after_a_valid_command_is_checked(self):
         snippet = "bn task --help && bn task not-a-command"
         self.assertEqual(
             validator["check"](self.root, snippet),
-            ["`bn task` has no subcommand 'not-a-command'"],
+            ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_workspan_invocations_are_checked(self):
         self.assertEqual(
             validator["check"](self.root, "workspan task not-a-command"),
-            ["`bn task` has no subcommand 'not-a-command'"],
+            ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_workspan_substitution_is_checked_but_quoted_prose_is_not(self):
         snippet = 'echo "(workspan task not-a-command)" "$(workspan task not-a-command)"'
         self.assertEqual(
             validator["check"](self.root, snippet),
-            ["`bn task` has no subcommand 'not-a-command'"],
+            ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_compatibility_and_primary_commands_can_be_mixed(self):
         snippet = "bn task --help && workspan task not-a-command"
         self.assertEqual(
             validator["check"](self.root, snippet),
-            ["`bn task` has no subcommand 'not-a-command'"],
+            ["`workspan task` has no subcommand 'not-a-command'"],
+        )
+
+    def test_short_alias_invocations_are_checked(self):
+        self.assertEqual(
+            validator["check"](self.root, "ws task not-a-command"),
+            ["`workspan task` has no subcommand 'not-a-command'"],
+        )
+
+    def test_short_alias_substitution_is_checked_but_quoted_prose_is_not(self):
+        snippet = 'echo "(ws task not-a-command)" "$(ws task not-a-command)"'
+        self.assertEqual(
+            validator["check"](self.root, snippet),
+            ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
 

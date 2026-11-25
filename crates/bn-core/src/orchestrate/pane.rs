@@ -16,7 +16,7 @@ use serde::{Deserialize, Serialize};
 
 /// The classified state of one live agent pane — the #340 state set. Each maps to exactly one
 /// deterministic [`SupervisorAction`] via [`action_for`], so a supervision pass never re-derives
-/// pane-string heuristics in prose. Serialized kebab-case for the `bn orchestrate status` surface.
+/// pane-string heuristics in prose. Serialized kebab-case for the `workspan orchestrate status` surface.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum PaneState {
@@ -70,7 +70,7 @@ impl PaneState {
 
 /// The deterministic action a supervision pass takes for a [`PaneState`]. The whole #340 mapping is
 /// [`action_for`]; the CLI layer realizes each variant against the live fleet (tmux send-keys, the
-/// merge-queue, `bn agent recover`, `bn dispatch`).
+/// merge-queue, `workspan agent recover`, `workspan dispatch`).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum SupervisorAction {
@@ -86,7 +86,7 @@ pub enum SupervisorAction {
     AnswerQuestion,
     /// Relaunch the agent to resume its work (recover unpushed WIP first), with exponential backoff.
     RelaunchToResume,
-    /// Fall a usage-limited agent over to the other harness in place (`bn switch --in-place`) so the
+    /// Fall a usage-limited agent over to the other harness in place (`workspan switch --in-place`) so the
     /// work continues instead of waiting for the limit to reset — the #382 bias+fallback.
     SwitchHarness,
 }
@@ -125,7 +125,7 @@ pub fn action_for(state: PaneState) -> SupervisorAction {
 }
 
 /// The harness the orchestrate daemon dispatches under when nothing else is configured — the
-/// back-compat default for a run whose state predates `bn orchestrate --agent` (#382).
+/// back-compat default for a run whose state predates `workspan orchestrate --agent` (#382).
 pub const DEFAULT_HARNESS: &str = "copilot";
 
 /// [`classify`] so the classifier needs no tmux/git — a `capture-pane` tail, the window's Plane-A
@@ -180,7 +180,7 @@ fn is_menu_footer(lower: &str) -> bool {
 /// Spinner / interrupt markers a harness prints only while a turn is in flight: Claude's
 /// `esc to interrupt`, Copilot's `esc to cancel`. A `Working…` spinner word is matched only in its
 /// animated form (trailing ellipsis) so an agent merely *saying* "working on the fix" at an idle
-/// prompt never reads as busy — the sharper cousin of `bn agent live`'s spinner heuristic.
+/// prompt never reads as busy — the sharper cousin of `workspan agent live`'s spinner heuristic.
 ///
 /// A [`is_menu_footer`] line is never a spinner, whatever else it says.
 fn is_spinner_line(lower: &str) -> bool {
@@ -240,7 +240,7 @@ const API_ERROR_MARKERS: &[&str] = &[
 /// Usage/rate-limit markers: the harness reached its plan/session cap and put up its blocking limit
 /// prompt. Distinct from an outage because no relaunch can clear it — the fix is a harness switch
 /// (#382). Matched case-insensitively; checked *after* the spinner so an agent merely *mentioning* a
-/// limit mid-turn (spinner still up) never reads as limited. Mirrors `bn agent live`'s detection.
+/// limit mid-turn (spinner still up) never reads as limited. Mirrors `workspan agent live`'s detection.
 const USAGE_LIMIT_MARKERS: &[&str] = &[
     "wait for limit to reset",
     "upgrade your plan",
@@ -252,7 +252,7 @@ const USAGE_LIMIT_MARKERS: &[&str] = &[
 
 /// Trust-menu launch markers — both the harness's "trust the files in this folder?" boot prompt
 /// and Claude's "N new MCP servers found · Select any to trust" approval menu (#545). Dispatch can
-/// pre-trust the folder (`bn trust-folder` under `--yolo`) so the folder prompt rarely fires, but a
+/// pre-trust the folder (`workspan trust-folder` under `--yolo`) so the folder prompt rarely fires, but a
 /// non-yolo web dispatch parks on one of these until answered; the supervisor clears it
 /// deterministically instead of a human sending keystrokes, and the fleet surfaces it as needs-you.
 const TRUST_MENU_MARKERS: &[&str] = &[

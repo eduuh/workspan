@@ -225,7 +225,7 @@ fn a_rejected_key_points_at_bn_forge_login() {
     let err = McpHttp::new(url, "fam_bad").initialize().unwrap_err();
     server.join().unwrap();
     assert_eq!(err.kind(), io::ErrorKind::PermissionDenied);
-    assert!(err.to_string().contains("bn forge login"), "{err}");
+    assert!(err.to_string().contains("workspan forge login"), "{err}");
     assert!(!err.to_string().contains("fam_bad"));
 }
 

@@ -60,7 +60,7 @@ pub struct Liveness {
 ///   - worked (`aic > 0`), no PR, idle past `stale_secs` ⇒ **stalled** ⇒ `RelaunchToResume` — recover
 ///     it (a hard restart re-seeds a fresh session, #383) so its slot stops starving the queue (#374),
 ///   - otherwise (worked, no PR, but not yet stale) ⇒ `Leave` — a brief between-turns idle or an
-///     agent about to open its PR / run `bn agent done` is not cut off before the dwell elapses.
+///     agent about to open its PR / run `workspan agent done` is not cut off before the dwell elapses.
 ///
 /// Pure + unit-tested: the single source of truth for "is this idle-clean agent actually stalled?".
 pub fn idle_clean_action(live: Liveness, stale_secs: i64) -> SupervisorAction {

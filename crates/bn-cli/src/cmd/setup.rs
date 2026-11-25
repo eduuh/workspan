@@ -1,7 +1,7 @@
 //! `bn glyphs` and the tmux statusline integration.
 use crate::*;
 
-/// `bn glyphs` — render the whole icon vocabulary with names + codepoints, then a mock of the
+/// `workspan glyphs` — render the whole icon vocabulary with names + codepoints, then a mock of the
 /// one-row tmux status bar. A quick font check (tofu means your terminal font lacks the
 /// glyph) and the canonical reference when syncing the tmux.conf / shell / nvim mirrors.
 pub(crate) fn emit_glyphs() {
@@ -22,7 +22,7 @@ pub(crate) fn emit_glyphs() {
         (g::PENCIL, "PENCIL", "open todos count"),
         (g::CLOCK, "CLOCK", "SLA / wait time / cron"),
     ];
-    println!("bn icon vocabulary — Nerd Font PUA, tinted by ANSI color\n");
+    println!("workspan icon vocabulary — Nerd Font PUA, tinted by ANSI color\n");
     for (glyph, name, meaning) in rows {
         let cp = glyph.chars().next().map(|c| c as u32).unwrap_or(0);
         println!(
@@ -45,7 +45,7 @@ pub(crate) fn emit_glyphs() {
     let n = ink.close();
     let inv = if ink.is_on() { "\x1b[7m" } else { "" };
     println!(
-        "  {inv} bn {n}  1   2 {r}{}1{n} {d}{}2{n} {y}{}{n}   3 {gr}{}{n}   {d}│ ⎇ glyph-module {gr}●{n} {d}│{n} {y}{}3 {}1{n} {d}│{n} {y}{}{n} {d}│ 14:07 Sat 05{n}",
+        "  {inv} workspan {n}  1   2 {r}{}1{n} {d}{}2{n} {y}{}{n}   3 {gr}{}{n}   {d}│ ⎇ glyph-module {gr}●{n} {d}│{n} {y}{}3 {}1{n} {d}│{n} {y}{}{n} {d}│ 14:07 Sat 05{n}",
         g::BAN,
         g::PENCIL,
         g::BELL,
@@ -57,7 +57,7 @@ pub(crate) fn emit_glyphs() {
     println!(
         "\n  tabs are the window NUMBER + badges — no branch name; the git segment already names\n  \
          the focused branch. The goal, attention and cron left the bar; the badges\n  \
-         went to `bn tat`'s header."
+         went to `workspan tat`'s header."
     );
     println!(
         "\ntofu above? your terminal font isn't a Nerd Font — mirrors: see bn-core/src/glyph.rs"
@@ -92,7 +92,7 @@ pub(crate) fn emit_tmux_status(cfg: &Config, path: Option<String>) {
 }
 
 /// Push the current note's counts into per-window tmux options so `window-status-format`
-/// can decorate without spawning bn each refresh. No-op outside tmux (`$TMUX` unset — e.g.
+/// can decorate without spawning workspan each refresh. No-op outside tmux (`$TMUX` unset — e.g.
 /// native Windows). Counts are stored EMPTY when zero so tmux `#{?@bn_*,…}` conditionals
 /// (which test emptiness, where "0" would read as truthy) stay quiet on a clean note.
 pub(crate) fn sync_tmux(cfg: &Config, ctx: &Resolved) {
@@ -163,7 +163,7 @@ pub(crate) fn set_tmux_agent(state: &str) {
 /// `working`/`waiting`/`done` are what the harness hooks fire. The rest are escalation states the
 /// fleet classifier produces and, until now, could not store: `blocked` and `needs-decision` mean
 /// an agent is stopped on a human, `limited` means it hit a usage cap, and `failed` means it died.
-/// `failed` in particular was being rejected here while `bn agent done --failed` passed it, so a
+/// `failed` in particular was being rejected here while `workspan agent done --failed` passed it, so a
 /// crashed agent's badge was silently *cleared* — its window then looked identical to an idle one.
 /// Anything unrecognized still blanks the badge, which is how callers clear it.
 pub(crate) fn normalize_agent_state(state: &str) -> &str {

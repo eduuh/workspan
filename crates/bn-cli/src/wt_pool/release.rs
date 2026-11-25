@@ -80,7 +80,7 @@ impl SlotRelease {
     }
 }
 
-/// Hand a dispatch slot back when the agent holding it is gone (`bn agent kill`). `gone_session` is
+/// Hand a dispatch slot back when the agent holding it is gone (`workspan agent kill`). `gone_session` is
 /// the session the caller just killed, so its own (already dead) window never reads as an occupant.
 ///
 /// Leasing a slot is durable-until-returned, and until this existed *nothing* returned a worker
@@ -261,8 +261,8 @@ fn release_slot_core(cfg: &Config, worktree: &Path, policy: ReleasePolicy) -> Sl
     }
 }
 
-/// Hand the controller's slot back when `bn control stop` tears its window down, so the next
-/// `bn control start` can lease it instead of reporting the slot held by a controller that is gone.
+/// Hand the controller's slot back when `workspan control stop` tears its window down, so the next
+/// `workspan control start` can lease it instead of reporting the slot held by a controller that is gone.
 /// Quiet and idempotent: a slot that isn't leased (or a repo with no pool) is simply a no-op, since
 /// this runs on every stop including controllers that predate slot leasing. Dirty slots are left
 /// alone — `wt pool return --force` is the deliberate discard.
@@ -437,7 +437,7 @@ pub(crate) fn return_slot(cfg: &Config, slot: &Path, force: bool) -> bool {
 /// The stale-agent reaper already applies to every agent on the box — its PR merged or closed, its window
 /// or worktree gone, and past the idle grace with nothing uncommitted. Anything else (mid-turn,
 /// dirty, freshly launched) is kept, because a forced *slot* return should never be a quieter way
-/// to kill a working agent than `bn agent kill` is.
+/// to kill a working agent than `workspan agent kill` is.
 fn evict_occupant(
     cfg: &Config,
     slot: &Path,
@@ -493,7 +493,7 @@ fn evict_occupant(
         eprintln!(
             "{RED}Slot {n} ({repo}) is held by a live {} that is still needed ({}).{NC}\n  \
              Force returns a slot whose agent has finished — its PR merged or closed, or it went \
-             quiet with a clean tree.\n  To take it anyway, stop the agent first: bn agent kill {}",
+             quiet with a clean tree.\n  To take it anyway, stop the agent first: workspan agent kill {}",
             occupant.describe(),
             reason.label(),
             match (&occupant.repo, &occupant.branch) {

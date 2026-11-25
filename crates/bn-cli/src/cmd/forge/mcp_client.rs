@@ -18,7 +18,7 @@ impl StdioForgeMcpClient {
         }
         self.session
             .as_mut()
-            .ok_or_else(|| ForgeMcpError::transport("mcp_session_missing", "bn forge: MCP session was not initialized"))
+            .ok_or_else(|| ForgeMcpError::transport("mcp_session_missing", "workspan forge: MCP session was not initialized"))
     }
 }
 
@@ -139,17 +139,17 @@ impl McpSession {
             .map_err(|error| {
                 ForgeMcpError::transport(
                     "mcp_spawn_failed",
-                    format!("bn forge: could not start Forge MCP client '{}': {error}", launch.command),
+                    format!("workspan forge: could not start Forge MCP client '{}': {error}", launch.command),
                 )
             })?;
         let stdin = child.stdin.take().ok_or_else(|| {
-            ForgeMcpError::transport("mcp_stdio_unavailable", "bn forge: MCP stdin unavailable")
+            ForgeMcpError::transport("mcp_stdio_unavailable", "workspan forge: MCP stdin unavailable")
         })?;
         let stdout = child.stdout.take().ok_or_else(|| {
-            ForgeMcpError::transport("mcp_stdio_unavailable", "bn forge: MCP stdout unavailable")
+            ForgeMcpError::transport("mcp_stdio_unavailable", "workspan forge: MCP stdout unavailable")
         })?;
         let stderr = child.stderr.take().ok_or_else(|| {
-            ForgeMcpError::transport("mcp_stdio_unavailable", "bn forge: MCP stderr unavailable")
+            ForgeMcpError::transport("mcp_stdio_unavailable", "workspan forge: MCP stderr unavailable")
         })?;
 
         let (tx, rx) = mpsc::channel();
@@ -209,13 +209,13 @@ impl McpSession {
         {
             return Err(ForgeMcpError::transport(
                 "mcp_tool_error",
-                format!("bn forge: Forge MCP tool '{name}' returned an error"),
+                format!("workspan forge: Forge MCP tool '{name}' returned an error"),
             ));
         }
         tool_result_json(response).ok_or_else(|| {
             ForgeMcpError::transport(
                 "mcp_response_invalid",
-                format!("bn forge: Forge MCP tool '{name}' did not return JSON content"),
+                format!("workspan forge: Forge MCP tool '{name}' did not return JSON content"),
             )
         })
     }
@@ -241,7 +241,7 @@ impl McpSession {
                     .unwrap_or("unknown MCP error");
                 return Err(ForgeMcpError::transport(
                     "mcp_request_failed",
-                    format!("bn forge: MCP request '{method}' failed: {message}"),
+                    format!("workspan forge: MCP request '{method}' failed: {message}"),
                 ));
             }
             return Ok(message.get("result").cloned().unwrap_or(Value::Null));
@@ -260,7 +260,7 @@ impl McpSession {
         let body = serde_json::to_vec(&value).map_err(|error| {
             ForgeMcpError::transport(
                 "mcp_encode_failed",
-                format!("bn forge: could not encode MCP request: {error}"),
+                format!("workspan forge: could not encode MCP request: {error}"),
             )
         })?;
         self.stdin
@@ -270,7 +270,7 @@ impl McpSession {
             .map_err(|error| {
                 ForgeMcpError::transport(
                     "mcp_write_failed",
-                    format!("bn forge: could not write MCP request: {error}"),
+                    format!("workspan forge: could not write MCP request: {error}"),
                 )
             })
     }
@@ -280,7 +280,7 @@ impl McpSession {
             Ok(Ok(value)) => Ok(value),
             Ok(Err(error)) => Err(ForgeMcpError::transport(
                 "mcp_read_failed",
-                format!("bn forge: could not read MCP response: {error}"),
+                format!("workspan forge: could not read MCP response: {error}"),
             )),
             Err(mpsc::RecvTimeoutError::Timeout) => {
                 let stderr = self.stderr_rx.try_recv().unwrap_or_default();
@@ -291,14 +291,14 @@ impl McpSession {
                 };
                 Err(ForgeMcpError::transport(
                     "mcp_timeout",
-                    format!("bn forge: Forge MCP client timed out ({detail})"),
+                    format!("workspan forge: Forge MCP client timed out ({detail})"),
                 ))
             }
             Err(mpsc::RecvTimeoutError::Disconnected) => {
                 let stderr = self.stderr_rx.try_recv().unwrap_or_default();
                 Err(ForgeMcpError::transport(
                     "mcp_exited",
-                    format!("bn forge: Forge MCP client exited: {}", oneline(&stderr, 300)),
+                    format!("workspan forge: Forge MCP client exited: {}", oneline(&stderr, 300)),
                 ))
             }
         }
@@ -389,7 +389,7 @@ fn parse_tool_json<T: serde::de::DeserializeOwned>(value: Value) -> Result<T, Fo
     serde_json::from_value(value).map_err(|error| {
         ForgeMcpError::transport(
             "mcp_response_invalid",
-            format!("bn forge: Forge MCP response did not match expected shape: {error}"),
+            format!("workspan forge: Forge MCP response did not match expected shape: {error}"),
         )
     })
 }

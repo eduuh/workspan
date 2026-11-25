@@ -12,7 +12,7 @@ pub(crate) enum VerifyTarget {
         #[serde(rename = "command")]
         cmd: String,
     },
-    /// A bn job script (`jobs/<name>.sh`), run with `sh <path>` after a copy-on-run snapshot.
+    /// A workspan job script (`jobs/<name>.sh`), run with `sh <path>` after a copy-on-run snapshot.
     Script {
         label: String,
         path: std::path::PathBuf,
@@ -28,7 +28,7 @@ impl VerifyTarget {
     }
 }
 
-/// The ordered, fail-fast verification gate shared by `bn verify` and pre-land `bn gate`.
+/// The ordered, fail-fast verification gate shared by `workspan verify` and pre-land `workspan gate`.
 #[derive(Debug)]
 pub(crate) struct VerifyGate {
     targets: Vec<VerifyTarget>,
@@ -70,10 +70,10 @@ impl VerifyGate {
     }
 }
 
-/// Resolve what the verify gate runs for `ctx` (#454, #758), shared by `bn verify`
+/// Resolve what the verify gate runs for `ctx` (#454, #758), shared by `workspan verify`
 /// ([`emit_verify`]) and the pre-land gate ([`crate::wt::merge::gate_head`]): an explicit `--job`
-/// (a bn job that must exist), else the repo's configured native `[repo.<name>].verify` command,
-/// else every available conventional bn job in build → test → lint order. Explicit and configured
+/// (a workspan job that must exist), else the repo's configured native `[repo.<name>].verify` command,
+/// else every available conventional workspan job in build → test → lint order. Explicit and configured
 /// gates remain authoritative single-target overrides.
 pub(crate) fn resolve_verify_target(
     cfg: &Config,
@@ -163,7 +163,7 @@ const BUILD_POLL_MS: u64 = 500;
 
 /// Take a slot from the machine's build pool, waiting for one if every slot is busy.
 ///
-/// The choke point for *all* heavy verification: both `bn verify` and the `bn wt merge` pre-land
+/// The choke point for *all* heavy verification: both `workspan verify` and the `workspan wt merge` pre-land
 /// gate reach a build through this function, so neither has to remember to throttle and neither can
 /// be changed into forgetting. A finishing wave — several agents landing at once, each running a
 /// full build while other agents are mid-turn — is the case this exists for.
@@ -348,21 +348,21 @@ pub(crate) fn emit_verify(cfg: &Config, args: VerifyCommandArgs, as_json: bool) 
     } = args;
     let cwd = std::env::current_dir().unwrap_or_default();
     let Ok(ctx) = resolver::resolve(cfg, &cwd) else {
-        fail("bn verify: not in a git repo");
+        fail("workspan verify: not in a git repo");
     };
     // Resolve what to gate on (#454, #758): an explicit --job, else the repo's native
     // `[repo].verify` command, else every available build/test/lint job.
     let target = match resolve_verify_target(cfg, &ctx, job.as_deref()) {
         Ok(Some(t)) => t,
         Ok(None) => fail(&format!(
-            "bn verify: no build, test, or lint job for {} — create one under {}",
+            "workspan verify: no build, test, or lint job for {} — create one under {}",
             ctx.repo,
             cfg.notes_dir_for(&ctx.repo)
                 .join("jobs")
                 .join(&ctx.repo)
                 .display()
         )),
-        Err(msg) => fail(&format!("bn verify: {msg}")),
+        Err(msg) => fail(&format!("workspan verify: {msg}")),
     };
     if dry_run {
         target.emit_preview(&cwd, as_json);
@@ -371,7 +371,7 @@ pub(crate) fn emit_verify(cfg: &Config, args: VerifyCommandArgs, as_json: bool) 
     let job_name = target.label();
     let log = GateLog::default();
     let code = run_verify_gate_to(&target, &cwd, !as_json, None, Some(&log))
-        .unwrap_or_else(|e| fail(&format!("bn verify: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan verify: {e}")));
     let pass = code == 0;
 
     // Keep the run as proof, then record the outcome in the note's Progress pointing at it.
@@ -466,7 +466,7 @@ mod tests {
     }
 
     /// A verify gate runs the user's own script, which routinely shells out to `bn`. It must get
-    /// the same PATH every other job process gets — the one whose leading entry is bn's own
+    /// the same PATH every other job process gets — the one whose leading entry is workspan's own
     /// directory. Re-deriving `~/.local/bin:~/.bin:$PATH` here is what left staff gathers exiting
     /// 127 under the scheduler, so assert the shared prelude rather than an equivalent-looking
     /// string.

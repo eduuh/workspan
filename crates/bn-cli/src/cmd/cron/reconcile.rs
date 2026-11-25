@@ -2,7 +2,7 @@
 //! step anyone has to remember. Split out of `cron.rs` under the 1000-line ratchet.
 use crate::*;
 
-/// The bn a generated timer runs: the bindir-independent `<config_dir>/bn` anchor install.sh keeps
+/// The workspan a generated timer runs: the bindir-independent `<config_dir>/bn` anchor install.sh keeps
 /// pointed at the live binary, so units survive a bindir move, else the resolved bin dir. Both are
 /// absolute, as ExecStart requires.
 pub(super) fn registered_bn_path() -> String {
@@ -20,11 +20,11 @@ pub(super) fn registered_bn_path() -> String {
 /// How often an interactive `bn` may look at whether the timers still match the manifest.
 const RECONCILE_EVERY_SECS: u64 = 600;
 
-/// State-dir file holding [`timers_fingerprint`] as of the last clean `bn cron register`.
+/// State-dir file holding [`timers_fingerprint`] as of the last clean `workspan cron register`.
 const TIMERS_FINGERPRINT: &str = "cron-registered.fingerprint";
 
 /// A fingerprint of what registration would install here: every declared cron as registration sees
-/// it, whether cron is on, and the bn the units run. It reads manifests only — no `systemctl` or
+/// it, whether cron is on, and the workspan the units run. It reads manifests only — no `systemctl` or
 /// `launchctl` — so comparing it is cheap enough to do from an ordinary command.
 pub(super) fn timers_fingerprint(cfg: &Config, ctx: Option<&Resolved>) -> String {
     let mut lines: Vec<String> = super::machine_scope::desired_crons(cfg, ctx)
@@ -51,8 +51,8 @@ pub(super) fn record_registered(cfg: &Config, ctx: Option<&Resolved>) {
     );
 }
 
-/// The path anchors that point bn somewhere other than this machine's own layout. Any one of them
-/// makes this a sandbox, and `bn cron register` from a sandbox would rewrite the real machine's
+/// The path anchors that point workspan somewhere other than this machine's own layout. Any one of them
+/// makes this a sandbox, and `workspan cron register` from a sandbox would rewrite the real machine's
 /// timers: launchd and systemd `--user` are per-user, and registration unloads every timer its
 /// manifest does not declare.
 const SANDBOX_ANCHORS: [&str; 5] = [
@@ -76,7 +76,7 @@ fn reconcile_blocked() -> bool {
 ///
 /// Looks at most once every [`RECONCILE_EVERY_SECS`] (one stat of a stamp), and the look compares
 /// [`timers_fingerprint`] with what the last clean registration recorded. When they differ it
-/// starts `bn cron register` detached, the way catch-up starts jobs, so the command you ran is
+/// starts `workspan cron register` detached, the way catch-up starts jobs, so the command you ran is
 /// never delayed. Never runs in a sandbox (see [`reconcile_blocked`]).
 pub(crate) fn maybe_reconcile_timers(cfg: &Config) {
     if reconcile_blocked() {

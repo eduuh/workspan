@@ -10,7 +10,7 @@
 //! (`repos_with_live_agents` is the fix). And `bn wt merge --all` keys off the cwd's repo, so
 //! landing across repos means N invocations ([`cross_repo_land_order`] gives the rollup its order).
 
-/// The deterministic order a one-shot cross-repo landing (`bn wt merge --all-repos`) rolls through
+/// The deterministic order a one-shot cross-repo landing (`workspan wt merge --all-repos`) rolls through
 /// its repos (#455): trimmed, non-empty, sorted, deduped. A stable order makes the rollup
 /// reproducible and lets each repo be gated + landed independently regardless of the filesystem's
 /// directory-enumeration order.

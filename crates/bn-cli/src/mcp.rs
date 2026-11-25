@@ -23,9 +23,9 @@ fn bn_mcp_name() -> &'static str {
 /// from-source or release install runs its matching build), else fall back to the bare name on
 /// `PATH`.
 ///
-/// The **canonicalized** path is tried first, because bn is routinely launched through a symlink:
+/// The **canonicalized** path is tried first, because workspan is routinely launched through a symlink:
 /// install.sh maintains `<config_dir>/bn -> <bin_dir>/bn` as the stable anchor, and the cron units
-/// and MCP client registrations both spawn bn through it. `current_exe()` hands back that symlink
+/// and MCP client registrations both spawn workspan through it. `current_exe()` hands back that symlink
 /// path, whose sibling directory holds no `bn-mcp` — so resolving without canonicalizing looked
 /// beside the *anchor* instead of beside the real binary and died with "could not exec bn-mcp",
 /// taking every MCP client down with it. Falling back to the uncanonicalized sibling keeps a
@@ -46,7 +46,7 @@ pub(crate) fn resolve_bn_mcp() -> PathBuf {
     PathBuf::from(bn_mcp_name())
 }
 
-/// `bn mcp serve [--orchestrate]` — exec the sibling `bn-mcp` stdio launcher, pinned to the current
+/// `workspan mcp serve [--orchestrate]` — exec the sibling `bn-mcp` stdio launcher, pinned to the current
 /// worktree. The child derives its `(repo, branch)` from this cwd, so an MCP client needs no
 /// per-call scope headers. On unix we `exec()` so stdio/signals flow straight through (the client
 /// speaks MCP over this process's stdin/stdout); elsewhere we spawn+wait and forward the exit code.
@@ -60,7 +60,7 @@ pub fn serve(orchestrate: bool) {
         // exec() only returns on failure.
         let err = std::process::Command::new(&bin).args(args).exec();
         crate::fail(&format!(
-            "bn mcp serve: could not exec {} ({err}) — is bn-mcp installed beside bn? Try install.sh.",
+            "workspan mcp serve: could not exec {} ({err}) — is bn-mcp installed beside workspan? Try install.sh.",
             bin.display()
         ));
     }
@@ -69,7 +69,7 @@ pub fn serve(orchestrate: bool) {
         match std::process::Command::new(&bin).args(args).status() {
             Ok(status) => std::process::exit(status.code().unwrap_or(0)),
             Err(e) => crate::fail(&format!(
-                "bn mcp serve: could not run {} ({e}) — is bn-mcp installed beside bn?",
+                "workspan mcp serve: could not run {} ({e}) — is bn-mcp installed beside workspan?",
                 bin.display()
             )),
         }
@@ -94,7 +94,7 @@ pub fn init(harness: Harness, with_extras: bool, as_json: bool) {
                 return;
             }
             println!(
-                "Wired {} for the bn MCP server in {}:",
+                "Wired {} for the workspan MCP server in {}:",
                 report.harness,
                 report.repo_root.display()
             );
@@ -107,10 +107,12 @@ pub fn init(harness: Harness, with_extras: bool, as_json: bool) {
             for m in &report.missing_runners {
                 println!("  ⚠ '{}' not on PATH — {}", m.runner, m.fix);
             }
-            println!("Restart the editor (or reload the MCP servers) to pick up the bn tools.");
+            println!(
+                "Restart the editor (or reload the MCP servers) to pick up the workspan tools."
+            );
         }
         Err(msg) => {
-            let msg = format!("bn mcp init: {msg}");
+            let msg = format!("workspan mcp init: {msg}");
             if as_json {
                 println!("{}", Envelope::failure("mcp_init", "io", &msg).to_json());
             } else {
@@ -209,8 +211,8 @@ fn stdin_is_tty() -> bool {
     false
 }
 
-/// `bn mcp sync-user` — write the `[mcp.servers.*]` declarations into every MCP client on this
-/// machine. The user-scope counterpart to `bn mcp init`'s repo-scope wiring, and the reason a
+/// `workspan mcp sync-user` — write the `[mcp.servers.*]` declarations into every MCP client on this
+/// machine. The user-scope counterpart to `workspan mcp init`'s repo-scope wiring, and the reason a
 /// personal server declared once in the synced config.toml exists on every machine.
 pub fn sync_user(no_prompt: bool, as_json: bool) {
     let servers = bn_core::resolver::mcp_user_servers();
@@ -269,12 +271,14 @@ pub fn sync_user(no_prompt: bool, as_json: bool) {
                 .iter()
                 .any(|s| s.action == "skipped-no-secret")
             {
-                println!("Re-run `bn mcp sync-user` on a terminal to provide the missing secrets.");
+                println!(
+                    "Re-run `workspan mcp sync-user` on a terminal to provide the missing secrets."
+                );
             }
             println!("Restart your MCP clients to pick up the changes.");
         }
         Err(msg) => {
-            let msg = format!("bn mcp sync-user: {msg}");
+            let msg = format!("workspan mcp sync-user: {msg}");
             if as_json {
                 println!(
                     "{}",

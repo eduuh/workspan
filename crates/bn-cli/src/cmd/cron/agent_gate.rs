@@ -21,13 +21,13 @@ pub(super) struct Refusal(pub i32);
 /// otherwise show as a scheduled run that never fired.
 pub(super) fn refuse(cfg: &Config, agent: &AgentDef) -> Option<Refusal> {
     if let Err(error) = agent.ensure_runnable() {
-        eprintln!("bn run: {error}");
+        eprintln!("workspan run: {error}");
         return Some(Refusal(2));
     }
     if !agent.repo_available_here(cfg) {
         let repo = agent.requires_repo.as_deref().unwrap_or_default();
         println!(
-            "bn run: skipping '{}' — repository '{repo}' is not registered and available on '{}'",
+            "workspan run: skipping '{}' — repository '{repo}' is not registered and available on '{}'",
             agent.name,
             cfg.machine()
         );

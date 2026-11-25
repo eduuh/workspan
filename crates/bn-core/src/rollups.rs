@@ -13,7 +13,7 @@ pub struct TodoEntry {
     pub id: String,
     pub text: String,
     pub line: usize,
-    /// Partial progress (1–99) recorded via `bn done --pct`, if any.
+    /// Partial progress (1–99) recorded via `workspan done --pct`, if any.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub pct: Option<u8>,
 }

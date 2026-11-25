@@ -73,7 +73,7 @@ fn rows_json(repo: &str, bare: &std::path::Path) -> serde_json::Value {
     serde_json::json!({ "repo": repo, "git_dir": bare.to_string_lossy(), "worktrees": worktrees })
 }
 
-/// `bn wt list --json` — the structured form of the table `cmd_list` prints.
+/// `workspan wt list --json` — the structured form of the table `cmd_list` prints.
 pub(crate) fn cmd_list_json(cfg: &Config) -> bool {
     let (bare_dir, _) = layout(cfg);
     let repos = match find_bare_repo(&cwd()) {
@@ -448,7 +448,7 @@ pub(crate) fn existing_worktree_for(
     canon.is_dir().then(|| canon.to_string_lossy().to_string())
 }
 
-/// `bn wt remote` — fetch my open PRs for the current repo (opened from any machine) and create
+/// `workspan wt remote` — fetch my open PRs for the current repo (opened from any machine) and create
 /// local worktrees for them. Provider (GitHub/ADO) is detected from origin. With a `target` (PR
 /// number/branch) it creates that one; with `--all` it creates every PR lacking a worktree; with
 /// neither it lists candidates and, on a terminal, opens an fzf multi-picker.

@@ -27,12 +27,12 @@ pub(crate) fn native_job_line(line: &str, error: bool) {
     });
 }
 
-/// Run one cadence tick: every job in `children`, in order, through the normal `bn run` path.
+/// Run one cadence tick: every job in `children`, in order, through the normal `workspan run` path.
 ///
 /// These clusters used to be one systemd timer (and one `bn` process) per job, all firing on the
 /// same schedule. Folding them behind a single timer costs no observability: each child still goes
-/// through [`run_native_job`]/`run_job`, so it records its **own** `cron_run` event — `bn cron` and
-/// `bn doctor` show the same per-job rows and per-job failure counts as before. It also preserves
+/// through [`run_native_job`]/`run_job`, so it records its **own** `cron_run` event — `workspan cron` and
+/// `workspan doctor` show the same per-job rows and per-job failure counts as before. It also preserves
 /// each child's host gate, since `run_job` applies `job_allowed_here` per child.
 ///
 /// A failing child never blocks its siblings, and the tick itself returns 0 even when one fails:
@@ -77,7 +77,7 @@ pub(crate) fn job_tick_15m(cfg: &Config, ctx: Option<&Resolved>) -> i32 {
 }
 
 
-/// `watch` — one pass of the wake reactor (the cron form of `bn watch --once`). Toasts anything
+/// `watch` — one pass of the wake reactor (the cron form of `workspan watch --once`). Toasts anything
 /// newly needing you (agents waiting/blocked/stuck, agent completions, urgent attention) since the
 /// last run; quiet when nothing changed. Native so it toasts identically on every platform.
 pub(crate) fn job_watch(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
@@ -92,7 +92,7 @@ pub(crate) fn job_watch(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
 }
 
 /// `managed-repos` — clone + refresh the repos listed in `[managed_repos]` under the bn-managed
-/// root (`~/.bn/repos`), using bn's own bare+worktree layout so `wt`/`tat` can pick them up. This
+/// root (`~/.bn/repos`), using workspan's own bare+worktree layout so `wt`/`tat` can pick them up. This
 /// is how dotfiles (and any always-checked-out repo) land on a new machine without a manual
 /// `git clone`. Idempotent: clone-if-absent, else fetch + fast-forward each worktree. Best-effort —
 /// a single repo failing never aborts the rest, so it always exits 0 (matching the shell job it
@@ -180,9 +180,9 @@ fn fast_forward_worktrees(bare_s: &str) {
 /// `refresh-all` — the daily keep-current sweep. Clones/fast-forwards the bn-managed repos
 /// (`[managed_repos]`, so dotfiles & co. stay current) and reconciles the cron timers with the
 /// manifest (so a `crons.toml` change pulled into the repo takes effect without a manual
-/// `bn cron register`). Both steps are idempotent and best-effort; always exits 0.
+/// `workspan cron register`). Both steps are idempotent and best-effort; always exits 0.
 ///
-/// Note: the shell job it replaced also ran `bn refresh-all` up front, but no such subcommand ever
+/// Note: the shell job it replaced also ran `workspan refresh-all` up front, but no such subcommand ever
 /// existed — that line errored to a no-op — so the native handler drops it and does the two real
 /// steps only (#485).
 pub(crate) fn job_refresh_all(cfg: &Config, ctx: Option<&Resolved>) -> i32 {
@@ -193,10 +193,10 @@ pub(crate) fn job_refresh_all(cfg: &Config, ctx: Option<&Resolved>) -> i32 {
 
 
 /// Run a native job with the same bookkeeping as the script path: the per-machine `only_on` gate,
-/// the `bn cron running` marker, and a `cron_run` event with duration + exit code. Native jobs are
+/// the `workspan cron running` marker, and a `cron_run` event with duration + exit code. Native jobs are
 /// global scope (they live in the binary, not a note dir), so the event is tagged `global`. The
 /// native jobs stream straight to stdout/stderr; jobs that opt into [`native_job_line`] also
-/// retain the same text in the event tail for `bn cron show` / `bn cron failures`.
+/// retain the same text in the event tail for `workspan cron show` / `workspan cron failures`.
 pub(crate) fn run_native_job(
     cfg: &Config,
     ctx: Option<&Resolved>,
@@ -250,7 +250,7 @@ pub(crate) fn job_wt_cleanup(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
 /// `fleet-reap` (#503) — the fleet garbage-collector: terminate orphaned/stale agent process trees
 /// (window gone / worktree removed / PR merged/closed) and prune dead tmux windows. This is what
 /// makes the reaper automatic on macOS, where the systemd `wt-cleanup` timer never fires (#471):
-/// `bn cron register` materializes it as a launchd timer. Acts (kills), checks PR state (the cron
+/// `workspan cron register` materializes it as a launchd timer. Acts (kills), checks PR state (the cron
 /// can afford the network), and honors every safety gate — never a working / WIP / orchestrator
 /// agent.
 pub(crate) fn job_fleet_reap(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
@@ -264,14 +264,14 @@ pub(crate) fn job_fleet_reap(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     )
 }
 
-/// `next-sweep` — the detached helper launched by `bn next` so the opportunistic fleet sweep no
+/// `next-sweep` — the detached helper launched by `workspan next` so the opportunistic fleet sweep no
 /// longer blocks the user's decision path.
 pub(crate) fn job_next_sweep(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     reap::sweep(cfg);
     0
 }
 
-/// `jobs/attention-sync.sh` — recompute + rewrite the attention cache (`bn next --refresh`).
+/// `jobs/attention-sync.sh` — recompute + rewrite the attention cache (`workspan next --refresh`).
 pub(crate) fn job_attention_sync(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     // Retire items whose PR has merged or closed before refreshing, so a dead PR's "ping
     // reviewers" nag doesn't survive in the cache the panel reads (#966).
@@ -286,7 +286,7 @@ pub(crate) fn job_attention_sync(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     0
 }
 
-/// `jobs/daily-rollover.sh` — roll today's daily goals forward (`bn daily rollover`), then
+/// `jobs/daily-rollover.sh` — roll today's daily goals forward (`workspan daily rollover`), then
 /// regenerate the installed skills so each carries the last 30 days of reflections on itself.
 pub(crate) fn job_daily_rollover(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     match bn_core::daily::rollover(cfg, &today()) {
@@ -302,7 +302,7 @@ pub(crate) fn job_daily_rollover(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     }
 }
 
-/// `jobs/metrics-snapshot.sh` — write today's scorecard snapshot (`bn metrics --snapshot`). Calls
+/// `jobs/metrics-snapshot.sh` — write today's scorecard snapshot (`workspan metrics --snapshot`). Calls
 /// the core writer directly (rather than `emit_metrics`) so a failure is recorded, not `exit`ed.
 pub(crate) fn job_metrics_snapshot(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     use bn_core::clock::Clock;
@@ -328,7 +328,7 @@ pub(crate) fn job_metrics_snapshot(cfg: &Config, _ctx: Option<&Resolved>) -> i32
 }
 
 /// The `gather-findings` cron (#897) — snapshot the local morning-planning caches into the
-/// findings store ahead of `today-agent`. Runs the same offline adapters as `bn findings gather`
+/// findings store ahead of `today-agent`. Runs the same offline adapters as `workspan findings gather`
 /// (PR review queue, your open PRs, inbound feed, stale/blocked branches, night-shift reviewables,
 /// failing crons, sentinel, quarter goals, dojo cards), recording one durable run per non-empty
 /// source. Additive and read-only over the caches: no network, no re-fetch, and no
@@ -359,7 +359,7 @@ pub(crate) fn job_gather_findings(cfg: &Config, _ctx: Option<&Resolved>) -> i32 
     }
 }
 
-/// The `weekly-insights` cron — snapshot the current anchored week's `bn insights` retro into
+/// The `weekly-insights` cron — snapshot the current anchored week's `workspan insights` retro into
 /// `<notes>/<machine>/insights/<YYYY-Www>.md` so history accumulates and syncs. Sibling of
 /// `metrics-snapshot`; writes directly (rather than `emit_insights`) so a failure is recorded,
 /// not `exit`ed. Read-only over telemetry — never fetches.
@@ -390,13 +390,13 @@ pub(crate) fn job_weekly_insights(cfg: &Config, _ctx: Option<&Resolved>) -> i32 
     }
 }
 
-/// `jobs/agent-observe.sh` — ingest agent session state (`bn agent ingest`).
+/// `jobs/agent-observe.sh` — ingest agent session state (`workspan agent ingest`).
 pub(crate) fn job_agent_observe(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     emit_agent_ingest(cfg, false, false);
     0
 }
 
-/// `jobs/auto-review-poll.sh` — auto-review lifecycle poll (`bn review-pr poll`).
+/// `jobs/auto-review-poll.sh` — auto-review lifecycle poll (`workspan review-pr poll`).
 pub(crate) fn job_auto_review_poll(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     if review_pr::run(cfg, review_pr::ReviewPrCmd::Poll, false) {
         0
@@ -408,10 +408,10 @@ pub(crate) fn job_auto_review_poll(cfg: &Config, _ctx: Option<&Resolved>) -> i32
 /// `jobs/notify.sh` — offer each urgent attention item to the notification gate, then mark it
 /// notified.
 ///
-/// **`bn watch` owns attention delivery** (the `*:0/2` cron: faster, and it batches a burst into
+/// **`workspan watch` owns attention delivery** (the `*:0/2` cron: faster, and it batches a burst into
 /// one interrupt instead of one toast per item). This job therefore no longer rides `tick-5m` —
 /// running both on their own cadences, each with its own dedup ledger, is what toasted every
-/// urgent item twice. It stays registered so `bn run notify` and its cron-health row keep working,
+/// urgent item twice. It stays registered so `workspan run notify` and its cron-health row keep working,
 /// and it keys deliveries `attn:<id>` exactly as watch does, so the shared ledger makes a
 /// duplicate impossible even if the two ever run together again.
 pub(crate) fn job_notify(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
@@ -430,7 +430,7 @@ pub(crate) fn job_notify(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
             crate::toast::Class::Blocking,
             &format!("attn:{}", it.id),
             &it.source,
-            &format!("bn: {}", it.title),
+            &format!("workspan: {}", it.title),
             body,
         );
         let _ = bn_core::attention::mark_notified(&it.id);
@@ -470,7 +470,7 @@ pub(crate) fn job_standup_push(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
         crate::toast::Class::Digest,
         &format!("standup:{}", today()),
         "standup",
-        "bn standup",
+        "workspan standup",
         &line,
     );
     println!("{line}");
@@ -511,7 +511,7 @@ pub(crate) fn job_wrap_digest(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
         crate::toast::Class::Digest,
         &format!("wrap:{today}"),
         "wrap",
-        "bn wrap — end of day",
+        "workspan wrap — end of day",
         &digest,
     );
     println!("{digest}");
@@ -698,7 +698,7 @@ pub(crate) fn job_agent_supervise(cfg: &Config, _ctx: Option<&Resolved>) -> i32 
     );
     if fleet.stuck > 0 && std::env::var("BN_SUPERVISE_NUDGE").as_deref() == Ok("1") {
         let msg = std::env::var("BN_SUPERVISE_NUDGE_MSG").unwrap_or_else(|_| {
-            "bn supervise: still there? continue with the current task, or commit + open a PR if it is done.".to_string()
+            "workspan supervise: still there? continue with the current task, or commit + open a PR if it is done.".to_string()
         });
         for a in fleet
             .agents
@@ -715,7 +715,7 @@ pub(crate) fn job_agent_supervise(cfg: &Config, _ctx: Option<&Resolved>) -> i32 
     0
 }
 
-/// Type `msg` then Enter into a tmux window (`bn agent send` mechanics) — true on delivery.
+/// Type `msg` then Enter into a tmux window (`workspan agent send` mechanics) — true on delivery.
 /// Exact-name target ([`tmux_exact_target`]) so a renumbered/prefix-matched window can't receive
 /// another agent's nudge.
 pub(crate) fn tmux_send_keys(target: &str, msg: &str) -> bool {
@@ -724,7 +724,7 @@ pub(crate) fn tmux_send_keys(target: &str, msg: &str) -> bool {
     send(msg) && send("Enter")
 }
 
-/// `bn reviews --fetch` — rebuild the review-queue cache from GitHub: PRs awaiting your review and
+/// `workspan reviews --fetch` — rebuild the review-queue cache from GitHub: PRs awaiting your review and
 /// your own open PRs, each stamped with state + reviewDecision. Replaces the gh+jq pipeline.
 pub(crate) fn fetch_review_queue() -> i32 {
     if !gh_ready() {
@@ -778,7 +778,7 @@ pub(crate) fn fetch_review_queue() -> i32 {
 pub(crate) const PR_OBSERVE_WINDOW_DAYS: i64 = 30;
 
 /// `pr-observe` — fold the GitHub state of your own PRs into the metrics log as
-/// `pr_opened`/`pr_merged`/`pr_closed`/`pr_review` events (the producer `bn metrics` was
+/// `pr_opened`/`pr_merged`/`pr_closed`/`pr_review` events (the producer `workspan metrics` was
 /// missing, #213). One `gh search prs --author=@me` for the window, then one `gh pr view`
 /// only for PRs whose terminal/review events are still unknown. Idempotent by
 /// `(kind, repo, number)` against the whole-person log; events are stamped at their GitHub

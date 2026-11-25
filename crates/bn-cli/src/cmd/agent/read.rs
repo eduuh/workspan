@@ -29,7 +29,7 @@ pub(crate) fn emit_agent_pane(
                 Envelope::failure("agent_pane", "invalid_target", &msg).to_json()
             );
         } else {
-            eprintln!("bn agent pane: {msg}");
+            eprintln!("workspan agent pane: {msg}");
         }
         return;
     }
@@ -57,7 +57,7 @@ pub(crate) fn emit_agent_pane(
                 Envelope::failure("agent_pane", "capture_failed", msg).to_json()
             );
         } else {
-            eprintln!("bn agent pane: {target}: {msg}");
+            eprintln!("workspan agent pane: {target}: {msg}");
         }
         return;
     };
@@ -78,7 +78,7 @@ pub(crate) fn emit_agent_pane(
     }
 }
 
-/// `bn agent activity <session>` — the session's transcript as a readable timeline (prompts, agent
+/// `workspan agent activity <session>` — the session's transcript as a readable timeline (prompts, agent
 /// prose, collapsed tool runs). The companion to `pane` for the web dashboard: `pane` mirrors a
 /// live tmux window, this reads the transcript, so it still works once the window has closed. A
 /// session id with no transcript under either harness root is a `no_transcript` failure envelope
@@ -94,7 +94,7 @@ pub(crate) fn emit_agent_activity(session: &str, limit: usize, as_json: bool) {
                 Envelope::failure("agent_activity", "no_transcript", &msg).to_json()
             );
         } else {
-            eprintln!("bn agent activity: {msg}");
+            eprintln!("workspan agent activity: {msg}");
         }
         return;
     };

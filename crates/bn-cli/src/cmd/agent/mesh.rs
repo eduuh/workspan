@@ -15,14 +15,14 @@ use std::io::Read;
 use std::process::{Child, Command, Stdio};
 use std::time::{Duration, Instant};
 
-/// Set on a relayed `bn agent msg`, so the receiving machine never relays it again.
+/// Set on a relayed `workspan agent msg`, so the receiving machine never relays it again.
 pub(crate) const NO_MESH_ENV: &str = "BN_MSG_NO_MESH";
 
 /// How long one machine gets to list its agents. A host whose tunnel is down usually refuses at
 /// once; one whose relay hangs would otherwise hold up the message.
 const LIVE_DEADLINE: Duration = Duration::from_secs(12);
 
-/// A remote non-login shell does not read the profile, so every place bn installs to, and tmux's
+/// A remote non-login shell does not read the profile, so every place workspan installs to, and tmux's
 /// Homebrew prefix on a Mac, go on PATH by hand. `~/.local/bin` alone missed the default install
 /// (`~/.bn/bin`, or `~/.bin` on an older machine), and the host was skipped as "not found".
 pub(crate) const REMOTE_PATH: &str =
@@ -30,10 +30,10 @@ pub(crate) const REMOTE_PATH: &str =
 
 /// Where the message went, or why it could not.
 pub(crate) enum Relay {
-    /// Handed to `host`; its `bn agent msg` exited with this code (its output already printed).
+    /// Handed to `host`; its `workspan agent msg` exited with this code (its output already printed).
     Sent { code: i32 },
     /// No mesh host has the target live. `searched` names the machines that answered,
-    /// `unreachable` the ones that did not (down, or no bn there).
+    /// `unreachable` the ones that did not (down, or no workspan there).
     NotFound {
         searched: Vec<String>,
         unreachable: Vec<String>,
@@ -43,7 +43,7 @@ pub(crate) enum Relay {
 }
 
 /// Machines this one reaches through the managed blocks in an ssh config: tunnel-connect's
-/// (`bn tunnel`) and `bn machine join`'s (`bn mesh`). A machine with both is listed once.
+/// (`workspan tunnel`) and `workspan machine join`'s (`workspan mesh`). A machine with both is listed once.
 pub(crate) fn tunnel_hosts_in(ssh_config: &str) -> Vec<String> {
     let mut hosts: Vec<String> = Vec::new();
     for host in ssh_config
@@ -70,7 +70,7 @@ pub(crate) fn tunnel_hosts() -> Vec<String> {
     tunnel_hosts_in(&std::fs::read_to_string(path).unwrap_or_default())
 }
 
-/// Whether a `bn agent live --json` envelope lists `target` with a live window.
+/// Whether a `workspan agent live --json` envelope lists `target` with a live window.
 pub(crate) fn live_in(envelope: &str, target: &str) -> bool {
     let Ok(v) = serde_json::from_str::<serde_json::Value>(envelope) else {
         return false;
@@ -117,7 +117,7 @@ fn finish_by(mut child: Child, deadline: Instant) -> Option<String> {
     }
 }
 
-/// Every host's `bn agent live --json` envelope, asked all at once; `None` for a host that did
+/// Every host's `workspan agent live --json` envelope, asked all at once; `None` for a host that did
 /// not answer in time.
 pub(crate) fn live_envelopes(hosts: &[String]) -> Vec<(String, Option<String>)> {
     let deadline = Instant::now() + LIVE_DEADLINE;
@@ -198,7 +198,7 @@ pub(crate) fn relay(target: &str, text: &str, sender: &str, as_json: bool) -> Op
                 .and_then(|s| s.code())
                 .unwrap_or(1);
             if !as_json {
-                eprintln!("bn agent msg: relayed to {host}");
+                eprintln!("workspan agent msg: relayed to {host}");
             }
             Some(Relay::Sent { code })
         }

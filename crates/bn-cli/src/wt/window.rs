@@ -4,7 +4,7 @@
 
 use super::*;
 
-/// `bn wt open` — the prefix+o flow: resolve the current repo, pick or type a branch, ensure its
+/// `workspan wt open` — the prefix+o flow: resolve the current repo, pick or type a branch, ensure its
 /// worktree exists (creating from main if new), then open/select its tmux window. Session-per-repo.
 pub(crate) fn cmd_open(
     cfg: &Config,
@@ -52,7 +52,7 @@ pub(crate) fn cmd_open(
 }
 
 /// Ensure the worktree for `repo`/`branch` exists (creating it from the default branch if new) and
-/// open/select its tmux window — the mechanical half of `bn attn start`. Like `wt open`, but
+/// open/select its tmux window — the mechanical half of `workspan attn start`. Like `wt open`, but
 /// targets an explicit repo (not the cwd's), so an attention item can point anywhere. Session-per-
 /// repo, named via [`repo_name`]/[`sanitize_branch`] so the window joins the item on the board.
 /// Returns the worktree path, or `None` if the bare repo can't be resolved or creation fails.
@@ -75,8 +75,8 @@ pub(crate) fn open_item_worktree(cfg: &Config, repo: &str, branch: &str) -> Opti
 
 /// Start attention item `id`: open its worktree tmux window and mark it in-flight. Returns the
 /// worktree path, or `None` if the item is unknown, carries no repo/branch, or the worktree/window
-/// couldn't be opened. The terse shared core behind the `bn jump` / `bn doctor --pick` start
-/// bindings (`bn attn start` keeps its own granular error messages).
+/// couldn't be opened. The terse shared core behind the `workspan jump` / `workspan doctor --pick` start
+/// bindings (`workspan attn start` keeps its own granular error messages).
 pub(crate) fn start_attn_item(cfg: &Config, id: &str) -> Option<PathBuf> {
     let item = bn_core::attention::get(id)?;
     let (repo, branch) = (item.repo?, item.branch?);
@@ -94,7 +94,7 @@ pub(crate) fn start_attn_item(cfg: &Config, id: &str) -> Option<PathBuf> {
 /// of the worktree dir's own mtime and its `.git` pointer's (checkouts, index writes and branch
 /// switches all touch one of the two); it is a heuristic for ordering a picker, nothing more.
 ///
-/// The `_pool` container is filtered out — its slots are leased by `bn dispatch`/`bn control`, never
+/// The `_pool` container is filtered out — its slots are leased by `workspan dispatch`/`workspan control`, never
 /// picked by hand, and it is not a branch.
 pub(crate) fn existing_worktree_branches(worktree_dir: &Path, repo: &str) -> Vec<String> {
     let recency = |dir: &Path| {
@@ -282,7 +282,7 @@ pub(crate) fn open_worktree_window(repo: &str, branch: &str, wt_path: &Path, for
 /// Like [`open_worktree_window`], but the window runs `cmd` (an agent launch) instead of a shell,
 /// and — with `prime_agent` — stamps the empty `@bn_agent` badge on the window so the agent's
 /// lifecycle hooks can decorate it (working / waiting / done badges). This is the single disciplined
-/// session-per-repo path `bn dispatch --agent` and `bn wt open` now share, so a dispatched worktree
+/// session-per-repo path `workspan dispatch --agent` and `workspan wt open` now share, so a dispatched worktree
 /// lands in its repo's session (where `tat` expects it) whether or not you were already in tmux.
 /// Returns whether a window is now available (created or already present). No-op → false when tmux
 /// is absent.
@@ -668,7 +668,7 @@ fn close_window(win: &str, fallback: &Path) {
 /// Each non-current window has its panes' **full process trees** terminated before the window is
 /// killed (#503 gap 2): with `remain-on-exit on` a bare `kill-window` leaves the agent process
 /// reparented and alive, so cleanup would leave a straggler burning CPU. The current window (our
-/// own shell) is only killed — never tree-killed — so an interactive `bn close` from inside the
+/// own shell) is only killed — never tree-killed — so an interactive `workspan close` from inside the
 /// worktree doesn't shoot its own shell out mid-cleanup.
 ///
 /// A window that is the last one in its session is respawned rather than killed — see [`dispose`].

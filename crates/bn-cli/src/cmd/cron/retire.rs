@@ -33,7 +33,7 @@ pub(crate) fn emit_cron_unregister(job: &str, as_json: bool) {
                         );
                     }
                 }
-                Err(e) => fail(&format!("bn cron unregister: {e}")),
+                Err(e) => fail(&format!("workspan cron unregister: {e}")),
             }
             return;
         }
@@ -59,7 +59,7 @@ pub(crate) fn emit_cron_unregister(job: &str, as_json: bool) {
                 w.task_name, w.task_name
             );
         } else {
-            println!("No registered timer for '{job}' — `bn cron` lists what's scheduled");
+            println!("No registered timer for '{job}' — `workspan cron` lists what's scheduled");
         }
         return;
     };
@@ -86,12 +86,12 @@ pub(crate) fn emit_cron_unregister(job: &str, as_json: bool) {
                 );
             }
         }
-        Err(e) => fail(&format!("bn cron unregister: {e}")),
+        Err(e) => fail(&format!("workspan cron unregister: {e}")),
     }
 }
 
 
-/// `bn cron retire <job> [reason…]` — record that a cron name is gone on purpose.
+/// `workspan cron retire <job> [reason…]` — record that a cron name is gone on purpose.
 ///
 /// Refuses a job that still resolves, because that is always the operator meaning something else:
 /// a job with a manifest behind it *will* run again, so tombstoning it would only mute it until it
@@ -106,13 +106,13 @@ pub(crate) fn emit_cron_retire(
     let live = bn_core::crons::LiveJobs::discover(cfg, ctx);
     if live.contains(job) {
         fail(&format!(
-            "bn cron retire: '{job}' still resolves (a crons.toml entry, agent manifest, or \
-             <job>.sh backs it) — remove that first, or use `bn cron unregister {job}` to stop \
+            "workspan cron retire: '{job}' still resolves (a crons.toml entry, agent manifest, or \
+             <job>.sh backs it) — remove that first, or use `workspan cron unregister {job}` to stop \
              only its timer"
         ));
     }
     if let Err(e) = bn_core::events::retire_cron(job, Some(reason)) {
-        fail(&format!("bn cron retire: {e}"));
+        fail(&format!("workspan cron retire: {e}"));
     }
     if as_json {
         println!(

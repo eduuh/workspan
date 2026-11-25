@@ -84,10 +84,10 @@ pub struct TaskSignals {
     pub agent_state: Option<String>,
 }
 
-/// The stable machine/human read model emitted by `bn pipeline`.
+/// The stable machine/human read model emitted by `workspan pipeline`.
 ///
 /// The `phase`/`phases` fields carry the 4-value inference vocabulary. A field named `stage` on
-/// this type would collide with the durable 9-value one emitted by `bn pipeline status`.
+/// this type would collide with the durable 9-value one emitted by `workspan pipeline status`.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize)]
 pub struct PipelineView {
     pub repo: String,
@@ -202,7 +202,7 @@ fn action_for(phase: Phase, signals: &TaskSignals) -> String {
                 return format!("Next: {todo}");
             }
             if !signals.verify_passed {
-                "Run bn verify".to_string()
+                "Run workspan verify".to_string()
             } else if signals.pr_url.is_none() {
                 "Open the PR".to_string()
             } else {

@@ -17,7 +17,7 @@ set -u
 
 TO="${1:-${BN_TUNNEL_TO:-}}"
 SESSION="${2:-${BN_TUNNEL_SESSION:-bn}}"
-[ -n "$TO" ] || { echo "tunnel-attach: which machine? BN_TUNNEL_TO=<machine> bn run tunnel-attach" >&2; exit 2; }
+[ -n "$TO" ] || { echo "tunnel-attach: which machine? BN_TUNNEL_TO=<machine> workspan run tunnel-attach" >&2; exit 2; }
 [ -t 0 ] || { echo "tunnel-attach: needs a terminal (run it in a tmux pane, not a pipe)" >&2; exit 2; }
 case "$SESSION" in *[!A-Za-z0-9_.-]*) echo "tunnel-attach: bad session name '$SESSION'" >&2; exit 2 ;; esac
 

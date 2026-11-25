@@ -13,7 +13,7 @@
 use std::io::Write;
 use std::path::PathBuf;
 
-/// Set on the `bn agent msg` a flush runs, so a failed retry is reported to the flush instead of
+/// Set on the `workspan agent msg` a flush runs, so a failed retry is reported to the flush instead of
 /// being parked a second time.
 pub(crate) const RETRY_ENV: &str = "BN_MSG_RETRY";
 
@@ -121,7 +121,7 @@ pub(crate) fn park(to: &str, from: &str, text: &str, why: &str) -> std::io::Resu
     Ok(id)
 }
 
-/// The outcome of one retry: the `bn agent msg` JSON envelope's `ok`, and its error message.
+/// The outcome of one retry: the `workspan agent msg` JSON envelope's `ok`, and its error message.
 fn retry(item: &Parked) -> (bool, String) {
     let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
     let out = std::process::Command::new(exe)
@@ -187,7 +187,7 @@ fn flush_locked() -> (usize, usize) {
     (sent, waiting)
 }
 
-/// `bn agent outbox [--flush] [--json]`.
+/// `workspan agent outbox [--flush] [--json]`.
 pub(crate) fn emit(flush_now: bool, drop: Option<&str>, as_json: bool) {
     if let Some(id) = drop {
         let removed = locked("file", true, || {
@@ -202,7 +202,7 @@ pub(crate) fn emit(flush_now: bool, drop: Option<&str>, as_json: bool) {
         })
         .unwrap_or(false);
         if !removed {
-            eprintln!("bn agent outbox: no parked message {id}");
+            eprintln!("workspan agent outbox: no parked message {id}");
             std::process::exit(1);
         }
         let _ = bn_core::events::append(

@@ -79,7 +79,7 @@ pub fn render_atom(atom: &Atom, i: &AtomInputs<'_>) -> Result<Option<String>, St
     })
 }
 
-/// The coding-standards pointer `bn dispatch` has always seeded (#623): `refs` is the `--ref`
+/// The coding-standards pointer `workspan dispatch` has always seeded (#623): `refs` is the `--ref`
 /// selection (comma lists allowed, `-` for none); empty means every standard.
 pub fn global_refs(refs: &[String]) -> Option<String> {
     let mut tokens: Vec<String> = Vec::new();
@@ -112,7 +112,7 @@ pub fn global_refs(refs: &[String]) -> Option<String> {
     }
     Some(format!(
         "\n\nApply these references (my coding standards) when writing code, and check your \
-         changes against them — run `bn ref <name>` for the full text of each: {}.",
+         changes against them — run `workspan ref <name>` for the full text of each: {}.",
         names.join(", ")
     ))
 }
@@ -127,8 +127,8 @@ pub fn ref_index(repo: &str) -> Option<String> {
     Some(format!(
         "\n\nThis repo's reference notes — what past sessions discovered about it (how it builds, \
          where the seams are, which failures mislead). Read the one that bears on your task with \
-         `bn ref <name> --repo`, and when you learn something durable, record it with \
-         `bn ref append <name> --repo --section gotchas \"<fact> (src: …, <date>)\"`: {}.",
+         `workspan ref <name> --repo`, and when you learn something durable, record it with \
+         `workspan ref append <name> --repo --section gotchas \"<fact> (src: …, <date>)\"`: {}.",
         names.join(", ")
     ))
 }

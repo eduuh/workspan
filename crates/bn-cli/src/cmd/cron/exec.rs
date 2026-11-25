@@ -14,7 +14,7 @@ const TAIL_LINES: usize = 15;
 /// run it" code — so a job that never started is not mistaken for one that ran and exited 0.
 ///
 /// Streamed, not `output()`: that held the whole run in memory and echoed it only at exit, so a
-/// job under systemd (`bn run pool-build-remote`, a monorepo warm of an hour or more) put nothing in the
+/// job under systemd (`workspan run pool-build-remote`, a monorepo warm of an hour or more) put nothing in the
 /// journal past "Starting" until it finished.
 fn capture_command(mut command: std::process::Command, launch_target: &str) -> (i32, String) {
     use std::process::Stdio;
@@ -22,7 +22,7 @@ fn capture_command(mut command: std::process::Command, launch_target: &str) -> (
     let mut child = match command.spawn() {
         Ok(child) => child,
         Err(e) => {
-            eprintln!("bn run: failed to launch {launch_target}: {e}");
+            eprintln!("workspan run: failed to launch {launch_target}: {e}");
             return (127, e.to_string());
         }
     };
@@ -70,14 +70,14 @@ fn relay_lines(
     }
 }
 
-/// The PATH every job process gets; one definition, shared with `bn cmd` and the MCP server.
+/// The PATH every job process gets; one definition, shared with `workspan cmd` and the MCP server.
 pub(crate) use bn_core::cmds::job_path;
 
 /// A `<job>.sh` script from one of the job tiers.
 fn run_script(script: &std::path::Path) -> (i32, String) {
     if cfg!(windows) {
         let error = "job scripts are unix-only (sh); not supported on native Windows";
-        eprintln!("bn run: {error}");
+        eprintln!("workspan run: {error}");
         return (2, error.to_string());
     }
     let mut command = std::process::Command::new("/bin/sh");
@@ -89,7 +89,7 @@ fn run_script(script: &std::path::Path) -> (i32, String) {
 ///
 /// The one directive today is `# bn: latest-main` ([`resolver::ScriptHeader`]): fetch and
 /// fast-forward the repo's main checkout and main slot before the script starts. Honoured here,
-/// in the runner, rather than by whichever surface started the script — a cron firing, `bn run`
+/// in the runner, rather than by whichever surface started the script — a cron firing, `workspan run`
 /// and the picker all reach this line, so the script gets the same precondition however it was
 /// asked for. The sync is [`crate::cmd::main_sync::sync_repo`], the same piece `build-main` uses.
 ///
@@ -106,19 +106,19 @@ pub(crate) fn run_repo_script(
                 "{} asks for latest main, but no repo is in scope to sync",
                 script.display()
             );
-            eprintln!("bn run: {msg}");
+            eprintln!("workspan run: {msg}");
             return (2, msg);
         };
         let Some(bare) = crate::wt::bare_for(cfg, &ctx.repo) else {
             let msg = format!("{} asks for latest main, but {} has no bare repo here", script.display(), ctx.repo);
-            eprintln!("bn run: {msg}");
+            eprintln!("workspan run: {msg}");
             return (1, msg);
         };
         let (_, worktree_dir) = crate::wt::layout(cfg);
-        println!("bn run: syncing {} to latest main first (# bn: latest-main)", ctx.repo);
+        println!("workspan run: syncing {} to latest main first (# bn: latest-main)", ctx.repo);
         if !crate::cmd::main_sync::sync_repo(&bare, &worktree_dir, &ctx.repo) {
             let msg = format!("could not bring {} up to date", ctx.repo);
-            eprintln!("bn run: {msg}");
+            eprintln!("workspan run: {msg}");
             return (1, msg);
         }
     }
@@ -129,7 +129,7 @@ pub(crate) fn run_repo_script(
 pub(crate) fn run_custom_command(command_text: &str) -> (i32, String) {
     if cfg!(windows) {
         let error = "custom agent commands are unix-only (sh); not supported on native Windows";
-        eprintln!("bn run: {error}");
+        eprintln!("workspan run: {error}");
         return (2, error.to_string());
     }
     let mut command = std::process::Command::new("/bin/sh");

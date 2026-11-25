@@ -18,7 +18,7 @@ pub(crate) fn available() -> bool {
 }
 
 /// A writable handle on the controlling terminal, for when stdout has been redirected —
-/// `bn tat | cat` must not paint frames into the pipe.
+/// `workspan tat | cat` must not paint frames into the pipe.
 fn tty_writer() -> Option<std::fs::File> {
     std::fs::OpenOptions::new()
         .write(true)

@@ -37,7 +37,7 @@ pub const ENVELOPE_FIELDS: &[&str] = &[
 pub const COMMANDS: &[CommandSchema] = &[
     CommandSchema {
         tag: "verify",
-        invocation: "bn verify --dry-run --json",
+        invocation: "workspan verify --dry-run --json",
         summary: "the resolved verification gate without executing it or recording a result",
         fields: &[
             "job: string — the gate label, shared by previews and executed runs",
@@ -55,7 +55,7 @@ pub const COMMANDS: &[CommandSchema] = &[
     },
     CommandSchema {
         tag: "discover",
-        invocation: "bn discover --json [task...]",
+        invocation: "workspan discover --json [task...]",
         summary: "read-only branch context and ranked workflow suggestions for a task",
         fields: &[
             "task: string — the trimmed task text, empty when omitted",
@@ -85,7 +85,7 @@ pub const COMMANDS: &[CommandSchema] = &[
     },
     CommandSchema {
         tag: "worktrees",
-        invocation: "bn worktrees --json",
+        invocation: "workspan worktrees --json",
         summary: "task scopes joined to their on-disk worktree dirs",
         fields: &[
             "worktrees: array — `list`'s row shape plus:",
@@ -94,7 +94,7 @@ pub const COMMANDS: &[CommandSchema] = &[
     },
     CommandSchema {
         tag: "repos",
-        invocation: "bn repos list --json",
+        invocation: "workspan repos list --json",
         summary: "every cloned repo under the bare root",
         fields: &[
             "dir: string — the bare root the fleet was read from",
@@ -109,7 +109,7 @@ pub const COMMANDS: &[CommandSchema] = &[
     },
     CommandSchema {
         tag: "repos-foreach",
-        invocation: "bn --json repos foreach <argv...>",
+        invocation: "workspan --json repos foreach <argv...>",
         summary: "one command's result in every repo (note: --json precedes `foreach`)",
         fields: &[
             "repos: array — one row per repo, sorted by name",
@@ -126,7 +126,7 @@ pub const COMMANDS: &[CommandSchema] = &[
     },
     CommandSchema {
         tag: "wt-list",
-        invocation: "bn wt list --json",
+        invocation: "workspan wt list --json",
         summary: "git worktrees for the current repo, or every repo when outside one",
         fields: &[
             "repos: array — one row per repo",
@@ -142,12 +142,12 @@ pub const COMMANDS: &[CommandSchema] = &[
     },
     CommandSchema {
         tag: "links",
-        invocation: "bn links --json",
+        invocation: "workspan links --json",
         summary:
-            "the stored links, in picker order (bare `bn links --json` lists; it does not open)",
+            "the stored links, in picker order (bare `workspan links --json` lists; it does not open)",
         fields: &[
             "items: array — one row per link",
-            "items[].id: string — the short id `bn links rm` takes",
+            "items[].id: string — the short id `workspan links rm` takes",
             "items[].name: string — the display name",
             "items[].url: string — the link",
             "items[].repo: string|null — the owning repo, null when repo-agnostic",
@@ -159,13 +159,13 @@ pub const COMMANDS: &[CommandSchema] = &[
     },
     CommandSchema {
         tag: "findings-sources",
-        invocation: "bn findings sources --json",
+        invocation: "workspan findings sources --json",
         summary: "the sources the findings store holds history for",
         fields: &["sources: array — source name strings"],
     },
     CommandSchema {
         tag: "harness-models",
-        invocation: "bn harness models --json",
+        invocation: "workspan harness models --json",
         summary: "what each agent harness accepts, cached for a day",
         fields: &[
             "harnesses: array — one row per harness",
@@ -202,8 +202,8 @@ mod tests {
             assert!(!c.fields.is_empty(), "{} documents no fields", c.tag);
             assert!(!c.summary.is_empty(), "{} has no summary", c.tag);
             assert!(
-                c.invocation.starts_with("bn "),
-                "{} invocation should be a bn command line",
+                c.invocation.starts_with("workspan "),
+                "{} invocation should be a workspan command line",
                 c.tag
             );
         }

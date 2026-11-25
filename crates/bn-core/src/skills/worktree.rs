@@ -96,7 +96,7 @@ fn has_repo_tier_skills(cfg: &Config, worktree: &Path) -> bool {
 /// Materialize this repo's skills into a freshly created `worktree`, honouring both preconditions
 /// above. Idempotent and safe to call on an existing worktree — it delegates the writes to
 /// [`install_native_skills`], which preflights every path and refuses to overwrite a same-named
-/// skill bn does not own.
+/// skill workspan does not own.
 pub fn seed_worktree_skills(cfg: &Config, worktree: &Path, home: &Path) -> WorktreeSkillsReport {
     let mut report = WorktreeSkillsReport::default();
     if !has_repo_tier_skills(cfg, worktree) {

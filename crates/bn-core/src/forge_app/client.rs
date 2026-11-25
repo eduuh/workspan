@@ -21,7 +21,7 @@ use std::time::Duration;
 use serde::{Deserialize, Deserializer};
 use serde_json::{json, Value};
 
-/// The MCP protocol revision bn asks for. The server answers with the one it speaks, and that
+/// The MCP protocol revision workspan asks for. The server answers with the one it speaks, and that
 /// answer is what later requests carry.
 pub const PROTOCOL_VERSION: &str = "2025-06-18";
 
@@ -29,7 +29,7 @@ pub const PROTOCOL_VERSION: &str = "2025-06-18";
 /// fail rather than wedge them.
 const TIMEOUT: Duration = Duration::from_secs(30);
 
-/// The server's `initialize` answer, reduced to what `bn forge status` shows.
+/// The server's `initialize` answer, reduced to what `workspan forge status` shows.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ServerInfo {
     pub name: String,
@@ -216,7 +216,7 @@ fn str_at(v: &Value, path: &[&str]) -> String {
     cur.as_str().unwrap_or_default().to_string()
 }
 
-/// Map a non-2xx reply to an error. 401/403 name `bn forge login`, because a rejected key is the
+/// Map a non-2xx reply to an error. 401/403 name `workspan forge login`, because a rejected key is the
 /// one failure a person can fix from here.
 fn check_status(reply: &Reply, what: &str) -> io::Result<()> {
     match reply.status {
@@ -224,7 +224,7 @@ fn check_status(reply: &Reply, what: &str) -> io::Result<()> {
         401 | 403 => Err(io::Error::new(
             io::ErrorKind::PermissionDenied,
             format!(
-                "Forge rejected the key (HTTP {}) on {what}: run `bn forge login` for a new one",
+                "Forge rejected the key (HTTP {}) on {what}: run `workspan forge login` for a new one",
                 reply.status
             ),
         )),
@@ -481,7 +481,7 @@ pub enum MetaOutcome {
     VersionConflict { version: i64 },
 }
 
-/// The Forge tools the task store and `bn forge` use.
+/// The Forge tools the task store and `workspan forge` use.
 pub trait ForgeApi: Send + Sync {
     fn list_bn_tasks(
         &self,
@@ -519,7 +519,7 @@ impl HttpForgeApi {
         }
     }
 
-    /// The protocol client, for `initialize` in `bn forge status`.
+    /// The protocol client, for `initialize` in `workspan forge status`.
     pub fn mcp(&self) -> &McpHttp {
         &self.mcp
     }

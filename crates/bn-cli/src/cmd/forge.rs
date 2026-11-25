@@ -1,4 +1,4 @@
-//! `bn forge` — local bridge from Forge claimable tasks into bn dispatch.
+//! `workspan forge` — local bridge from Forge claimable tasks into workspan dispatch.
 
 use crate::*;
 use bn_core::forge_local::{
@@ -12,7 +12,7 @@ const COMMAND_LIST: &str = "forge-list";
 const COMMAND_CLAIM: &str = "forge-claim";
 const COMMAND_DISPATCH: &str = "forge-dispatch";
 const COMMAND_TICK: &str = "forge-tick";
-/// Upper bound on the task page a tick reads before filtering. Forge's bn queue is family-sized,
+/// Upper bound on the task page a tick reads before filtering. Forge's workspan queue is family-sized,
 /// so this is a safety valve against an unbounded response, not a real paging strategy.
 const TICK_TASK_LIMIT: usize = 200;
 
@@ -146,7 +146,7 @@ fn run_with_client<C: ForgeMcpClient>(
                     ForgeRunError::new(
                         COMMAND_DISPATCH,
                         "dispatch_repo_required",
-                        "bn forge dispatch: pass --repo, or run inside the target repo worktree",
+                        "workspan forge dispatch: pass --repo, or run inside the target repo worktree",
                     )
                 })?;
             dispatch_claimed(
@@ -218,7 +218,7 @@ fn run_with_client<C: ForgeMcpClient>(
     }
 }
 
-/// One `bn forge tick` invocation, gathered so the loop below reads as policy rather than argument
+/// One `workspan forge tick` invocation, gathered so the loop below reads as policy rather than argument
 /// plumbing.
 struct TickRequest {
     profile: ForgeAgentProfile,
@@ -233,7 +233,7 @@ struct TickRequest {
     json_output: bool,
 }
 
-/// Targets of agents that are still doing something, lowercased as `bn agent live` reports them.
+/// Targets of agents that are still doing something, lowercased as `workspan agent live` reports them.
 ///
 /// `done` is deliberately excluded: an agent that finished without closing its Forge task is the
 /// exact failure this poller exists to clean up, so its claim must look abandoned, not live.
@@ -287,7 +287,7 @@ fn run_tick<C: ForgeMcpClient>(
             held.push(task.id.clone());
         } else {
             let reason = format!(
-                "bn forge tick: no live {claimer} agent for this claim; releasing so it can be picked up again"
+                "workspan forge tick: no live {claimer} agent for this claim; releasing so it can be picked up again"
             );
             if !req.dry_run {
                 if let Err(error) = client.release_activity(&req.profile, &task.id, &reason) {
@@ -349,7 +349,7 @@ fn run_tick<C: ForgeMcpClient>(
                 Err(message) => {
                     // A claim we cannot dispatch is the very state this poller reaps, so hand it
                     // straight back instead of letting the next tick discover it as abandoned.
-                    let reason = format!("bn forge tick: dispatch failed after claim: {message}");
+                    let reason = format!("workspan forge tick: dispatch failed after claim: {message}");
                     if let Err(error) = client.release_activity(&req.profile, &task.id, &reason) {
                         errors.push(format!(
                             "release-after-failed-dispatch {}: {}",
@@ -389,7 +389,7 @@ fn claim_one<C: ForgeMcpClient>(
         Err(ForgeRunError::new(
             COMMAND_CLAIM,
             "claim_failed",
-            format!("bn forge claim: task '{task_id}' was not claimed ({reason})"),
+            format!("workspan forge claim: task '{task_id}' was not claimed ({reason})"),
         ))
     }
 }
@@ -479,7 +479,7 @@ trait ForgeMcpClient {
         lease_seconds: u64,
     ) -> Result<ForgeClaimActivityResponse, ForgeMcpError>;
 
-    /// Every bn task Forge knows about, claimed or not — the only view that shows what this agent
+    /// Every workspan task Forge knows about, claimed or not — the only view that shows what this agent
     /// is already holding, which `list_claimable_tasks` by definition excludes.
     fn list_all_tasks(
         &mut self,
@@ -532,7 +532,7 @@ impl ForgeMcpError {
         Self {
             code: "mcp_client_unavailable",
             message: format!(
-                "bn forge: OAuth MCP profile '{}' targets '{target}', but this bn binary has no Forge MCP client transport yet; documented Forge tools are list_bn_tasks(claimable=true) and claim_activity(claimer,id,leaseSeconds)",
+                "workspan forge: OAuth MCP profile '{}' targets '{target}', but this workspan binary has no Forge MCP client transport yet; documented Forge tools are list_bn_tasks(claimable=true) and claim_activity(claimer,id,leaseSeconds)",
                 profile.agent
             ),
         }

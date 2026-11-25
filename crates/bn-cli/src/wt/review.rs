@@ -16,7 +16,7 @@ pub(crate) struct PrSetup {
 
 /// Resolve a PR's source branch via the host CLI for the `<repo>.git` bare repo: `az repos pr
 /// show` (ADO) or `gh pr view` (GitHub). `None` if it can't be determined.
-/// bn keys bare repos, worktrees, and tmux windows by a repo's **short name** (the bare is
+/// workspan keys bare repos, worktrees, and tmux windows by a repo's **short name** (the bare is
 /// `<short>.git` under the layout's bare dir), while the review queue / ledger / CLI carry the full
 /// `owner/repo` slug — which `gh --repo` and the review-cache lookups need. Reduce a slug to that
 /// short key for the filesystem / bare / tmux layer; an already-short name passes through unchanged.
@@ -293,8 +293,8 @@ fn load_review_skill(
 fn review_seed_prompt(cfg: &Config, repo: &str, number: i64, wt_path: &std::path::Path) -> String {
     let (mine, url) = review_pr_ownership(repo, number);
     let skill = load_review_skill(cfg, wt_path)
-        .unwrap_or_else(|error| crate::fail(&format!("bn review: {error}")))
-        .unwrap_or_else(|| crate::fail("bn review: required prompt 'auto-review-pr' not found"));
+        .unwrap_or_else(|error| crate::fail(&format!("workspan review: {error}")))
+        .unwrap_or_else(|| crate::fail("workspan review: required prompt 'auto-review-pr' not found"));
     // The host is decided here, in the trusted launcher, from the cached PR url — so the agent
     // never spends a turn on `git remote -v` discovery (and can't be steered to the wrong CLI).
     let host = if url.contains("github.com") {
@@ -318,9 +318,9 @@ fn review_seed_prompt(cfg: &Config, repo: &str, number: i64, wt_path: &std::path
     args.insert("host".into(), serde_json::Value::String(host.to_string()));
     let body = skill
         .render_checked(Some(&args))
-        .unwrap_or_else(|error| crate::fail(&format!("bn review: {error}")));
+        .unwrap_or_else(|error| crate::fail(&format!("workspan review: {error}")));
     let cli_map = bn_core::skills::render_required(cfg, wt_path, "dispatch-cli-map", None)
-        .unwrap_or_else(|error| crate::fail(&format!("bn review: {error}")));
+        .unwrap_or_else(|error| crate::fail(&format!("workspan review: {error}")));
     let mut envelope_args = serde_json::Map::new();
     envelope_args.insert(
         "workflow_body".into(),
@@ -328,7 +328,7 @@ fn review_seed_prompt(cfg: &Config, repo: &str, number: i64, wt_path: &std::path
     );
     envelope_args.insert("cli_map".into(), serde_json::Value::String(cli_map));
     bn_core::skills::render_required(cfg, wt_path, "auto-review-envelope", Some(&envelope_args))
-        .unwrap_or_else(|error| crate::fail(&format!("bn review: {error}")))
+        .unwrap_or_else(|error| crate::fail(&format!("workspan review: {error}")))
 }
 
 /// The autonomy boundary for a review. A review agent runs **yolo** (tools auto-approved, no

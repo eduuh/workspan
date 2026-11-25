@@ -33,7 +33,7 @@ fn next_iteration(key: &str) -> u32 {
         + 1
 }
 
-/// `bn critic dispatch` — launch a fresh critic lane over the execution branch's diff.
+/// `workspan critic dispatch` — launch a fresh critic lane over the execution branch's diff.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn run_critic_dispatch(
     cfg: &Config,
@@ -58,17 +58,17 @@ pub(crate) fn run_critic_dispatch(
                 json,
                 "critic",
                 "no-repo",
-                "bn critic: not in a repo — pass --repo <name>",
+                "workspan critic: not in a repo — pass --repo <name>",
             ),
         },
-        Err(e) => fail_json(json, "critic", "unknown-repo", &format!("bn critic: {e}")),
+        Err(e) => fail_json(json, "critic", "unknown-repo", &format!("workspan critic: {e}")),
     };
     if !bare.is_dir() {
         fail_json(
             json,
             "critic",
             "no-bare-repo",
-            &format!("bn critic: no bare repo at {}", bare.display()),
+            &format!("workspan critic: no bare repo at {}", bare.display()),
         );
     }
     // Harness precedence mirrors `bn dispatch`: an explicit `--agent` pin wins; else the Critique
@@ -85,7 +85,7 @@ pub(crate) fn run_critic_dispatch(
                         json,
                         "critic",
                         "bad-agent",
-                        "bn critic: unknown --agent (use: copilot | claude)",
+                        "workspan critic: unknown --agent (use: copilot | claude)",
                     )
                 })
             });
@@ -101,7 +101,7 @@ pub(crate) fn run_critic_dispatch(
                         "critic",
                         "bad-stage-harness",
                         &format!(
-                            "bn critic: unknown harness '{h}' in [pipeline.stages.critique] (use: copilot | claude)"
+                            "workspan critic: unknown harness '{h}' in [pipeline.stages.critique] (use: copilot | claude)"
                         ),
                     )
                 })
@@ -110,7 +110,7 @@ pub(crate) fn run_critic_dispatch(
         if let Some((from, reason)) = &resolved.fallback_from {
             if !json {
                 eprintln!(
-                    "bn critic: {from} unavailable ({reason}); falling back to {}",
+                    "workspan critic: {from} unavailable ({reason}); falling back to {}",
                     resolved.harness
                 );
             }
@@ -139,7 +139,7 @@ pub(crate) fn run_critic_dispatch(
             json,
             "critic",
             "worktree-failed",
-            &format!("bn critic: critic worktree creation failed: {e}"),
+            &format!("workspan critic: critic worktree creation failed: {e}"),
         );
     }
 
@@ -161,15 +161,15 @@ pub(crate) fn run_critic_dispatch(
     // the diff + done-when + pr via the leak-proof packet builder. No plan, execution transcript,
     // or execution session id is forwarded.
     let workflow = bn_core::skills::render_required(cfg, &wt_path, "critique-fresh", None)
-        .unwrap_or_else(|error| fail(&format!("bn critic: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan critic: {error}")));
     let evidence = evidence_lines(cfg, &exec_ctx);
     let packet =
         critic_packet_with_evidence(&diff, &done_when, pr, &evidence);
     let verdict_commands = format!(
-        "PASS: `bn critic verdict --repo {repo} --branch {branch} --pass`\n\
-         FAIL: `bn critic verdict --repo {repo} --branch {branch} --fail --findings-file <path>`\n\
+        "PASS: `workspan critic verdict --repo {repo} --branch {branch} --pass`\n\
+         FAIL: `workspan critic verdict --repo {repo} --branch {branch} --fail --findings-file <path>`\n\
          EVIDENCE (judge each proof you checked; never your own): \
-         `bn proof judge <p> accept|reject --reason \"…\" --repo {repo} --branch {branch}`"
+         `workspan proof judge <p> accept|reject --reason \"…\" --repo {repo} --branch {branch}`"
     );
     let mut envelope_args = serde_json::Map::new();
     envelope_args.insert(
@@ -187,7 +187,7 @@ pub(crate) fn run_critic_dispatch(
         "pipeline-critic-envelope",
         Some(&envelope_args),
     )
-    .unwrap_or_else(|error| fail(&format!("bn critic: {error}")));
+    .unwrap_or_else(|error| fail(&format!("workspan critic: {error}")));
     let mut agent_launched = false;
     if !no_tmux {
         let _ = apply_folder_trust(&wt_path.to_string_lossy(), agent_kind);
@@ -254,7 +254,7 @@ pub(crate) fn run_critic_dispatch(
     }
 }
 
-/// `bn critic verdict` — record the critic's ruling and drive the loop-back (r17 §1.4).
+/// `workspan critic verdict` — record the critic's ruling and drive the loop-back (r17 §1.4).
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn run_critic_verdict(
     cfg: &Config,
@@ -291,7 +291,7 @@ pub(crate) fn run_critic_verdict(
                     json,
                     "critic",
                     "no-target",
-                    "bn critic verdict: not in a repo — pass --repo/--branch",
+                    "workspan critic verdict: not in a repo — pass --repo/--branch",
                 ),
             }
         }
@@ -354,7 +354,7 @@ pub(crate) fn run_critic_verdict(
             // the findings so it fixes them rather than resuming an empty prompt.
             let raw = format!(
                 "Critic FAILED (iteration {iteration}/{max_iterations}). Address these findings, \
-                 then re-run `bn verify`:\n{detail}"
+                 then re-run `workspan verify`:\n{detail}"
             );
             run_dispatch(
                 cfg,

@@ -212,9 +212,9 @@ if [ "$have_lock" = 1 ] && [ "$repair_due" = 1 ]; then
   {
     echo "--- $(date '+%F %T') tunnel-auto repair ($(tr '\n' ' ' < "$status"))"
     [ "$is_host" = 1 ] && [ ! -f "$HOME/.ssh/bn-sshd/sshd_config" ] \
-      && echo "tunnel-auto: signed in to Dev Tunnels, so hosting this machine (off: bn run tunnel-setup with BN_TUNNEL_AUTO=0)"
+      && echo "tunnel-auto: signed in to Dev Tunnels, so hosting this machine (off: workspan run tunnel-setup with BN_TUNNEL_AUTO=0)"
     if [ "$no_sshd" = 1 ] && ! fresh "$cache/tunnel-auto.sshd-asked" 86400; then
-      echo "tunnel-auto: other machines cannot connect back to this one; install sshd once: sudo apt-get install -y openssh-server (or: bn run tunnel-setup)"
+      echo "tunnel-auto: other machines cannot connect back to this one; install sshd once: sudo apt-get install -y openssh-server (or: workspan run tunnel-setup)"
       touch "$cache/tunnel-auto.sshd-asked"
     fi
     if [ "$is_host" = 1 ]; then

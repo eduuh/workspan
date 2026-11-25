@@ -88,7 +88,7 @@ fn skip_escape(it: &mut std::str::Chars<'_>) {
 /// Consume and return the body of an escape sequence (everything after the ESC byte).
 ///
 /// CSI (`ESC [ … final`) ends at a byte in `@..~`. OSC (`ESC ] …`) ends at BEL or ST (`ESC \`) —
-/// bn does not emit OSC today, but a title-setting sequence arriving from a captured pane must not
+/// workspan does not emit OSC today, but a title-setting sequence arriving from a captured pane must not
 /// be miscounted as a screenful of columns. Anything else is a two-byte sequence.
 fn take_escape(it: &mut std::str::Chars<'_>) -> String {
     let mut body = String::new();

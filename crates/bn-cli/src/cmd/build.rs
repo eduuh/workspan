@@ -1,11 +1,11 @@
 //! `bn build` + target-context resolution helpers.
 use crate::*;
 
-/// `bn build [name] [--repo R --branch B] [-- <args…>]` — resolve the worktree's `<name>.sh`
+/// `workspan build [name] [--repo R --branch B] [-- <args…>]` — resolve the worktree's `<name>.sh`
 /// (default `build`) via the same branch → repo → global `job_script` lookup the cron uses, then
 /// run it in the current directory. Any trailing argv is forwarded to the script unchanged. This
 /// is the one build entry point: `wt pool warm` warms each slot by invoking this command, so the
-/// pool can never drift from what `bn build` does.
+/// pool can never drift from what `workspan build` does.
 ///
 /// An explicit `--repo`/`--branch` pair replaces cwd resolution, which is what lets the pool warm
 /// build a slot at all — a pool slot is a *detached* checkout, so `git branch --show-current` is
@@ -22,13 +22,13 @@ pub(crate) fn run_build_cmd(
     let ctx = match resolver::resolve_target(cfg, &cwd, repo, branch) {
         Ok(ctx) => ctx,
         Err(resolver::ContextError::PartialTarget) => {
-            return build_failure(json, "bad_target", "bn build: --branch needs --repo", 2);
+            return build_failure(json, "bad_target", "workspan build: --branch needs --repo", 2);
         }
         Err(resolver::ContextError::NotInGitRepo) => {
             return build_failure(
                 json,
                 "not_in_git_repo",
-                "bn build: not in a git repo (on a detached HEAD? pass --repo/--branch)",
+                "workspan build: not in a git repo (on a detached HEAD? pass --repo/--branch)",
                 2,
             );
         }
@@ -40,7 +40,7 @@ pub(crate) fn run_build_cmd(
             json,
             "missing_job",
             &format!(
-                "bn build: no '{job}' script for {} — create {}/{job}.sh (synced to every \
+                "workspan build: no '{job}' script for {} — create {}/{job}.sh (synced to every \
                  machine through the notes repo), or, to commit it with the project's own git \
                  history, {}/.bn/jobs/{job}.sh",
                 ctx.repo,
@@ -63,7 +63,7 @@ pub(crate) fn run_build_cmd(
             Err(e) => build_failure(
                 false,
                 "io",
-                &format!("bn build: failed to run {}: {e}", script.display()),
+                &format!("workspan build: failed to run {}: {e}", script.display()),
                 127,
             ),
         };
@@ -82,7 +82,7 @@ pub(crate) fn run_build_cmd(
         Err(e) => build_failure(
             true,
             "io",
-            &format!("bn build: failed to run {}: {e}", script.display()),
+            &format!("workspan build: failed to run {}: {e}", script.display()),
             127,
         ),
     }
@@ -115,7 +115,7 @@ pub(crate) fn target_ctx(
     match target_ctx_result(cfg, repo, branch) {
         Ok(ctx) => Some(ctx),
         Err(resolver::ContextError::PartialTarget) => {
-            fail("bn: --branch needs --repo")
+            fail("workspan: --branch needs --repo")
         }
         Err(resolver::ContextError::NotInGitRepo) => None,
     }

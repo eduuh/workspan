@@ -120,15 +120,19 @@ fn kind_schedule_and_recursion_errors_are_typed_and_path_qualified() {
         }
     ));
 
-    let recursive = parse("---\nname: demo\nkind: command\nrun: \"bn run demo\"\n---\n")
+    for executable in ["workspan", "ws", "bn"] {
+        let recursive = parse(&format!(
+            "---\nname: demo\nkind: command\nrun: \"{executable} run demo\"\n---\n"
+        ))
         .expect_err("explicit self-run recurses");
-    assert!(matches!(
-        recursive,
-        AgentCatalogError::InvalidAgent {
-            source: AgentParseError::RecursiveRun { .. },
-            ..
-        }
-    ));
+        assert!(matches!(
+            recursive,
+            AgentCatalogError::InvalidAgent {
+                source: AgentParseError::RecursiveRun { .. },
+                ..
+            }
+        ));
+    }
 
     let zero_retry = parse(
         "---\nname: demo\nkind: command\nrequires_repo: bn\non_calendar: daily\nretry_after: 0m\n---\n",

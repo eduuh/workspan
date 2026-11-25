@@ -34,12 +34,12 @@ use std::path::Path;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum PolicyScope {
-    /// Only lanes owned by a running `bn orchestrate` wave (the historical behaviour).
+    /// Only lanes owned by a running `workspan orchestrate` wave (the historical behaviour).
     #[default]
     Orchestrated,
-    /// Orchestrated lanes plus agents started by `bn dispatch`.
+    /// Orchestrated lanes plus agents started by `workspan dispatch`.
     Dispatched,
-    /// Every supervised agent, including sessions bn never launched.
+    /// Every supervised agent, including sessions workspan never launched.
     All,
 }
 
@@ -58,11 +58,11 @@ impl PolicyScope {
 /// How a lane came to exist — what `scope` is matched against.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum LaneKind {
-    /// An in-flight item of a `bn orchestrate` run.
+    /// An in-flight item of a `workspan orchestrate` run.
     Orchestrated,
-    /// Started by `bn dispatch` (a recorded launch, but no owning wave).
+    /// Started by `workspan dispatch` (a recorded launch, but no owning wave).
     Dispatched,
-    /// Observed only — bn did not start it.
+    /// Observed only — workspan did not start it.
     Foreign,
 }
 
@@ -192,7 +192,7 @@ impl ApprovalPolicy {
             Ok(p) => p,
             Err(e) => {
                 eprintln!(
-                    "bn: ignoring malformed {} ({e}) — auto-approval is off until it parses",
+                    "workspan: ignoring malformed {} ({e}) — auto-approval is off until it parses",
                     path.display()
                 );
                 ApprovalPolicy::default()
@@ -200,25 +200,25 @@ impl ApprovalPolicy {
         }
     }
 
-    /// The scaffold `bn agent approvals --init` writes. Every rule is commented out: the file's job
+    /// The scaffold `workspan agent approvals --init` writes. Every rule is commented out: the file's job
     /// on day one is to show you the vocabulary, not to start approving things.
     pub fn template() -> &'static str {
         include_str!("approvals_template.toml")
     }
 }
 
-/// What bn knows about the lane a dialog belongs to.
+/// What workspan knows about the lane a dialog belongs to.
 #[derive(Debug, Clone, Copy)]
 pub struct PolicyCtx {
     pub lane: LaneKind,
-    /// Whether the lane carries a trust contract: an orchestrated `--yolo` item, or a `bn dispatch`
+    /// Whether the lane carries a trust contract: an orchestrated `--yolo` item, or a `workspan dispatch`
     /// whose goal is your own words (recorded on its agent lease). A lane seeded from an external
     /// link is never trusted, so its approvals stay a human's call even when a rule would match.
     pub trusted: bool,
 }
 
 /// The decision, with the reason it was reached — recorded verbatim in the audit log, because
-/// "why did bn approve this?" must be answerable months later without re-deriving the policy.
+/// "why did workspan approve this?" must be answerable months later without re-deriving the policy.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum ApprovalDecision {
     Auto { option: u8, reason: String },
@@ -243,7 +243,7 @@ fn escalate(reason: impl Into<String>) -> ApprovalDecision {
     }
 }
 
-/// [`decide`], falling back to bn's **built-in default** when no policy has been written.
+/// [`decide`], falling back to workspan's **built-in default** when no policy has been written.
 ///
 /// The built-in default is the rule that predates this module and must keep working for anyone who
 /// never writes an `approvals.toml`: an orchestrated `--yolo` ship lane's command approvals are
@@ -435,7 +435,7 @@ commands = [".ssh/"]
         }
     }
 
-    /// `bn agent prompt` and `bn agent answer` read the pane at different moments. The same
+    /// `workspan agent prompt` and `workspan agent answer` read the pane at different moments. The same
     /// dialog must fingerprint the same across them even when output above the box or the
     /// window's `@bn_agent` state changed, or `--expect` refuses every answer.
     #[test]

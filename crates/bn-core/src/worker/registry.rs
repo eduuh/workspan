@@ -26,7 +26,7 @@ pub const MAX_SLOTS: usize = 1;
 /// admission gate requires `MemAvailable >= estimate + MEM_RESERVE_MB` (epic #707 v4).
 pub const MEM_RESERVE_MB: u64 = 512;
 
-/// The registry schema version, surfaced in `bn worker status --json` and stored in `schema_meta`.
+/// The registry schema version, surfaced in `workspan worker status --json` and stored in `schema_meta`.
 /// Bump it (and add a migration in [`Registry::migrate`]) on any incompatible schema change.
 pub const SCHEMA_VERSION: u32 = 1;
 
@@ -378,7 +378,7 @@ impl Registry {
     ///    cleared to `FAILED` (freeing its slot) before the capacity decision.
     /// 3. **Memory gate** — `read_mem_available_mb` is called *inside* the txn (a fresh
     ///    `/proc/meminfo` read); reject if `MemAvailable < estimate + MEM_RESERVE_MB`. `None`
-    ///    (unmeasurable) fails open, matching bn's other guards.
+    ///    (unmeasurable) fails open, matching workspan's other guards.
     /// 4. **Slot cap** — reject if the live `RUNNING` count is already at [`MAX_SLOTS`].
     /// 5. **Record-before-ack** — insert the reservation as `RUNNING` (with its tmux session) and
     ///    commit; the caller then creates the worktree/tmux and spawns the agent.
@@ -469,7 +469,7 @@ impl Registry {
 
     /// Sweep every `RUNNING` attempt and clear the dead ones (a manual counterpart to the
     /// self-heal step of [`admit`]). Returns the `attempt_id`s that were marked `FAILED`. Called by
-    /// `bn worker reconcile` after a reboot to release orphaned reservations.
+    /// `workspan worker reconcile` after a reboot to release orphaned reservations.
     pub fn reconcile(
         &mut self,
         is_alive: &dyn Fn(Option<&str>, Option<i64>) -> bool,
@@ -536,7 +536,7 @@ fn row_to_attempt(r: &rusqlite::Row<'_>) -> rusqlite::Result<Attempt> {
 }
 
 /// Current timestamp as ISO-8601. Honors `$BN_NOW` (epoch seconds) for deterministic tests, like
-/// the rest of bn's time helpers ([`crate::util::now_stamp`]).
+/// the rest of workspan's time helpers ([`crate::util::now_stamp`]).
 fn now_iso() -> String {
     if let Ok(s) = std::env::var("BN_NOW") {
         if let Ok(n) = s.trim().parse::<i64>() {

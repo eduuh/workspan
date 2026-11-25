@@ -59,7 +59,7 @@ fn acquire_repairs_a_lease_whose_checkout_vanished() {
 /// Every worker slot is leased, no agent is in any of them, and each lease records a holder pid
 /// that is very much alive — the real-world shape, because the recorded holder is the caller's
 /// parent: a tmux server (every popup command's parent) or a login shell. The dead-holder sweep
-/// frees nothing there, so `acquire_slot` used to report "Pool full" and `bn dispatch` spilled
+/// frees nothing there, so `acquire_slot` used to report "Pool full" and `workspan dispatch` spilled
 /// into a cold `worktree/<repo>/<branch>` checkout while warm, empty slots sat idle.
 #[test]
 fn acquire_reclaims_leaked_leases_before_declaring_the_pool_full() {
@@ -425,7 +425,7 @@ fn pool_warm_single_slot_only_touches_that_slot() {
     assert!(!pool_dir.join("4").exists(), "slot 4 should stay untouched");
 }
 
-/// Regression for the `pool-warm` cron failing on a pool `bn dispatch` created implicitly.
+/// Regression for the `pool-warm` cron failing on a pool `workspan dispatch` created implicitly.
 ///
 /// The cron must warm a pool for a repo nobody registered — which, with the pools config gone, is
 /// every repo. Kept from the era when `resolve_pool` refused an unregistered repo and the warm died
@@ -492,7 +492,7 @@ fn cron_warm_skips_a_repo_with_no_bare_clone() {
 /// the one whose lease outlived everybody.
 ///
 /// This is the regression for a pool sitting at "every worker slot leased" with only a fraction of
-/// them actually occupied — the state that made `bn dispatch` spill into cold worktrees.
+/// them actually occupied — the state that made `workspan dispatch` spill into cold worktrees.
 #[test]
 fn reconcile_pools_adopts_occupied_and_returns_empty_slots() {
     let _g = bn_core::test_support::env_lock();
@@ -767,7 +767,7 @@ fn paired_dispatch_is_all_or_nothing_when_only_one_worker_slot_is_free() {
 ///
 /// The shape that cost three repos eight hours. A repo-setup dispatch leased a slot, died before
 /// its agent came up, and left the lease behind. Every later attempt found the ledger's same-branch
-/// entry, was handed the slot back as an *existing* tenancy (`fresh: false`), and `bn dispatch`
+/// entry, was handed the slot back as an *existing* tenancy (`fresh: false`), and `workspan dispatch`
 /// refused it as an occupied worktree — so the setup agent could never start again for that repo.
 /// The leaked-lease sweep would have cleared it, but the acquisition path only runs that when the
 /// pool comes up **full**, and a pool with free slots never does: the one dead lease was skipped by

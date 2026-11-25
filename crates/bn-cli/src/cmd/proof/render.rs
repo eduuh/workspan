@@ -4,7 +4,7 @@ use bn_core::proof::{ItemState, Listing, Proof, Readiness, Verdict};
 
 pub(super) fn print_readiness(r: &Readiness, head: Option<&str>, stray: &[String], bad: usize) {
     if r.items.is_empty() {
-        println!("No done-when criteria on this branch. Add one: bn add done-when \"…\"");
+        println!("No done-when criteria on this branch. Add one: workspan add done-when \"…\"");
     }
     for i in &r.items {
         let (mark, what) = match &i.state {

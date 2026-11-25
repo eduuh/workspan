@@ -15,7 +15,7 @@ fn controller_launch_env(controller_id: Option<&str>, worker_session_id: Option<
         && worker_session_id.is_none_or(|value| value.trim().is_empty())
 }
 
-/// A hook command that runs this bn with `args`, quoted for the harness's shell.
+/// A hook command that runs this workspan with `args`, quoted for the harness's shell.
 fn bn_hook_command(args: &str) -> String {
     let executable = std::env::current_exe()
         .map(|path| path.to_string_lossy().into_owned())
@@ -43,7 +43,7 @@ fn controller_hook_entry() -> serde_json::Value {
     hook_entry("control turn-end-guard", 15)
 }
 
-/// The activity badge on this agent's tmux window: `bn tmux-agent <state>`.
+/// The activity badge on this agent's tmux window: `workspan tmux-agent <state>`.
 fn tmux_agent_hook_entry(state: &str) -> serde_json::Value {
     hook_entry(&format!("tmux-agent {state}"), 5)
 }
@@ -235,7 +235,7 @@ mod tests {
     }
 
     /// Inside tmux the window badge follows the agent's turns without anyone wiring hooks by hand.
-    /// Unset (the default for every `bn agent launch`) means on; only an explicit `0` opts out.
+    /// Unset (the default for every `workspan agent launch`) means on; only an explicit `0` opts out.
     #[test]
     fn compact_hooks_default_on_and_only_zero_opts_out() {
         assert!(compact_hooks_on(None));

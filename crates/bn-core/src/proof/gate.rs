@@ -64,7 +64,7 @@ pub fn readiness_now(
     (r, head)
 }
 
-/// What `bn done` should do before ticking a done-when criterion.
+/// What `workspan done` should do before ticking a done-when criterion.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub enum DoneCheck {
     /// Not a criterion, enforcement off, or accepted evidence exists.
@@ -75,7 +75,7 @@ pub enum DoneCheck {
     Refuse(String),
 }
 
-/// Check `query` (what was passed to `bn done`) against `[proof].done_requires`. Only a query that
+/// Check `query` (what was passed to `workspan done`) against `[proof].done_requires`. Only a query that
 /// names a done-when criterion — its `w<N>` id, or text matching exactly one open criterion and no
 /// open todo — is checked; everything else is [`DoneCheck::Clear`].
 pub fn check_done(cfg: &Config, ctx: &Resolved, query: &str) -> DoneCheck {
@@ -113,8 +113,8 @@ pub fn check_done(cfg: &Config, ctx: &Resolved, query: &str) -> DoneCheck {
         Some(ItemState::Rejected { proof, .. }) => format!("had its proof ({proof}) rejected"),
     };
     let msg = format!(
-        "{} {why}. Evidence first: `bn verify --for {id}` or `bn proof add --kind manual --for {id} \
-         --title …`, then someone other than its author runs `bn proof judge <p> accept`.",
+        "{} {why}. Evidence first: `workspan verify --for {id}` or `workspan proof add --kind manual --for {id} \
+         --title …`, then someone other than its author runs `workspan proof judge <p> accept`.",
         w.id,
         id = w.id
     );

@@ -1,11 +1,11 @@
-//! `bn agent checkin` and the exact-time timer it (and any one-shot watchdog) rides on.
+//! `workspan agent checkin` and the exact-time timer it (and any one-shot watchdog) rides on.
 //!
 //! A check-in is a one-shot `reminder` watchdog: the row in the coordination DB is the durable
 //! record, so it survives a reboot and shows up in `bn watchdog list`. The timer armed here only
 //! makes it fire on the minute; if the timer is lost, the next `coord-tick` still fires it.
 use crate::*;
 
-/// Run `bn <args…>` once, `mins` minutes from now: a systemd `--user` transient timer where
+/// Run `workspan <args…>` once, `mins` minutes from now: a systemd `--user` transient timer where
 /// systemd exists, else a detached `sleep` (macOS). Best-effort — returns whether it was armed.
 /// `args` travel as argv, never through a shell string, so nothing in them can inject.
 pub(crate) fn schedule_bn_after(mins: i64, args: &[&str]) -> bool {
@@ -37,9 +37,9 @@ pub(crate) fn schedule_bn_after(mins: i64, args: &[&str]) -> bool {
         .is_ok()
 }
 
-/// `bn agent checkin <mins> "<note>"` — in `<mins>` minutes, deliver `<note>` to this worktree's
+/// `workspan agent checkin <mins> "<note>"` — in `<mins>` minutes, deliver `<note>` to this worktree's
 /// agent (or `--target repo:branch`). Registers a one-shot reminder watchdog, so the check-in is
-/// listed by `bn watchdog list`, can be stopped with `bn watchdog stop`, and survives a reboot.
+/// listed by `workspan watchdog list`, can be stopped with `workspan watchdog stop`, and survives a reboot.
 pub(crate) fn emit_agent_checkin(
     cfg: &Config,
     mins: i64,
@@ -48,11 +48,11 @@ pub(crate) fn emit_agent_checkin(
     as_json: bool,
 ) {
     if mins <= 0 {
-        fail("bn agent checkin: <mins> must be a positive number of minutes");
+        fail("workspan agent checkin: <mins> must be a positive number of minutes");
     }
     let here = target_ctx(cfg, None, None).map(|ctx| format!("{}:{}", ctx.repo, ctx.branch));
     let Some(target) = target.or_else(|| here.clone()) else {
-        fail("bn agent checkin: not in a git repo — pass --target repo:branch")
+        fail("workspan agent checkin: not in a git repo — pass --target repo:branch")
     };
     let created_by = here.unwrap_or_else(|| target.clone());
     match crate::cmd::watchdog::checkin(&target, mins as u64, note, &created_by) {
@@ -71,7 +71,7 @@ pub(crate) fn emit_agent_checkin(
             }
         }
         Err(e) => {
-            let msg = format!("bn agent checkin: could not schedule the check-in ({e})");
+            let msg = format!("workspan agent checkin: could not schedule the check-in ({e})");
             fail_json(as_json, "agent_checkin", "schedule_failed", &msg)
         }
     }

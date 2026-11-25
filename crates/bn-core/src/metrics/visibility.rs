@@ -7,7 +7,7 @@ use serde_json::Value;
 
 /// Repos excluded from the scorecard — the tooling/dotfiles repos whose churn would otherwise
 /// dwarf real project work and flatter the numbers. Matched on the repo basename so both the gh
-/// `owner/repo` PR field (`eduuh/bn`) and the bare bn repo name (`bn`) resolve the same.
+/// `owner/repo` PR field (`eduuh/bn`) and the bare workspan repo name (`bn`) resolve the same.
 pub const EXCLUDED_REPOS: &[&str] = &["bn", "dotfiles"];
 
 /// True if `repo` names an excluded repo (see [`EXCLUDED_REPOS`]), matched on its trailing path

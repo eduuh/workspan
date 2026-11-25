@@ -219,7 +219,7 @@ impl TmuxTransport {
 
 /// How long a paste is given to land before a `Submit` that follows it in the same batch. Without
 /// it the CR can reach a TUI still processing the paste and be taken as part of it. Matches the
-/// pause `bn agent send` already takes between its paste and its first submit.
+/// pause `workspan agent send` already takes between its paste and its first submit.
 pub const PASTE_SETTLE_MS: u64 = 120;
 
 impl TmuxTransport {
@@ -227,7 +227,7 @@ impl TmuxTransport {
     /// failed paste and still sent the CR, which pressed Enter on whatever was already in the box.
     ///
     /// This proves tmux accepted every key, not that the harness acted on them: whether a message
-    /// left the composer is read from the pane by the caller (`bn agent send` polls for it and
+    /// left the composer is read from the pane by the caller (`workspan agent send` polls for it and
     /// retries the submit), because what "left the composer" looks like differs per harness.
     pub fn try_write_keys(&self, keys: &[Key]) -> Result<(), crate::tmux::TmuxError> {
         crate::tmux::warn_if_old_tmux();

@@ -122,7 +122,7 @@ check() {
   case "$3" in '?') hostup="?" ;; 0) hostup=no ;; *) hostup=yes ;; esac
   if ! printf '%s\n' "$known" | grep -qix "$name"; then
     r=$(report "$name")
-    echo "new|-|$hostup|not connected from here yet; the next repair pass picks it up (or: bn run tunnel-connect)${r:+; $r}"
+    echo "new|-|$hostup|not connected from here yet; the next repair pass picks it up (or: workspan run tunnel-connect)${r:+; $r}"
     return
   fi
   target=$(ssh -G "$name" 2>/dev/null | awk '$1 == "hostname" {print $2; exit}')
@@ -176,7 +176,7 @@ cs_check() {
         echo "DOWN|codespace|up|ssh: $(printf '%s\n' "$err" | tail -n 1)"
       fi ;;
     '') if command -v gh >/dev/null 2>&1; then
-          echo "gone|codespace|-|$name is not in gh cs list (deleted, or under another gh account); bn cs disconnect $alias"
+          echo "gone|codespace|-|$name is not in gh cs list (deleted, or under another gh account); workspan cs disconnect $alias"
         else
           echo "?|codespace|-|no gh CLI to ask for its state"
         fi ;;
@@ -207,7 +207,7 @@ wait
 
 echo
 if [ "$n" = 0 ]; then
-  echo "  no other hosts on this account and no codespaces. On a machine to reach: bn run tunnel-setup; a codespace: bn cs connect"
+  echo "  no other hosts on this account and no codespaces. On a machine to reach: workspan run tunnel-setup; a codespace: workspan cs connect"
   exit 0
 fi
 printf '  %-20s %-5s %-24s %-8s %s\n' MACHINE STATE ROUTE HOST-END NOTE

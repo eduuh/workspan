@@ -37,13 +37,13 @@ pub struct Item {
     /// omitted from YAML when absent, so branch-note items round-trip unchanged.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub link: Option<String>,
-    /// Partial completion, 1–99, set by `bn done --pct N` (#213) — visible progress on
+    /// Partial completion, 1–99, set by `workspan done --pct N` (#213) — visible progress on
     /// long-running items before they close. Cleared on completion; absent when never tracked,
     /// so existing notes round-trip unchanged.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub pct: Option<u8>,
     /// Optional time estimate stamped at creation (`--est 2h`), a human duration in the
-    /// `bn focus start` grammar (`90m`, `2h`, `1h30m`). The estimate half of calibration
+    /// `workspan focus start` grammar (`90m`, `2h`, `1h30m`). The estimate half of calibration
     /// ([`crate::calib`]); omitted from YAML when absent, so un-estimated items are untouched.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub est: Option<String>,
@@ -52,7 +52,7 @@ pub struct Item {
     /// matching time; omitted from YAML otherwise, so the default flow stays zero-friction.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub actual: Option<String>,
-    /// Optional quarter-goal key (`--q <key>`) linking this item to a `bn quarter` goal.
+    /// Optional quarter-goal key (`--q <key>`) linking this item to a `workspan quarter` goal.
     /// Like `link`, used by daily goals and note todos; omitted from YAML when absent so
     /// untagged items round-trip unchanged. Lets the impact agent tie shipped work to a goal.
     #[serde(default, skip_serializing_if = "Option::is_none")]

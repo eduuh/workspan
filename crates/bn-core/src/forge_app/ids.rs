@@ -59,7 +59,7 @@ pub fn number(id: &str) -> Option<u64> {
         .and_then(|n| n.parse::<u64>().ok())
 }
 
-/// The highest bn id stored in `rows`' meta.
+/// The highest workspan id stored in `rows`' meta.
 pub fn max_in(rows: &[BnTaskRow]) -> u64 {
     rows.iter()
         .filter_map(|r| r.agent_meta.get("id").and_then(|id| number(id)))

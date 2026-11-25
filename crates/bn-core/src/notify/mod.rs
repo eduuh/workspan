@@ -74,7 +74,7 @@ pub(crate) fn emit(title: &str, body: &str) -> bool {
 /// PowerShell toast and that call fails every time — the notify ledger showed `sent_today: 0`,
 /// `last_sent: {}` and nineteen `no-backend` holds in a single day. Every one of those had already
 /// passed the whole policy gate (class bar, quiet windows, cooldown, budget); they were interrupts
-/// bn had decided were worth making, and they reached nobody.
+/// workspan had decided were worth making, and they reached nobody.
 ///
 /// `display-message` with no `-t` reaches every attached client, so it lands wherever the user
 /// actually is. Gated on a client being attached, so a headless cron run reports failure honestly

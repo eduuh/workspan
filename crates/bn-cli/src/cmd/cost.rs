@@ -15,7 +15,7 @@ use crate::Config;
 use crate::Envelope;
 use bn_core::cost::{self, CostRow, CostView, LiveCost, WorkClass};
 
-/// `bn cost [--by category|repo|model|harness|machine|day] [--window <days>] [--live] [--json]`.
+/// `workspan cost [--by category|repo|model|harness|machine|day] [--window <days>] [--live] [--json]`.
 /// Defaults to a unified current month-to-date report: category totals plus compact
 /// repo/model/harness/day sections.
 pub(crate) fn emit_cost(
@@ -42,7 +42,7 @@ pub(crate) fn emit_cost(
                         Envelope::failure("cost", "bad-dimension", msg).to_json()
                     );
                 } else {
-                    eprintln!("bn cost: {msg}");
+                    eprintln!("workspan cost: {msg}");
                 }
                 return;
             }
@@ -271,7 +271,7 @@ fn render_live(live: &LiveCost) {
             fmt_tokens(r.output_tokens.max(0) as u64),
         );
     }
-    println!("  $ / AIC land once each run finishes and is ingested (bn cost).");
+    println!("  $ / AIC land once each run finishes and is ingested (workspan cost).");
 }
 
 /// Default window when `--window` is omitted: the current month-to-date, i.e. today's day-of-month

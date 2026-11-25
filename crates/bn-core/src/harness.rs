@@ -12,7 +12,7 @@
 use crate::resolver::Config;
 use serde::Serialize;
 
-/// The harnesses bn can launch, in the order the dashboard renders its segmented switcher. Copilot
+/// The harnesses workspan can launch, in the order the dashboard renders its segmented switcher. Copilot
 /// leads — it's the always-available default.
 pub const KNOWN_HARNESSES: [&str; 2] = ["copilot", "claude"];
 
@@ -32,7 +32,7 @@ pub struct HarnessOption {
 }
 
 /// Canonicalize a user/UI harness value to `copilot` | `claude`, accepting the same aliases as
-/// `bn dispatch --agent`. Trimmed + case-insensitive. `None` for an unknown value.
+/// `workspan dispatch --agent`. Trimmed + case-insensitive. `None` for an unknown value.
 pub fn normalize(value: &str) -> Option<&'static str> {
     match value.trim().to_lowercase().as_str() {
         "copilot" | "gh" | "github" => Some("copilot"),
@@ -106,7 +106,7 @@ pub fn resolve_relaunch(cfg: &Config, requested: &str) -> Result<&'static str, S
 /// The harness a dispatch will actually launch, after applying the machine's availability gate.
 #[derive(Debug, Clone, PartialEq)]
 pub struct DispatchHarness {
-    /// The canonical harness to launch — always one bn can start on this machine.
+    /// The canonical harness to launch — always one workspan can start on this machine.
     pub harness: &'static str,
     /// Set when the requested harness was downgraded to the fallback: `(requested, reason)`. The
     /// caller logs/records this so the swap is visible, never silent.
@@ -126,7 +126,7 @@ pub fn preferred_harness(cfg: &Config) -> &'static str {
         .unwrap_or("copilot")
 }
 
-/// Resolve the harness a `bn dispatch`/worker spawn should actually launch. Unlike
+/// Resolve the harness a `workspan dispatch`/worker spawn should actually launch. Unlike
 /// [`resolve_relaunch`] (which rejects an unusable harness), a dispatch must always launch
 /// *something*, so an unusable or unknown request transparently falls back to the guaranteed
 /// `copilot` — carrying the reason so the caller can surface the downgrade. This is the spawn-side

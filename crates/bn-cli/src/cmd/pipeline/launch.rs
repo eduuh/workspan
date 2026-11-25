@@ -13,7 +13,7 @@ use super::plan_gate::append_plan_gate_seed;
 /// The MCP half is why this existed at all — a dispatched Copilot agent must never wedge at boot on
 /// a project MCP that fails to connect or wants interactive auth (#384). The model half is new.
 /// These two launchers used to pass the suppressions and *nothing else*, so the pipeline's
-/// sub-agents were the only agents in bn running on the bare harness default: no `--model`, no
+/// sub-agents were the only agents in workspan running on the bare harness default: no `--model`, no
 /// `--effort`, `[pipeline.stages.*]` ignored entirely. That is backwards — fan-out is where the
 /// most agents run at once, so it is where an unpinned model costs the most.
 ///
@@ -84,7 +84,7 @@ pub(crate) fn launch_sub_investigator(
     ) {
         Ok(seed) => seed,
         Err(error) => {
-            eprintln!("bn pipeline investigate: {error}");
+            eprintln!("workspan pipeline investigate: {error}");
             return false;
         }
     };
@@ -149,7 +149,7 @@ pub(crate) fn launch_sub_investigator(
     }) {
         Ok(reservation) => reservation,
         Err(error) => {
-            eprintln!("bn pipeline investigate: refusing sub-agent launch — {error}");
+            eprintln!("workspan pipeline investigate: refusing sub-agent launch — {error}");
             let _ =
                 crate::git::git_ok(&["--git-dir", &bare_s, "worktree", "remove", "--force", &wt_s]);
             return false;
@@ -195,11 +195,11 @@ pub(crate) fn launch_plan_agent(
     let window = plan_window_name(&ctx.branch, &sid);
     let tmux_target = format!("{}:{window}", ctx.repo);
     let plan_path = bn_core::plan::init_agent(cfg, ctx, &sid)
-        .unwrap_or_else(|error| fail(&format!("bn pipeline plan: cannot create plan draft: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan pipeline plan: cannot create plan draft: {error}")));
     let mut plan_args = serde_json::Map::new();
     plan_args.insert("topic".into(), serde_json::Value::String(goal.to_string()));
     let workflow = bn_core::skills::render_required(cfg, &wt_path, "plan", Some(&plan_args))
-        .unwrap_or_else(|error| fail(&format!("bn pipeline plan: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan pipeline plan: {error}")));
     let packet = plan_packet(goal, findings);
     let plan_path_s = plan_path.display().to_string();
     let mut envelope_args = serde_json::Map::new();
@@ -218,7 +218,7 @@ pub(crate) fn launch_plan_agent(
         "pipeline-plan-envelope",
         Some(&envelope_args),
     )
-    .unwrap_or_else(|error| fail(&format!("bn pipeline plan: {error}")));
+    .unwrap_or_else(|error| fail(&format!("workspan pipeline plan: {error}")));
     append_plan_gate_seed(cfg, ctx, &wt_path, &sid, &plan_path_s, &mut seed);
     let Some(seed_file) = wt::prompt_to_file("pipeline-plan", &ctx.repo, &ctx.branch, &seed) else {
         return false;
@@ -249,7 +249,7 @@ pub(crate) fn launch_plan_agent(
     }) {
         Ok(lease) => lease,
         Err(error) => {
-            eprintln!("bn pipeline plan: refusing agent launch — {error}");
+            eprintln!("workspan pipeline plan: refusing agent launch — {error}");
             return false;
         }
     };
@@ -271,7 +271,7 @@ pub(crate) fn launch_plan_agent(
     };
     if !launched {
         if let Err(error) = reservation.rollback() {
-            eprintln!("bn pipeline plan: launch failed; {error}");
+            eprintln!("workspan pipeline plan: launch failed; {error}");
         }
     } else {
         agent_lease::mark_window(reservation.lease());

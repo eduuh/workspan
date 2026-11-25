@@ -14,4 +14,4 @@ You are in a fresh, sparse worktree for a pull request dispatched for review. Fo
 --- END WORKFLOW ---
 
 Before reporting, record one workflow reflection with
-`bn reflect "skill:auto-review-pr — <what worked or what to change>"`.
+`workspan reflect "skill:auto-review-pr — <what worked or what to change>"`.

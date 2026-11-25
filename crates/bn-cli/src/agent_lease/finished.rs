@@ -5,7 +5,7 @@ use std::path::Path;
 /// Whether everyone in `worktree` has finished: at least one live pane sits there, and every one
 /// of them is in a window whose agent stamped `@bn_agent=done`.
 ///
-/// The question `bn dispatch` asks before refusing a same-branch pool slot as occupied. A Copilot
+/// The question `workspan dispatch` asks before refusing a same-branch pool slot as occupied. A Copilot
 /// that reported done keeps its process and its pane, so by [`any_live_pane_in`]'s test the slot
 /// is taken — and a launch for that branch was refused, retried and refused again for hours, while the only thing in the slot was a finished agent waiting for someone to close its
 /// window. `done` is the agent's own word that the slot is free to take over.

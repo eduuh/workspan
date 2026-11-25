@@ -59,8 +59,8 @@ pub(crate) struct Recipe {
     pub(crate) worktree: String,
     pub(crate) repo: String,
     pub(crate) branch: String,
-    /// Already resolved by bn — nvim never guesses a base. This is what makes the cold and warm
-    /// paths identical, and what keeps a diff view agreeing with `bn diff`'s preview.
+    /// Already resolved by workspan — nvim never guesses a base. This is what makes the cold and warm
+    /// paths identical, and what keeps a diff view agreeing with `workspan diff`'s preview.
     pub(crate) base: String,
     pub(crate) diff: bool,
     pub(crate) term: TermMode,

@@ -21,8 +21,8 @@ fn scope_of(cfg: &Config, arg: &RefScopeArg) -> Result<Scope, String> {
             resolver::resolve(cfg, &cwd)
                 .map(|ctx| Scope::repo(&ctx.repo))
                 .map_err(|_| {
-                    "bn ref --repo: not inside a git repo — name one explicitly, e.g. \
-                     `bn ref --repo bigmono`"
+                    "workspan ref --repo: not inside a git repo — name one explicitly, e.g. \
+                     `workspan ref --repo bigmono`"
                         .to_string()
                 })
         }
@@ -39,7 +39,7 @@ fn repo_flag(scope: &Scope) -> String {
     }
 }
 
-/// Dispatch `bn ref` — bare list, `bn ref <name>` get, or an `edit`/`add`/`append` subcommand.
+/// Dispatch `workspan ref` — bare list, `workspan ref <name>` get, or an `edit`/`add`/`append` subcommand.
 pub(crate) fn emit_ref(
     cfg: &Config,
     action: Option<RefCmd>,
@@ -80,7 +80,7 @@ pub(crate) fn emit_ref(
     }
 }
 
-/// `bn ref <name>` — print the matching reference's full body.
+/// `workspan ref <name>` — print the matching reference's full body.
 fn emit_get(scope: &Scope, query: &str, json: bool) {
     let (name, section) = references::split_ref(query);
     let Some((r, body)) = references::read_in(scope, name) else {
@@ -90,8 +90,8 @@ fn emit_get(scope: &Scope, query: &str, json: bool) {
             "ref",
             "not_found",
             &format!(
-                "no reference matches '{query}' — try `bn ref{flag}` to list them, or \
-                 `bn ref add {query}{flag}` to create it"
+                "no reference matches '{query}' — try `workspan ref{flag}` to list them, or \
+                 `workspan ref add {query}{flag}` to create it"
             ),
         );
     };
@@ -137,7 +137,7 @@ fn emit_get(scope: &Scope, query: &str, json: bool) {
     }
 }
 
-/// Bare `bn ref` — list every reference in the scope, name + one-line summary. The cheap read: an
+/// Bare `workspan ref` — list every reference in the scope, name + one-line summary. The cheap read: an
 /// agent learns what exists here without paying for any body.
 fn emit_list(scope: &Scope, json: bool) {
     let refs = references::list_in(scope);
@@ -171,11 +171,11 @@ fn emit_list(scope: &Scope, json: bool) {
         let flag = repo_flag(scope);
         match scope {
             Scope::Global => println!(
-                "No references yet — create one with `bn ref add <name>` (e.g. `bn ref add javascript`)."
+                "No references yet — create one with `workspan ref add <name>` (e.g. `workspan ref add javascript`)."
             ),
             Scope::Repo(repo) => println!(
-                "No reference notes for {repo} yet — create one with `bn ref add <name>{flag}` \
-                 (e.g. `bn ref add build-and-run{flag}`)."
+                "No reference notes for {repo} yet — create one with `workspan ref add <name>{flag}` \
+                 (e.g. `workspan ref add build-and-run{flag}`)."
             ),
         }
         return;
@@ -199,7 +199,7 @@ fn ref_tokens(r: &references::Reference) -> usize {
         .unwrap_or(0)
 }
 
-/// `bn ref add <name>` — scaffold from the scope's template, never overwriting.
+/// `workspan ref add <name>` — scaffold from the scope's template, never overwriting.
 fn emit_add(scope: &Scope, name: &str, json: bool) {
     match references::ensure_file_in(scope, name) {
         Ok((path, existed)) => {
@@ -223,15 +223,15 @@ fn emit_add(scope: &Scope, name: &str, json: bool) {
                 println!("Created reference: {}", path.display());
             }
         }
-        Err(e) => fail_json(json, "ref_add", "io_error", &format!("bn ref add: {e}")),
+        Err(e) => fail_json(json, "ref_add", "io_error", &format!("workspan ref add: {e}")),
     }
 }
 
-/// `bn ref edit <name>` — open in $EDITOR, creating from the template first if missing.
+/// `workspan ref edit <name>` — open in $EDITOR, creating from the template first if missing.
 fn emit_edit(scope: &Scope, name: &str, json: bool) {
     let (path, _existed) = match references::ensure_file_in(scope, name) {
         Ok(v) => v,
-        Err(e) => fail(&format!("bn ref edit: {e}")),
+        Err(e) => fail(&format!("workspan ref edit: {e}")),
     };
     if json {
         println!(
@@ -252,11 +252,11 @@ fn emit_edit(scope: &Scope, name: &str, json: bool) {
     std::process::exit(status.ok().and_then(|s| s.code()).unwrap_or(1));
 }
 
-/// `bn ref append <name> <text>` — record one fact, deduped. The mid-session write path: a
+/// `workspan ref append <name> <text>` — record one fact, deduped. The mid-session write path: a
 /// finding lands in the note without the agent reading, rewriting, and re-uploading the document.
 fn emit_append(scope: &Scope, name: &str, text: &str, section: Option<&str>, json: bool) {
     if text.trim().is_empty() {
-        fail_json(json, "ref_append", "empty", "bn ref append: nothing to record");
+        fail_json(json, "ref_append", "empty", "workspan ref append: nothing to record");
     }
     match references::append(scope, name, section, text) {
         Ok(out) => {
@@ -285,7 +285,7 @@ fn emit_append(scope: &Scope, name: &str, text: &str, section: Option<&str>, jso
             json,
             "ref_append",
             "io_error",
-            &format!("bn ref append: {e}"),
+            &format!("workspan ref append: {e}"),
         ),
     }
 }

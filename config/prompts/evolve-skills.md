@@ -19,7 +19,7 @@ apply only approved changes.
 
 1. **Gather the evidence.** For an explicit policy audit, start from the requested policy and
    source scope; gather reflections only if useful. For reflection-driven evolution, run
-   `bn stats learnings --since <days>` via the harness — it aggregates
+   `workspan stats learnings --since <days>` via the harness — it aggregates
    every recorded reflection in one call. Use the window ({{window}}) as days (default the last
    4 weeks, `--since 28`). If a skill was named ({{skill}}), add `--skill <that name>` to filter
    to it; otherwise sweep every `skill:`-tagged entry. If a reflection-driven run has none,
@@ -32,9 +32,9 @@ apply only approved changes.
    vs. what actually works*.
 
 3. **Read the current skill and locate the fix.** For each skill with real signal, load its
-   file: `bn skills list --json` gives each skill's `path` and `scope` (built-ins in the bn repo's
+   file: `workspan skills list --json` gives each skill's `path` and `scope` (built-ins in the workspan repo's
    `config/prompts/`, personal ones in the config dir's `skills/`, repo ones in `.bn/skills/`);
-   `bn skills render <name>` shows the live body. Find the exact step or line the evidence
+   `workspan skills render <name>` shows the live body. Find the exact step or line the evidence
    concerns. Prefer the
    smallest change that resolves it — reword a step, reorder two, add a missing move, cut a step
    that never fires. Don't rewrite a skill that's merely been used a few times.
@@ -47,7 +47,7 @@ apply only approved changes.
 4. **Propose the edit.** For each change show: the skill, the reflections or requested policy
    driving it, and the
    concrete before → after (a diff of the frontmatter `keywords`/`when` or a body step). Preserve
-   the house style — numbered steps; `bn_*` names only for real MCP tools, `bn <sub>` for CLI
+   the house style — numbered steps; `bn_*` names only for real MCP tools, `workspan <sub>` for CLI
    commands run via the harness. Keep each skill's identity intact; don't let two skills blur
    into one.
 

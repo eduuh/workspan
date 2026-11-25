@@ -6,7 +6,7 @@ use crate::*;
 /// tagged so it's clear which file bn-mcp actually serves for each name.
 pub(crate) fn emit_skills(cfg: &Config, base: &std::path::Path, json: bool) {
     let skills = bn_core::skills::discover(cfg, base)
-        .unwrap_or_else(|error| fail(&format!("bn skills: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan skills: {error}")));
     if json {
         println!(
             "{}",
@@ -33,7 +33,7 @@ pub(crate) fn emit_skills(cfg: &Config, base: &std::path::Path, json: bool) {
 /// matching skill's trigger (`when`) and how to invoke it, so the next step is obvious.
 pub(crate) fn emit_skills_find(cfg: &Config, base: &std::path::Path, query: &str, json: bool) {
     let skills = bn_core::skills::discover(cfg, base)
-        .unwrap_or_else(|error| fail(&format!("bn skills find: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan skills find: {error}")));
     let ranked = bn_core::skills::rank(&skills, query);
     if json {
         println!(
@@ -43,7 +43,7 @@ pub(crate) fn emit_skills_find(cfg: &Config, base: &std::path::Path, query: &str
         return;
     }
     if ranked.is_empty() {
-        println!("No skill matches \"{query}\" — try `bn skills` to see them all.");
+        println!("No skill matches \"{query}\" — try `workspan skills` to see them all.");
         return;
     }
     for s in &ranked {
@@ -68,7 +68,7 @@ pub(crate) fn emit_skill_new(
 ) {
     let Some(scope) = bn_core::skills::SkillScope::parse(scope) else {
         fail(&format!(
-            "bn skills new: unknown scope '{scope}' — use global-shared | global-personal | repo-shared | repo-personal-notes | repo-personal-local"
+            "workspan skills new: unknown scope '{scope}' — use global-shared | global-personal | repo-shared | repo-personal-notes | repo-personal-local"
         ));
     };
     match bn_core::skills::create_skill(cfg, base, scope, name, description, "", &[], overwrite) {
@@ -83,7 +83,7 @@ pub(crate) fn emit_skill_new(
                 println!("Created skill: {}", path.display());
             }
         }
-        Err(e) => fail(&format!("bn skills new: {e}")),
+        Err(e) => fail(&format!("workspan skills new: {e}")),
     }
 }
 
@@ -95,7 +95,7 @@ pub(crate) fn emit_skill_render(cfg: &Config, base: &std::path::Path, name: &str
     for a in args {
         let Some((k, v)) = a.split_once('=') else {
             fail(&format!(
-                "bn skills render: --arg must be key=value, got '{a}'"
+                "workspan skills render: --arg must be key=value, got '{a}'"
             ));
         };
         map.insert(k.to_string(), serde_json::Value::String(v.to_string()));
@@ -104,10 +104,10 @@ pub(crate) fn emit_skill_render(cfg: &Config, base: &std::path::Path, name: &str
     match bn_core::skills::load_skill(cfg, base, name) {
         Ok(Some(skill)) => match skill.render_checked(Some(&map)) {
             Ok(rendered) => print!("{rendered}"),
-            Err(error) => fail(&format!("bn skills render: {error}")),
+            Err(error) => fail(&format!("workspan skills render: {error}")),
         },
-        Ok(None) => fail(&format!("bn skills render: no skill named '{name}'")),
-        Err(error) => fail(&format!("bn skills render: {error}")),
+        Ok(None) => fail(&format!("workspan skills render: no skill named '{name}'")),
+        Err(error) => fail(&format!("workspan skills render: {error}")),
     }
 }
 
@@ -125,18 +125,18 @@ pub(crate) fn emit_skill_edit(
         Some(name) => {
             // Open the *effective* definition — the one bn-mcp actually serves for this name.
             let skills = bn_core::skills::discover(cfg, base)
-                .unwrap_or_else(|error| fail(&format!("bn skills edit: {error}")));
+                .unwrap_or_else(|error| fail(&format!("workspan skills edit: {error}")));
             match skills.iter().find(|s| s.effective && s.name == name) {
                 Some(s) => std::path::PathBuf::from(&s.path),
                 None => fail(&format!(
-                    "bn skills edit: no skill named '{name}' — try `bn skills` to see them all"
+                    "workspan skills edit: no skill named '{name}' — try `workspan skills` to see them all"
                 )),
             }
         }
         None => {
             let Some(scope) = bn_core::skills::SkillScope::parse(scope) else {
                 fail(&format!(
-                    "bn skills edit: unknown scope '{scope}' — use global-shared | global-personal | repo-shared | repo-personal-notes | repo-personal-local"
+                    "workspan skills edit: unknown scope '{scope}' — use global-shared | global-personal | repo-shared | repo-personal-notes | repo-personal-local"
                 ));
             };
             match bn_core::skills::skill_dirs(cfg, base)
@@ -150,7 +150,7 @@ pub(crate) fn emit_skill_edit(
                     dir
                 }
                 None => fail(&format!(
-                    "bn skills edit: the '{}' tier isn't available here (per-repo tiers need a git repo)",
+                    "workspan skills edit: the '{}' tier isn't available here (per-repo tiers need a git repo)",
                     scope.label()
                 )),
             }
@@ -174,22 +174,22 @@ pub(crate) fn emit_skill_edit(
     match status {
         Ok(status) if status.success() => {}
         Ok(status) => std::process::exit(status.code().unwrap_or(1)),
-        Err(e) => fail(&format!("bn skills edit: failed to launch editor: {e}")),
+        Err(e) => fail(&format!("workspan skills edit: failed to launch editor: {e}")),
     }
 }
 
 /// (Re)generate the native Agent Skills under `~/.copilot/skills` **and** `~/.claude/skills` from
-/// the two global bn skill tiers (the shipped `config/prompts` + the personal `config_dir()/skills`).
+/// the two global workspan skill tiers (the shipped `config/prompts` + the personal `config_dir()/skills`).
 ///
 /// Copilot CLI surfaces workflows only as native `SKILL.md` skills, so it has always needed this.
 /// Claude Code is covered twice over — natively from here and as `/bn:<name>` MCP prompts from
-/// `bn mcp serve`.
+/// `workspan mcp serve`.
 ///
 /// Run by `install.sh`; idempotent and safe — [`install_native_skills`] refuses to touch non-bn
 /// files. Each harness installs independently, so a root that legitimately refuses (a name held by
-/// a skill bn does not own) doesn't stop the other from being maintained; the command reports the
+/// a skill workspan does not own) doesn't stop the other from being maintained; the command reports the
 /// per-harness outcome and exits non-zero only if **every** root failed. The shipped tier resolves
-/// from the checkout bn ships from (`resolver::shipped_root`), so this works from any directory.
+/// from the checkout workspan ships from (`resolver::shipped_root`), so this works from any directory.
 pub(crate) fn emit_skill_install(cfg: &Config, json: bool) {
     use bn_core::skills::{NativeHarness, NativeInstallAction as A, NativeScope};
 
@@ -259,6 +259,6 @@ pub(crate) fn emit_skill_install(cfg: &Config, json: bool) {
     // Only a total failure is an error: one harness refusing must not fail an install that did
     // refresh the other.
     if rows.is_empty() {
-        fail("bn skills install: no harness could be regenerated");
+        fail("workspan skills install: no harness could be regenerated");
     }
 }

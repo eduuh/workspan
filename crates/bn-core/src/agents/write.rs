@@ -18,7 +18,7 @@ use crate::resolver::{self, Config, JobScope};
 
 /// The global tiers an agent create may write into, by keyword.
 ///
-/// Deliberately the same two keywords `bn agents new` already takes, and deliberately only the
+/// Deliberately the same two keywords `workspan agents new` already takes, and deliberately only the
 /// global ones: the branch and repo tiers `agent_dirs` also resolves depend on a `Resolved`
 /// context.
 pub const CREATE_SCOPES: [&str; 2] = ["global-personal", "global-shared"];

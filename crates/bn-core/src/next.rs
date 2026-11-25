@@ -141,14 +141,14 @@ pub struct Action {
     /// action, so badge-rendering surfaces never have to special-case a missing key.
     #[serde(default)]
     pub momentum: Option<Momentum>,
-    /// The underlying attention-item id, when this action *is* a raised attn item (so the `bn jump`
+    /// The underlying attention-item id, when this action *is* a raised attn item (so the `workspan jump`
     /// picker can start it — open its worktree window + mark it in-flight). `None` for every other
     /// source (reviews, PRs, goals, the WIP guard). Survives the attention.json cache round-trip.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub attn_id: Option<String>,
     /// The `--est` stamp this action carries, when its source knows one — currently daily goals
     /// (the plan band). A human duration (`90m`, `2h`) or a coarse t-shirt size (`S`/`M`/`L`); see
-    /// [`crate::calib`]. Backs `bn next --fit`, which sizes it (× the calibration multiplier)
+    /// [`crate::calib`]. Backs `workspan next --fit`, which sizes it (× the calibration multiplier)
     /// against the gap to the next meeting. `None` for every un-estimated source. Round-trips the
     /// attention cache; omitted from JSON when absent.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -253,9 +253,9 @@ pub fn group_by_category(actions: &[Action]) -> Vec<(ActionCategory, Vec<&Action
 }
 
 /// The expected wall-clock seconds an estimated action will actually take: its `est` scaled by the
-/// calibration `multiplier` for its bucket (`bn calib`), or the raw estimate when nothing's been
+/// calibration `multiplier` for its bucket (`workspan calib`), or the raw estimate when nothing's been
 /// calibrated yet (or a degenerate ≤0 multiplier). Rounded to the nearest second. The sizing heart
-/// of `bn next --fit`.
+/// of `workspan next --fit`.
 pub fn expected_secs(est_secs: i64, multiplier: Option<f64>) -> i64 {
     match multiplier {
         Some(m) if m > 0.0 => (est_secs as f64 * m).round() as i64,
@@ -263,7 +263,7 @@ pub fn expected_secs(est_secs: i64, multiplier: Option<f64>) -> i64 {
     }
 }
 
-/// The outcome of sizing the plan band against the gap to the next meeting (`bn next --fit`, #247).
+/// The outcome of sizing the plan band against the gap to the next meeting (`workspan next --fit`, #247).
 #[derive(Debug, Clone, Default)]
 pub struct FitPlan {
     /// Everything shown: non-plan actions (never filtered) plus the plan-band goals that fit.
@@ -280,7 +280,7 @@ pub struct FitPlan {
 /// ([`crate::meetings::FIT_BUFFER_SECS`]); peel un-estimated goals into [`FitPlan::unsized_tail`] (never
 /// hidden); drop the rest. Non-plan actions — a failing cron, a review awaiting you, a meeting
 /// anchor — are never filtered: urgency doesn't care how much time is left. With no gap (no fresh
-/// upcoming meeting) `--fit` is a no-op and everything is kept, matching plain `bn next`.
+/// upcoming meeting) `--fit` is a no-op and everything is kept, matching plain `workspan next`.
 pub fn fit_plan(
     actions: Vec<Action>,
     gap: Option<&crate::meetings::Gap>,
@@ -411,7 +411,7 @@ fn momentum_cmp(a: &Action, b: &Action) -> std::cmp::Ordering {
 /// Momentum-aware re-rank of an (already rank-sorted) action list against the current open punch
 /// (#246): stamp each action's [`Momentum`], stable-sort with [`momentum_cmp`], then group
 /// same-repo actions adjacent within each band so batching is the natural reading order. With no
-/// open punch today — or one that carries no repo (e.g. `bn in "lunch"` outside a worktree) — the
+/// open punch today — or one that carries no repo (e.g. `workspan in "lunch"` outside a worktree) — the
 /// list is returned untouched, bit-identical to the pure priority/staleness order. Applied at
 /// read time by the CLI surfaces, never at cache-write time, so the cache stays punch-free.
 pub fn apply_momentum(cfg: &Config, actions: Vec<Action>, today: &str, now: i64) -> Vec<Action> {
@@ -481,7 +481,7 @@ fn group_adjacent(actions: Vec<Action>) -> Vec<Action> {
 
 /// The recency-cutoff window in hours: [`Config::attention_max_age_hours`] (default 24), widened
 /// over the weekend on **Mondays** (+48h) so Friday's items still surface after Sat/Sun. Derived
-/// from the local `today` date, so it tracks bn's day boundaries rather than UTC.
+/// from the local `today` date, so it tracks workspan's day boundaries rather than UTC.
 fn effective_cutoff_hours(cfg: &Config, today: &str) -> i64 {
     let base = cfg.attention_max_age_hours.max(0.0) as i64;
     // Monday is weekday_index 1 (0=Sun); reach back across the weekend to the prior Friday.
@@ -504,13 +504,13 @@ pub fn drained(cfg: &Config, today: &str, now: i64) -> Vec<Action> {
 }
 
 /// The trailing window (days) the WIP guard reads merge cadence over for its clear-by forecast —
-/// the same default `bn metrics` uses, so the forecast on `bn next` and the metrics row agree.
+/// the same default `workspan metrics` uses, so the forecast on `workspan next` and the metrics row agree.
 const WIP_CADENCE_DAYS: i64 = 30;
 
 /// The forward-looking WIP / focus guard as a single top-priority action — "you have N branches in
 /// flight; finish <one> first". Emitted only when WIP is above the healthy band (the guard's own
 /// `healthy` flag); a tidy desk surfaces nothing here. Priority 4 puts it above even broken-cron,
-/// so it leads `bn next`: the nudge to *land* work before starting more.
+/// so it leads `workspan next`: the nudge to *land* work before starting more.
 fn from_wip(cfg: &Config, now: i64, today: &str) -> Vec<Action> {
     let g = metrics::wip_guard_for(cfg, now, WIP_CADENCE_DAYS, today);
     if g.healthy {
@@ -563,7 +563,7 @@ fn from_wip(cfg: &Config, now: i64, today: &str) -> Vec<Action> {
 }
 
 /// Cron failures, raised attn items, and *blocked* notes from the attention list. Stale/no-goal
-/// note hygiene stays in `bn doctor` — it isn't a "do this next" action, so it's dropped here.
+/// note hygiene stays in `workspan doctor` — it isn't a "do this next" action, so it's dropped here.
 fn from_doctor(cfg: &Config, today: &str) -> Vec<Action> {
     // Repo todos are surfaced by `bn doctor`, not here — `bn next` is the curated do-this-next
     // list and already drops pure note hygiene, so pass no repo (Finding::Todo never arises).
@@ -769,7 +769,7 @@ fn from_in_flight(cfg: &Config, now: i64) -> Vec<Action> {
 }
 
 /// Today's open daily goals — the plan you set for yourself. Ensures today's file (carrying
-/// yesterday forward, same as `bn daily`); on any read error it just contributes nothing.
+/// yesterday forward, same as `workspan daily`); on any read error it just contributes nothing.
 fn from_goals(cfg: &Config, today: &str) -> Vec<Action> {
     let daily = daily::view(cfg, today);
     #[allow(clippy::needless_else)]
@@ -814,7 +814,7 @@ fn github_pr_url(repo: &str, number: i64) -> Option<String> {
 /// a missed/stuck warmer from serving a week-old snapshot forever.
 const CACHE_MAX_AGE_SECS: i64 = 10 * 60;
 
-/// Path to the precomputed attention cache. `bn next --cached` reads this snapshot so the prefix-J
+/// Path to the precomputed attention cache. `workspan next --cached` reads this snapshot so the prefix-J
 /// picker opens instantly instead of re-walking every branch note (`next_actions` is I/O-heavy on
 /// a busy machine). Kept warm by the `attention-sync` job, and self-healed on a miss/stale cache.
 pub fn cache_path() -> PathBuf {
@@ -851,7 +851,7 @@ fn write_cache_at(actions: &[Action], now: i64) -> std::io::Result<()> {
     std::fs::write(path, json)
 }
 
-/// Recompute the attention list and rewrite the cache — what `bn next --refresh` (the
+/// Recompute the attention list and rewrite the cache — what `workspan next --refresh` (the
 /// `attention-sync` cron) calls. Read-only against the world, write-only to the cache.
 pub fn refresh_cache(cfg: &Config, today: &str, now: i64) -> std::io::Result<()> {
     write_cache_at(&next_actions(cfg, today, now), now)

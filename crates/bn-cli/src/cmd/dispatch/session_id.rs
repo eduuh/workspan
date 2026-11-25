@@ -1,7 +1,7 @@
 //! Session ids for launched agents: a real UUID, from `uuidgen` or minted here.
 
 /// A fresh lowercase UUID (via `uuidgen`, universal on macOS/Linux) to pin an agent's session id so
-/// `bn agent send` can steer it via `-p --resume`. Falls back to a self-generated UUIDv4 when
+/// `workspan agent send` can steer it via `-p --resume`. Falls back to a self-generated UUIDv4 when
 /// `uuidgen` is absent (#646): copilot ≥1.0.71 rejects a `--session-id` that isn't a valid UUID, so
 /// the old `bn-<pid>-<ts>` fallback broke steering entirely — the fallback must still be a real UUID.
 pub(crate) fn gen_uuid() -> String {

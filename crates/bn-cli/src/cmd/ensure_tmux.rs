@@ -22,7 +22,7 @@ pub(crate) enum EnsureTmuxSkip {
 /// machine's clones is what makes "every session is a repo" enforceable rather than aspirational:
 /// a typo is refused with the list of real answers instead of silently creating a fake session.
 ///
-/// Order: the override, else Workspan (including the legacy bn clone), else any clone.
+/// Order: the override, else Workspan (including the legacy workspan clone), else any clone.
 pub(crate) fn ensure_tmux_repo(
     asked: Option<&str>,
     cloned: &std::collections::BTreeSet<String>,

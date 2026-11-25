@@ -55,8 +55,8 @@ pub(crate) fn emit_pipeline(
             cfg,
             repo,
             branch,
-            "bn pipeline",
-            "bn pipeline: not in a worktree — pass --repo and --branch, or use --all",
+            "workspan pipeline",
+            "workspan pipeline: not in a worktree — pass --repo and --branch, or use --all",
         );
         vec![pipeline_view(cfg, &ctx.repo, &ctx.branch, &reviews, &attn, &live)]
     };
@@ -175,7 +175,7 @@ fn latest_verify_passed(body: &str) -> bool {
         .is_some_and(|line| line.contains("PASS"))
 }
 
-/// `bn pipeline status` — the current stage + transition history for the target worktree.
+/// `workspan pipeline status` — the current stage + transition history for the target worktree.
 pub(crate) fn emit_pipeline_status(
     cfg: &Config,
     ctx: Option<&Resolved>,
@@ -224,7 +224,7 @@ pub(crate) fn emit_pipeline_status(
     }
 }
 
-/// `bn pipeline set <stage>` — transition the target worktree to an explicit stage.
+/// `workspan pipeline set <stage>` — transition the target worktree to an explicit stage.
 pub(crate) fn emit_pipeline_set(
     cfg: &Config,
     ctx: Option<&Resolved>,
@@ -236,12 +236,12 @@ pub(crate) fn emit_pipeline_set(
     let ctx = resolve_target(ctx, repo, branch);
     let stage = match stage_str.parse::<Stage>() {
         Ok(s) => s,
-        Err(e) => fail(&format!("bn pipeline set: {e}")),
+        Err(e) => fail(&format!("workspan pipeline set: {e}")),
     };
     transition(cfg, &ctx, stage, as_json);
 }
 
-/// `bn pipeline advance` — move the target worktree to the next stage in the flow.
+/// `workspan pipeline advance` — move the target worktree to the next stage in the flow.
 pub(crate) fn emit_pipeline_advance(
     cfg: &Config,
     ctx: Option<&Resolved>,
@@ -253,7 +253,7 @@ pub(crate) fn emit_pipeline_advance(
     let (current, _) = current_stage(cfg, &ctx);
     let Some(next) = current.next() else {
         fail(&format!(
-            "bn pipeline advance: {}/{} is already at the terminal stage ({current})",
+            "workspan pipeline advance: {}/{} is already at the terminal stage ({current})",
             ctx.repo, ctx.branch
         ));
     };
@@ -264,13 +264,13 @@ pub(crate) fn emit_pipeline_advance(
 fn transition(cfg: &Config, ctx: &Resolved, stage: Stage, as_json: bool) {
     let decision = match stage::transition(cfg, ctx, stage) {
         Ok(decision) => decision,
-        Err(e) => fail(&format!("bn pipeline: failed to transition stage: {e}")),
+        Err(e) => fail(&format!("workspan pipeline: failed to transition stage: {e}")),
     };
     // The SMART gate (#998) refused: nothing was written, so reporting the stage as recorded
     // would be a plain lie. The task has been stamped and an attention item raised.
     if !decision.admits() {
         let why = decision.refusal_line().unwrap_or_default();
-        fail_json(as_json, "pipeline", "smart-gate", &format!("bn pipeline: {why}"));
+        fail_json(as_json, "pipeline", "smart-gate", &format!("workspan pipeline: {why}"));
     }
     if as_json {
         println!(
@@ -343,7 +343,7 @@ fn enter_plan(
     // Entering `plan` is not a gated transition, so this only fails on real I/O trouble.
     if let Err(e) = stage::transition(cfg, ctx, Stage::Plan) {
         fail(&format!(
-            "bn pipeline investigate: failed to advance to plan: {e}"
+            "workspan pipeline investigate: failed to advance to plan: {e}"
         ));
     }
     let launched = !no_tmux && launch_plan_agent(cfg, ctx, goal, findings, as_json);
@@ -526,12 +526,12 @@ pub(crate) fn emit_pipeline_investigate_contribute(
         branch: branch.replace('/', "-"),
     };
     if token.rsplit_once('-').is_none() {
-        fail("bn pipeline investigate contribute: invalid --token");
+        fail("workspan pipeline investigate contribute: invalid --token");
     }
     if findings.iter().all(|finding| finding.trim().is_empty())
         && blocked.is_none_or(|reason| reason.trim().is_empty())
     {
-        fail("bn pipeline investigate contribute: pass --finding or --blocked");
+        fail("workspan pipeline investigate contribute: pass --finding or --blocked");
     }
 
     for finding in findings {

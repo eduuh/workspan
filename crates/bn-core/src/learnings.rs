@@ -18,7 +18,7 @@ use crate::util;
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeMap;
 
-/// Which day-log a learning came from: `bn learned` (a fact) or `bn reflect` (an improvement).
+/// Which day-log a learning came from: `workspan learned` (a fact) or `workspan reflect` (an improvement).
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind {
@@ -149,7 +149,7 @@ pub struct Filter {
 // Parsing / provenance helpers
 // ---------------------------------------------------------------------------
 
-/// FNV-1a — stable across runs and bn versions (unlike the std hasher), so a review decision keyed
+/// FNV-1a — stable across runs and workspan versions (unlike the std hasher), so a review decision keyed
 /// on the hash keeps matching the same entry. Same constants as [`crate::dojo`].
 fn fnv1a(s: &str) -> u64 {
     let mut h: u64 = 0xcbf2_9ce4_8422_2325;
@@ -171,7 +171,7 @@ fn entry_key(kind: Kind, date: &str, repo: Option<&str>, text: &str) -> String {
     format!("{}{:08x}", kind.tag(), fnv1a(&natural) & 0xffff_ffff)
 }
 
-/// Parse a `skill:<name> …` prefix (as written by `bn reflect "skill:<name> — …"`) into the bare
+/// Parse a `skill:<name> …` prefix (as written by `workspan reflect "skill:<name> — …"`) into the bare
 /// skill name, tolerating a trailing `:`/`-`/em-dash. `None` when the text isn't a skill entry.
 pub fn parse_skill(text: &str) -> Option<String> {
     let rest = text.trim_start().strip_prefix("skill:")?;
@@ -246,7 +246,7 @@ pub fn lessons_section(lessons: &BTreeMap<String, Vec<LearningEntry>>, skill: &s
     };
     let mut out = format!(
         "\n\n## Recent lessons from runs of this skill\n\nWhat earlier runs of `{skill}` noted with \
-         `bn reflect`, newest first. Treat them as hints from the field, not rules; where one \
+         `workspan reflect`, newest first. Treat them as hints from the field, not rules; where one \
          contradicts the steps above, the steps win.\n\n"
     );
     for e in entries {
@@ -456,7 +456,7 @@ pub enum ReviewError {
 }
 
 /// Resolve a `promote`/`dismiss` argument to a single learning: an exact `key` first, else a
-/// unique case-insensitive text substring across the full history (like `bn done`). Ambiguous
+/// unique case-insensitive text substring across the full history (like `workspan done`). Ambiguous
 /// substrings return every candidate so the caller can list them.
 pub fn resolve(cfg: &Config, today: &str, query: &str) -> Result<LearningEntry, ReviewError> {
     let entries = all_entries(cfg, today);

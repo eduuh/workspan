@@ -19,7 +19,7 @@ set -u
 
 TO="${1:-${BN_TUNNEL_TO:-}}"
 PORTS="${2:-${BN_TUNNEL_PORTS:-}}"
-[ -n "$TO" ] || { echo "tunnel-forward: which machine? BN_TUNNEL_TO=<machine> BN_TUNNEL_PORTS=3000 bn run tunnel-forward" >&2; exit 2; }
+[ -n "$TO" ] || { echo "tunnel-forward: which machine? BN_TUNNEL_TO=<machine> BN_TUNNEL_PORTS=3000 workspan run tunnel-forward" >&2; exit 2; }
 [ -n "$PORTS" ] || { echo "tunnel-forward: which ports? BN_TUNNEL_PORTS=3000,3001" >&2; exit 2; }
 
 args=""

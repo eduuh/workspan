@@ -1,4 +1,4 @@
-//! `bn agent` — fleet supervise/recover/checkin/send/digest/handoff/switch.
+//! `workspan agent` — fleet supervise/recover/checkin/send/digest/handoff/switch.
 use crate::*;
 
 use super::agent_hooks::{
@@ -35,18 +35,18 @@ pub(crate) fn emit_agent_ingest(cfg: &Config, reingest: bool, as_json: bool) {
                 println!("{}", r.summary(mode));
             }
         }
-        Err(e) => fail(&format!("bn agent ingest: {e}")),
+        Err(e) => fail(&format!("workspan agent ingest: {e}")),
     }
 }
 
-/// `bn agent supervise` — the live-agent fleet: every running Claude session with its health,
+/// `workspan agent supervise` — the live-agent fleet: every running Claude session with its health,
 /// flagging any idle past the stuck threshold. Read-only; `--json` emits the whole `Fleet` for
 /// the cockpit FLEET panel.
 pub(crate) fn emit_agent_supervise(cfg: &Config, idle: i64, stuck: i64, as_json: bool) {
     if let Err(error) =
         agent_live::publish_actionable_wakes(cfg, idle, stuck, bn_core::util::now_epoch_secs())
     {
-        eprintln!("bn agent supervise: wake queue: {error}");
+        eprintln!("workspan agent supervise: wake queue: {error}");
     }
     let fleet = bn_core::agent::supervise(cfg, idle, stuck);
     if as_json {
@@ -90,10 +90,10 @@ pub(crate) fn emit_agent_supervise(cfg: &Config, idle: i64, stuck: i64, as_json:
     }
 }
 
-/// `bn agent send <target> "<msg>"` — deliver a message to a running agent's tmux pane via
+/// `workspan agent send <target> "<msg>"` — deliver a message to a running agent's tmux pane via
 /// send-keys (typing the text, then Enter). `<target>` is a `repo:branch` window (the cockpit
 /// shape) or a literal `session:window`. The orchestrator's `send-claude-message.sh` analogue.
-/// `bn agent recover` — finish an interrupted ship turn: a worktree with commits ahead of `base`
+/// `workspan agent recover` — finish an interrupted ship turn: a worktree with commits ahead of `base`
 /// but no recorded PR (its agent died before pushing). Dry-run reports candidates; `--yes` pushes
 /// the branch and opens a PR (`gh pr create --fill`), recording it on the note. The safety net for
 /// #3 — with async `--detach` steering, turns shouldn't die, but this reconciles the ones that do.
@@ -125,7 +125,7 @@ pub(crate) fn emit_agent_recover(
         }
     } else {
         let ctx = target_ctx(cfg, repo, branch).unwrap_or_else(|| {
-            fail("bn agent recover: not in a git repo — pass --repo/--branch or --all")
+            fail("workspan agent recover: not in a git repo — pass --repo/--branch or --all")
         });
         let wt = agent_worktree(cfg, &ctx.repo, &ctx.branch);
         targets.push((ctx.repo.clone(), ctx.branch, wt));
@@ -240,8 +240,8 @@ pub(crate) fn emit_agent_recover(
     }
 }
 
-/// `bn agent done` — the agent's completion push (event-driven, not polled): raise a durable, keyed
-/// attention item so it surfaces in `bn next`; badge the window; record it in the note; close out its
+/// `workspan agent done` — the agent's completion push (event-driven, not polled): raise a durable, keyed
+/// attention item so it surfaces in `workspan next`; badge the window; record it in the note; close out its
 /// task ([`crate::cmd::close_out`]); and, with `--notify`, fire a desktop toast. Keyed by
 /// `done:<repo>/<branch>` so a re-run dedups — the durable event log is the source of truth.
 #[allow(clippy::too_many_arguments)]
@@ -257,7 +257,7 @@ pub(crate) fn emit_agent_done(
     as_json: bool,
 ) {
     let ctx = target_ctx(cfg, repo, branch)
-        .unwrap_or_else(|| fail("bn agent done: not in a git repo — pass --repo/--branch"));
+        .unwrap_or_else(|| fail("workspan agent done: not in a git repo — pass --repo/--branch"));
     let summary = summary.unwrap_or_default();
     let outcome = if failed { "failed" } else { "done" };
     let title = if summary.is_empty() {
@@ -313,7 +313,7 @@ pub(crate) fn emit_agent_done(
             "PR opened",
             Some(p),
         )
-        .unwrap_or_else(|e| fail(&format!("bn agent done: PR controller event: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan agent done: PR controller event: {e}")));
     }
     append_inherited_worker_event(
         cfg,
@@ -326,7 +326,7 @@ pub(crate) fn emit_agent_done(
         &summary,
         pr.as_deref(),
     )
-    .unwrap_or_else(|e| fail(&format!("bn agent done: controller event: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan agent done: controller event: {e}")));
     set_tmux_agent(outcome);
     let closed = super::close_out::run(cfg, &ctx, &summary, &pr, failed, report_only, as_json);
     if notify {
@@ -375,9 +375,9 @@ pub(crate) fn emit_agent_done(
 /// Two sources, strongest first:
 ///
 /// 1. the branch note's recorded `agent-session: <harness> <id>` line (latest wins) — what the
-///    dispatcher wrote down when bn launched the agent;
+///    dispatcher wrote down when workspan launched the agent;
 /// 2. failing that, the **live transcript**: supervision found this agent by reading its session
-///    log, so it holds the session id and the harness whether or not bn started it. That is a
+///    log, so it holds the session id and the harness whether or not workspan started it. That is a
 ///    resume key, and it is what lets a `claude` someone ran by hand in a terminal be steered
 ///    instead of being written off as observed-only. Where a branch hosts several live agents the
 ///    record in (1) cannot say which one it means, so this tier is also the *better* answer there —
@@ -436,7 +436,7 @@ pub(crate) fn resolve_agent_session(
 ///
 /// This spawns a supervisor pass, so it is deliberately the *fallback*: steering is a
 /// human-initiated write, not a polled read, and the recorded-session path above already covers
-/// every agent bn launched itself.
+/// every agent workspan launched itself.
 fn observed_agent_session(
     cfg: &Config,
     repo: &str,
@@ -474,7 +474,7 @@ pub(crate) fn tmux_exact_target(target: &str) -> String {
 /// The exact tmux target hosting `repo:branch`, and the checkout it is running in.
 ///
 /// A window is named after whatever the launcher chose — the branch with slashes dashed, a pooled
-/// slot, or a directory reused from earlier work — so the `repo:branch` identity bn addresses an
+/// slot, or a directory reused from earlier work — so the `repo:branch` identity workspan addresses an
 /// agent by is frequently *not* a window name. This runs the same tiered join the supervisor uses
 /// ([`bn_core::agent::resolve_channels`]): lease, then window session id, then checkout, then the
 /// window's `@bn_*` stamps, then the name. One `list-windows` plus one lease read.
@@ -567,7 +567,7 @@ fn ssh_tmux_command(args: &[&str]) -> String {
 }
 
 /// Short tmux calls share one SSH connection per host instead of a handshake each: a remote
-/// `bn agent msg` is three calls, and through a Dev Tunnel every new connection costs seconds.
+/// `workspan agent msg` is three calls, and through a Dev Tunnel every new connection costs seconds.
 /// The socket path is the one tunnel-connect writes into `~/.ssh/config`, so a tunnel host's
 /// existing master is reused; any other host gets one on first use.
 pub(crate) const SSH_SHARED_CONNECTION: [&str; 6] = [
@@ -594,7 +594,7 @@ fn ssh_tmux_ok(host: &str, args: &[&str]) -> bool {
 }
 
 /// A tmux transport that reaches a remote host over SSH first, then speaks to the remote tmux
-/// server there. Used for `bn agent launch --host` and the live steering path it unlocks.
+/// server there. Used for `workspan agent launch --host` and the live steering path it unlocks.
 struct SshTmuxTransport {
     host: String,
     target: String,
@@ -703,9 +703,9 @@ pub(crate) fn resolve_agent_transport(cfg: &Config, target: &str) -> Box<dyn bn_
 
 
 
-// --- bn agent launch (ports workflow/bin/agent) ----------------------------
+// --- workspan agent launch (ports workflow/bin/agent) ----------------------------
 
-/// The two AI coding harnesses `bn agent launch` can drive.
+/// The two AI coding harnesses `workspan agent launch` can drive.
 #[derive(Clone, Copy, PartialEq, Eq, Debug)]
 pub(crate) enum Harness {
     Copilot,
@@ -759,7 +759,7 @@ impl LaunchPlan {
     /// Applied on **every** path, resume included, and independently of [`Self::yolo`]: the
     /// allowed working set is a property of the session, not of how its prompts are answered, so
     /// a resumed agent must be given the same boundary as a fresh one or it silently loses access
-    /// to bn's own state halfway through a task.
+    /// to workspan's own state halfway through a task.
     pub(super) fn add_dir_args(&self, harness: bn_core::mcp::Harness) -> Vec<String> {
         super::agent_scope::add_dir_args(harness, &self.add_dirs)
     }
@@ -824,12 +824,12 @@ pub(crate) struct LaunchedSession<'a> {
 /// Record a launched agent session: the note's `agent-session: <harness> <id>` collab line, plus the
 /// cost log's work-class attribution.
 ///
-/// The single writer for every launch path — `bn dispatch`'s lane and `--attach` forms and a
+/// The single writer for every launch path — `workspan dispatch`'s lane and `--attach` forms and a
 /// hand-typed `claude` through the shell wrapper — because that note line is the *only* input to
 /// [`resolve_agent_session`] and the supervisor's resume channel. Three hand-rolled copies could
 /// drift from the two readers; one cannot. Callers must pass an id the harness will actually run
 /// under (see [`effective_session_id`]) — recording an id that was never pinned puts a lie in the
-/// note that `bn agent send` would later try to resume.
+/// note that `workspan agent send` would later try to resume.
 pub(crate) fn record_launched_session(_cfg: &Config, s: LaunchedSession<'_>) {
     bn_core::cost::attribute_session_on_host(bn_core::cost::SessionLaunch {
         session_id: s.session_id,
@@ -863,7 +863,7 @@ fn recorded_host(_cfg: &Config, repo: &str, branch: &str) -> Option<String> {
 /// Whether the user's own harness arguments already decide which session this launch runs in.
 ///
 /// `claude --continue`, `claude --resume <id>` and an explicit `--session-id` are the user driving
-/// the session themselves; bn pinning a freshly minted id on top would either be ignored or refused
+/// the session themselves; workspan pinning a freshly minted id on top would either be ignored or refused
 /// by the harness as a conflicting flag. Pure.
 pub(crate) fn passthrough_controls_session(passthrough: &[String]) -> bool {
     passthrough.iter().any(|a| {
@@ -876,12 +876,12 @@ pub(crate) fn passthrough_controls_session(passthrough: &[String]) -> bool {
 }
 
 /// The harness session id this launch will *actually* run under, or `None` when the harness picks
-/// its own and bn never learns it up front.
+/// its own and workspan never learns it up front.
 ///
 /// Mirrors [`build_claude_args`] / [`build_copilot_args`] branch for branch, because the answer is
-/// exactly "which branch did the arg builder take". `claude --continue` is the `None` case: bn may
+/// exactly "which branch did the arg builder take". `claude --continue` is the `None` case: workspan may
 /// have minted an id, but it is never passed, so the live session ends up with the harness's own —
-/// and a note recording the minted one would send `bn agent send --resume` at a session that does
+/// and a note recording the minted one would send `workspan agent send --resume` at a session that does
 /// not exist. Copilot resumes by appending to the same session, so a resume id *is* the live id.
 pub(crate) fn effective_session_id(
     harness: Harness,
@@ -910,7 +910,7 @@ pub(crate) fn effective_session_id(
 }
 
 /// Set `BN_AGENT_GUARD=0` to bypass the within-repo placement rules for one launch. The repository
-/// requirement is unconditional: bn never creates a harness session it cannot attach to a branch.
+/// requirement is unconditional: workspan never creates a harness session it cannot attach to a branch.
 fn launch_guard_enabled() -> bool {
     !matches!(
         std::env::var("BN_AGENT_GUARD").as_deref().map(str::trim),
@@ -920,7 +920,7 @@ fn launch_guard_enabled() -> bool {
 
 fn resolve_launch_context(cfg: &Config, cwd: &std::path::Path) -> Result<Resolved, &'static str> {
     resolver::resolve(cfg, cwd).map_err(|_| {
-        "bn agent launch: sessions require a git worktree on a branch; enter or create a repository first"
+        "workspan agent launch: sessions require a git worktree on a branch; enter or create a repository first"
     })
 }
 
@@ -929,20 +929,20 @@ fn resolve_launch_context(cfg: &Config, cwd: &std::path::Path) -> Result<Resolve
 /// Three rules, in order:
 ///
 /// 1. **Every session belongs to a repository branch.** Planning, investigation, and coding
-///    sessions all need a resolvable git worktree so bn can persist and recover their context.
+///    sessions all need a resolvable git worktree so workspan can persist and recover their context.
 /// 2. **The main worktree hosts no agents.** It stays clean on `main` — the same checkout the
 ///    repo's `pre-commit` hook refuses commits in. Rather than dead-ending, this asks what the work
-///    is and hands the whole thing to `bn dispatch`, which leases a warm pool slot, seeds the goal
+///    is and hands the whole thing to `workspan dispatch`, which leases a warm pool slot, seeds the goal
 ///    and a todo, and launches the agent there (execs — never returns).
 /// 3. **One agent per worktree.** A checkout already held by a live agent refuses the second one,
 ///    naming the holder and the two ways out (steer it, or kill it).
 ///
 /// A launch that survives both takes a [`AgentLeaseKind::Dispatch`] lease for the worktree, so a
 /// hand-typed `claude` is leased exactly like a dispatched one and the *next* launch sees it. The
-/// lease is committed before the exec (which runs no destructors); `bn wt cleanup`/`reap` and the
+/// lease is committed before the exec (which runs no destructors); `workspan wt cleanup`/`reap` and the
 /// reconcile sweep release it when the window goes away.
 ///
-/// It also records the session on the branch note exactly as `bn dispatch` does — without that line
+/// It also records the session on the branch note exactly as `workspan dispatch` does — without that line
 /// a hand-typed agent has no resume channel, which is the difference between a steerable agent and
 /// one the dashboard can only watch. `session` is the id the harness will really run under
 /// ([`effective_session_id`]); `None` means the harness picked its own, so there is nothing
@@ -974,8 +974,8 @@ fn enforce_launch_placement(
             // only handle there is, so the advice has to be phrased against that instead.
             let steer = match (&owner.repo, &owner.branch) {
                 (Some(repo), Some(branch)) => format!(
-                    "  steer it:  bn agent send {repo}:{branch} \"<message>\"\n  \
-                     or free it: bn agent kill {repo}:{branch}"
+                    "  steer it:  workspan agent send {repo}:{branch} \"<message>\"\n  \
+                     or free it: workspan agent kill {repo}:{branch}"
                 ),
                 _ => format!(
                     "  it never registered with bn, so it has no repo:branch to steer — \
@@ -984,7 +984,7 @@ fn enforce_launch_placement(
                 ),
             };
             eprintln!(
-                "bn agent launch: {} already has a live {} — one agent per worktree.\n  {}\n{steer}",
+                "workspan agent launch: {} already has a live {} — one agent per worktree.\n  {}\n{steer}",
                 canonical.display(),
                 owner.kind,
                 owner.describe(),
@@ -995,12 +995,12 @@ fn enforce_launch_placement(
     }
     // 3. **Agents live in tmux windows.** Typed on a bare terminal there is no window to steer, kill
     //    or even name, so the agent would run outside the control plane bn exists to provide. Open
-    //    the window bn would have opened and attach to it — the same shape `bn dispatch` produces.
+    //    the window bn would have opened and attach to it — the same shape `workspan dispatch` produces.
     if redirect_into_window_wanted() {
         redirect_into_window(cfg, &ctx, &canonical, harness, pinned_session);
     }
 
-    // Lease under the caller's session id (`bn dispatch --attach` passes `--session <sid>`) so it
+    // Lease under the caller's session id (`workspan dispatch --attach` passes `--session <sid>`) so it
     // can release this exact lease when the agent exits. A hand-typed launch mints one.
     let session_id = session
         .map(str::to_string)
@@ -1050,7 +1050,7 @@ fn enforce_launch_placement(
                         worktree: &canonical.to_string_lossy(),
                         host: None,
                         // A human typing `claude` in a worktree is shipping work, not running the
-                        // fleet — the same class `bn dispatch` gives a worker.
+                        // fleet — the same class `workspan dispatch` gives a worker.
                         work_class: bn_core::cost::WorkClass::Coding,
                         task_name: None,
                         controller_id: None,
@@ -1061,7 +1061,7 @@ fn enforce_launch_placement(
         // A refusal here is the placement invariant talking (the controller slot, or a main worktree
         // whose path shape the check above didn't catch). Surface it verbatim and stop.
         Err(error) => {
-            eprintln!("bn agent launch: {error}");
+            eprintln!("workspan agent launch: {error}");
             std::process::exit(1);
         }
     }
@@ -1091,12 +1091,12 @@ fn redirect_into_window_wanted() -> bool {
     crate::proc::tmux_raw(&["list-sessions", "-F", "#{session_name}"]).is_some()
 }
 
-/// Move a bare-terminal launch into the tmux window bn would have opened for this branch, and
+/// Move a bare-terminal launch into the tmux window workspan would have opened for this branch, and
 /// attach to it.
 ///
-/// Mirrors what `bn dispatch` does for a lane, minus the branch and worktree creation: lease the
+/// Mirrors what `workspan dispatch` does for a lane, minus the branch and worktree creation: lease the
 /// checkout against the window that is about to exist, record the session, open the window running
-/// this very command inside it, then attach. The inner `bn agent launch` sees the lease as
+/// this very command inside it, then attach. The inner `workspan agent launch` sees the lease as
 /// [`agent_lease::WorktreeHolder::Ours`] and so neither re-leases nor re-records.
 ///
 /// Returns normally only when the window could not be opened — the caller then continues with the
@@ -1124,7 +1124,7 @@ fn redirect_into_window(
     }) {
         Ok(reservation) => reservation,
         Err(error) => {
-            eprintln!("bn agent launch: {error}");
+            eprintln!("workspan agent launch: {error}");
             std::process::exit(1);
         }
     };
@@ -1144,7 +1144,7 @@ fn redirect_into_window(
         .collect::<Vec<_>>()
         .join(" ");
 
-    eprintln!("bn agent launch: opening {tmux_target} — attaching.");
+    eprintln!("workspan agent launch: opening {tmux_target} — attaching.");
     if !wt::open_worktree_window_cmd_named(
         &ctx.repo,
         &ctx.branch,
@@ -1154,7 +1154,7 @@ fn redirect_into_window(
         Some(&cmd),
         true,
     ) {
-        eprintln!("bn agent launch: could not open {tmux_target} — starting here instead.");
+        eprintln!("workspan agent launch: could not open {tmux_target} — starting here instead.");
         let _ = reservation.rollback();
         return;
     }
@@ -1187,19 +1187,19 @@ fn redirect_into_window(
     )
 }
 
-/// The main-worktree redirect: ask what the work is, then hand off to `bn dispatch`, which leases a
+/// The main-worktree redirect: ask what the work is, then hand off to `workspan dispatch`, which leases a
 /// warm pool slot, seeds the new branch's note (goal + todo) and launches the agent in this pane.
 /// Execs, so it never returns. With no terminal to prompt on (a script, a hook) it prints the
 /// command to run and exits non-zero instead of guessing a goal.
 fn redirect_from_main(worktree: &std::path::Path, harness: Harness) -> ! {
     use std::io::Write;
     eprintln!(
-        "bn agent launch: {} is the main worktree — it hosts no agents and stays clean.",
+        "workspan agent launch: {} is the main worktree — it hosts no agents and stays clean.",
         worktree.display()
     );
     if !std::io::IsTerminal::is_terminal(&std::io::stdin()) {
         eprintln!(
-            "  Start the work in its own pool slot instead:\n    bn dispatch \"<what you're doing>\" --agent {} --pool --attach",
+            "  Start the work in its own pool slot instead:\n    workspan dispatch \"<what you're doing>\" --agent {} --pool --attach",
             harness.bin()
         );
         std::process::exit(1);
@@ -1229,7 +1229,7 @@ fn redirect_from_main(worktree: &std::path::Path, harness: Harness) -> ! {
     )
 }
 
-/// `bn agent launch` — the native port of `workflow/bin/agent`. Enforces where an agent may run,
+/// `workspan agent launch` — the native port of `workflow/bin/agent`. Enforces where an agent may run,
 /// resolves the seed, pre-trusts the worktree for Copilot, computes the resume-or-fresh argv, and
 /// **execs** the harness (this process is replaced; on success it never returns). A Copilot resume
 /// whose session no longer exists is retried exactly once as a fresh launch. On an unknown harness
@@ -1237,12 +1237,12 @@ fn redirect_from_main(worktree: &std::path::Path, harness: Harness) -> ! {
 /// shell launcher.
 ///
 /// This is the single chokepoint every entry point funnels through — the tmux keybinds, `bn
-/// dispatch`, `bn control start`, the `claude`/`copilot` shell wrappers, and a plain `cd <wt> && bn
+/// dispatch`, `workspan control start`, the `claude`/`copilot` shell wrappers, and a plain `cd <wt> && bn
 /// agent launch` — so the placement rule in [`enforce_launch_placement`] lives here rather than
 /// being restated by each caller.
 ///
 /// Two of that rule's branches replace this process with something other than the harness: a launch
-/// in the main worktree becomes `bn dispatch`, and a launch on a bare terminal becomes a tmux
+/// in the main worktree becomes `workspan dispatch`, and a launch on a bare terminal becomes a tmux
 /// attach onto the window the agent was started in. Either way this call does not return.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_agent_launch(
@@ -1261,7 +1261,7 @@ pub(crate) fn emit_agent_launch(
 ) -> ! {
     let Some(harness) = Harness::parse(harness.as_deref()) else {
         eprintln!(
-            "bn agent launch: unknown agent '{}' (use: claude | copilot)",
+            "workspan agent launch: unknown agent '{}' (use: claude | copilot)",
             harness.unwrap_or_default()
         );
         std::process::exit(2);
@@ -1299,7 +1299,7 @@ pub(crate) fn emit_agent_launch(
         remote::attach(host, &ctx.repo, &ctx.branch)
     }
 
-    // Pin a session id when the caller didn't give one, exactly as `bn dispatch` does. Without it a
+    // Pin a session id when the caller didn't give one, exactly as `workspan dispatch` does. Without it a
     // fresh hand-typed launch takes whatever id the harness invents, which bn never learns — and an
     // id bn doesn't know is an agent bn cannot resume. Skipped when the user drove the session
     // themselves (`claude --continue`, `claude --resume <id>`): pinning on top of their flag is at
@@ -1328,7 +1328,7 @@ pub(crate) fn emit_agent_launch(
             .as_deref()
             .is_some_and(|id| !claude_has_session(&cwd, id))
     {
-        eprintln!("bn agent launch: recorded Claude session is missing; starting fresh");
+        eprintln!("workspan agent launch: recorded Claude session is missing; starting fresh");
         plan.fresh = true;
     }
     let has_transcripts = harness == Harness::Claude && claude_has_transcripts(&cwd);
@@ -1362,7 +1362,7 @@ pub(crate) fn emit_agent_launch(
             if controller_launch() {
                 install_copilot_controller_hook().unwrap_or_else(|error| {
                     fail(&format!(
-                        "bn agent launch: install controller turn-end hook: {error}"
+                        "workspan agent launch: install controller turn-end hook: {error}"
                     ))
                 });
             }
@@ -1386,7 +1386,7 @@ pub(crate) fn emit_agent_launch(
                 match run_copilot_resume(harness.bin(), &args) {
                     Ok((status, stderr)) if should_retry_copilot_resume(status, &stderr) => {
                         eprintln!(
-                            "bn agent launch: recorded Copilot session is missing; retrying fresh"
+                            "workspan agent launch: recorded Copilot session is missing; retrying fresh"
                         );
                         plan.fresh = true;
                         let fresh_args = super::agent_scope::build_copilot_args(&plan, None);
@@ -1394,7 +1394,7 @@ pub(crate) fn emit_agent_launch(
                     }
                     Ok((status, _)) => std::process::exit(status.code().unwrap_or(1)),
                     Err(err) => {
-                        eprintln!("bn agent launch: exec {}: {err}", harness.bin());
+                        eprintln!("workspan agent launch: exec {}: {err}", harness.bin());
                         std::process::exit(127);
                     }
                 }
@@ -1412,21 +1412,21 @@ fn exec_harness(bin: &str, args: &[String]) -> ! {
     {
         use std::os::unix::process::CommandExt;
         // exec() only returns on failure, so rebuilding the command is safe between attempts.
-        let err = crate::retry::io(&format!("bn agent launch: exec {bin}"), || {
+        let err = crate::retry::io(&format!("workspan agent launch: exec {bin}"), || {
             Err::<(), _>(std::process::Command::new(bin).args(args).exec())
         })
         .expect_err("exec only returns on failure");
-        eprintln!("bn agent launch: exec {bin}: {err}");
+        eprintln!("workspan agent launch: exec {bin}: {err}");
         std::process::exit(127);
     }
     #[cfg(not(unix))]
     {
-        match crate::retry::io(&format!("bn agent launch: spawn {bin}"), || {
+        match crate::retry::io(&format!("workspan agent launch: spawn {bin}"), || {
             std::process::Command::new(bin).args(args).status()
         }) {
             Ok(status) => std::process::exit(status.code().unwrap_or(1)),
             Err(err) => {
-                eprintln!("bn agent launch: exec {bin}: {err}");
+                eprintln!("workspan agent launch: exec {bin}: {err}");
                 std::process::exit(127);
             }
         }

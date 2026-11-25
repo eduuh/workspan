@@ -33,7 +33,7 @@ pub(super) fn route(cfg: &Config, action: CmdReview, json: bool) {
                         crate::git::git_capture(&["rev-parse", "HEAD"], None, false)
                             .map(|s| s.trim().to_string())
                             .unwrap_or_else(|| {
-                                fail("bn review-gate record: --sha not given and `git rev-parse HEAD` failed (not in a git worktree?)")
+                                fail("workspan review-gate record: --sha not given and `git rev-parse HEAD` failed (not in a git worktree?)")
                             })
                     });
                     emit_review_gate_record(
@@ -77,7 +77,7 @@ pub(super) fn route(cfg: &Config, action: CmdReview, json: bool) {
         }
         CmdReview::Learned { text } => {
             if text.is_empty() {
-                fail("bn learned: text required — bn learned \"<what you learned>\"");
+                fail("workspan learned: text required — workspan learned \"<what you learned>\"");
             }
             let prov = log_provenance(cfg);
             match bn_core::daily::learned(cfg, &today(), &text.join(" "), &prov) {
@@ -96,7 +96,7 @@ pub(super) fn route(cfg: &Config, action: CmdReview, json: bool) {
         }
         CmdReview::Reflect { text } => {
             if text.is_empty() {
-                fail("bn reflect: text required — bn reflect \"<one thing to improve>\"");
+                fail("workspan reflect: text required — workspan reflect \"<one thing to improve>\"");
             }
             let prov = log_provenance(cfg);
             match bn_core::daily::reflect(cfg, &today(), &text.join(" "), &prov) {

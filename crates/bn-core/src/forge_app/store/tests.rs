@@ -366,7 +366,7 @@ fn without_a_key_every_call_names_bn_forge_login() {
     ];
     for e in errors {
         assert_eq!(e.kind(), io::ErrorKind::PermissionDenied);
-        assert!(e.to_string().contains("bn forge login"), "{e}");
+        assert!(e.to_string().contains("workspan forge login"), "{e}");
     }
     assert_eq!(s.kind(), TaskProviderKind::ForgeApp);
 }

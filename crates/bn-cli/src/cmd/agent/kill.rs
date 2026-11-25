@@ -37,7 +37,7 @@ pub(crate) fn emit_agent_kill(cfg: &Config, target: &str, as_json: bool) {
                 Envelope::failure("agent_kill", "invalid_target", &msg).to_json()
             );
         } else {
-            eprintln!("bn agent kill: {msg}");
+            eprintln!("workspan agent kill: {msg}");
         }
         return;
     }
@@ -57,7 +57,7 @@ pub(crate) fn emit_agent_kill(cfg: &Config, target: &str, as_json: bool) {
                     Envelope::failure("agent_kill", "kill_failed", &e).to_json()
                 );
             } else {
-                eprintln!("bn agent kill: {target}: {e}");
+                eprintln!("workspan agent kill: {target}: {e}");
             }
             return;
         }
@@ -100,18 +100,18 @@ pub(crate) fn emit_agent_kill(cfg: &Config, target: &str, as_json: bool) {
     }
     if outcome.killed {
         println!(
-            "bn agent kill: {target} — window closed, {} process(es) signalled ✓",
+            "workspan agent kill: {target} — window closed, {} process(es) signalled ✓",
             outcome.processes
         );
     } else {
-        println!("bn agent kill: {target} — already gone");
+        println!("workspan agent kill: {target} — already gone");
     }
     if let Some(m) = slot.message() {
-        println!("bn agent kill: {m}");
+        println!("workspan agent kill: {m}");
     }
 }
 
-/// `bn agent kill-repo <repo>` — force-kill a repo's whole tmux session.
+/// `workspan agent kill-repo <repo>` — force-kill a repo's whole tmux session.
 ///
 /// Session is repo and window is branch ([`crate::wt::window`]), so "kill this repo's session" means
 /// every agent under it at once. It is the last-resort valve for a session that is wedged as a
@@ -142,7 +142,7 @@ pub(crate) fn emit_repo_kill(cfg: &Config, repo: &str, as_json: bool) {
                 Envelope::failure("agent_kill_repo", "invalid_repo", &msg).to_json()
             );
         } else {
-            eprintln!("bn agent kill-repo: {msg}");
+            eprintln!("workspan agent kill-repo: {msg}");
         }
         return;
     }
@@ -237,18 +237,18 @@ pub(crate) fn emit_repo_kill(cfg: &Config, repo: &str, as_json: bool) {
         return;
     }
     if killed == 0 && ok {
-        println!("bn agent kill-repo: {repo} — already gone (no live windows)");
+        println!("workspan agent kill-repo: {repo} — already gone (no live windows)");
     } else {
         println!(
-            "bn agent kill-repo: {repo} — {killed} window(s) closed, {processes} process(es) signalled ✓"
+            "workspan agent kill-repo: {repo} — {killed} window(s) closed, {processes} process(es) signalled ✓"
         );
     }
     for message in &slot_messages {
-        println!("bn agent kill-repo: {message}");
+        println!("workspan agent kill-repo: {message}");
     }
     for failure in &failures {
         eprintln!(
-            "bn agent kill-repo: {}",
+            "workspan agent kill-repo: {}",
             failure.get("error").and_then(|e| e.as_str()).unwrap_or("")
         );
     }
@@ -287,7 +287,7 @@ impl KillOutcome {
 /// matters: `kill-window` alone reparents the pane's children (`remain-on-exit`), and skipping the
 /// verification is how a kill came to report success over a window that was still live.
 /// `Err` is a real failure (tmux unreachable, or the window survived); `Ok(killed: false)` is the
-/// idempotent "nothing was there". Shared with `bn agent relaunch`, which must tear the old agent
+/// idempotent "nothing was there". Shared with `workspan agent relaunch`, which must tear the old agent
 /// down by exactly these rules before it respawns.
 pub(crate) fn reap_agent_window(exact: &str) -> Result<KillOutcome, String> {
     let windows = crate::proc::tmux(&["list-windows", "-a", "-F", "#{session_name}:#{window_name}"])

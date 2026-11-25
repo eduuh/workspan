@@ -11,7 +11,7 @@ use serde_json::{json, Value};
 
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(super) enum Outcome {
-    /// `bn build` finished.
+    /// `workspan build` finished.
     Built,
     /// No build script: a live checkout at the base is all there is to warm.
     CheckedOut,

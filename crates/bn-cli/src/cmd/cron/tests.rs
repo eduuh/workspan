@@ -400,7 +400,7 @@ fn cron_health_closes_the_repair_task_once_the_cron_recovers() {
 }
 
 /// A cron that no longer resolves still earns its attention row, but must not keep dispatching
-/// autonomous repair agents: the repair prompt tells them to reproduce with `bn run <job>`, which
+/// autonomous repair agents: the repair prompt tells them to reproduce with `workspan run <job>`, which
 /// cannot resolve, so each one can only burn a worktree to report the same nothing. This is the
 /// `task-improve` loop that ran every 15 minutes after the job was renamed to `task-enhance`.
 #[test]
@@ -449,7 +449,7 @@ fn cron_health_withholds_repair_agent_for_a_cron_that_no_longer_resolves() {
     );
 }
 
-/// End-to-end for `bn cron retire`: the tombstone reaches the watchdog through the real event log,
+/// End-to-end for `workspan cron retire`: the tombstone reaches the watchdog through the real event log,
 /// so a retired name stops being raised on the very next run rather than in a fortnight.
 #[test]
 fn retiring_a_cron_silences_the_watchdog_immediately() {

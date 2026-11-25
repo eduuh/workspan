@@ -29,7 +29,7 @@ pub(crate) enum TargetError {
     /// Nothing here identifies a worktree — the caller is outside any repo. A *normal* outcome
     /// for a keybinding pressed in a scratch pane, so it exits 2 rather than 1.
     NoWorktree(String),
-    /// A named repo/branch that bn knows about but that has no checkout on this machine.
+    /// A named repo/branch that workspan knows about but that has no checkout on this machine.
     NoCheckout(String),
 }
 

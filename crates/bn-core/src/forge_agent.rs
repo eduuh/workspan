@@ -155,7 +155,7 @@ pub struct Run {
     pub title: String,
     pub repo: String,
     pub branch: String,
-    /// The worktree `bn dispatch` made, where the branch note's PR is read from.
+    /// The worktree `workspan dispatch` made, where the branch note's PR is read from.
     #[serde(default)]
     pub worktree: Option<String>,
     /// Epoch seconds when this node won the claim.
@@ -163,7 +163,7 @@ pub struct Run {
 }
 
 impl Run {
-    /// `repo:branch`, the target `bn agent live` / `bn agent kill` use.
+    /// `repo:branch`, the target `workspan agent live` / `workspan agent kill` use.
     pub fn target(&self) -> String {
         format!("{}:{}", self.repo, self.branch)
     }
@@ -229,7 +229,7 @@ pub fn branch_for(task: &ForgeTask) -> String {
     }
 }
 
-/// The work item handed to `bn dispatch`. The description is text someone typed into a web app, so
+/// The work item handed to `workspan dispatch`. The description is text someone typed into a web app, so
 /// it goes in fenced as reference material, never as instructions.
 pub fn brief(task: &ForgeTask) -> String {
     let mut s = format!("Forge task: {}", task.title.trim());
@@ -245,13 +245,13 @@ pub fn brief(task: &ForgeTask) -> String {
         s.push_str("\n```");
     }
     s.push_str(
-        "\n\nWhen the work is shipped (PR opened and recorded with `bn pr`), run `bn agent done`. \
-         bn then closes this window and reports back to Forge.",
+        "\n\nWhen the work is shipped (PR opened and recorded with `workspan pr`), run `workspan agent done`. \
+         workspan then closes this window and reports back to Forge.",
     );
     s
 }
 
-/// What `bn agent live` says about a run's window.
+/// What `workspan agent live` says about a run's window.
 #[derive(Debug, Clone, PartialEq, Eq, Default)]
 pub struct LiveView {
     pub has_window: bool,
@@ -283,7 +283,7 @@ pub fn reconcile(run: &Run, live: Option<&LiveView>, now: i64, max_runtime_mins:
                 RunAction::Heartbeat
             }
         }
-        _ => RunAction::Block("the agent exited without running bn agent done".into()),
+        _ => RunAction::Block("the agent exited without running workspan agent done".into()),
     }
 }
 

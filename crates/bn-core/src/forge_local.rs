@@ -33,7 +33,7 @@ pub struct ForgeAgentProfile {
     pub path: PathBuf,
     pub claimer: ForgeClaimer,
     pub forge_mcp: ForgeMcpProfile,
-    /// Forge goal name → local bn repo, for tasks whose goal carries no repo URL.
+    /// Forge goal name → local workspan repo, for tasks whose goal carries no repo URL.
     pub repos: BTreeMap<String, String>,
 }
 
@@ -74,20 +74,20 @@ impl ForgeProfileError {
     pub fn message(&self) -> String {
         match self {
             Self::Missing { path } => format!(
-                "bn forge: missing Forge agent profile {}",
+                "workspan forge: missing Forge agent profile {}",
                 path.display()
             ),
             Self::Read { path, message } => {
-                format!("bn forge: could not read profile {}: {message}", path.display())
+                format!("workspan forge: could not read profile {}: {message}", path.display())
             }
             Self::Malformed { path, message } => {
-                format!("bn forge: malformed profile {}: {message}", path.display())
+                format!("workspan forge: malformed profile {}: {message}", path.display())
             }
             Self::Invalid { path, message } => {
-                format!("bn forge: invalid profile {}: {message}", path.display())
+                format!("workspan forge: invalid profile {}: {message}", path.display())
             }
             Self::UnsupportedSecretField { path, field } => format!(
-                "bn forge: profile {} uses unsupported secret/API-key authentication field '{field}'; Forge MCP is OAuth-only",
+                "workspan forge: profile {} uses unsupported secret/API-key authentication field '{field}'; Forge MCP is OAuth-only",
                 path.display()
             ),
         }
@@ -516,10 +516,12 @@ impl ForgeSelectionError {
 
     pub fn message(&self) -> String {
         match self {
-            Self::NotFound(id) if id.is_empty() => "bn forge: no claimable task found".to_string(),
-            Self::NotFound(id) => format!("bn forge: task '{id}' is not claimable"),
+            Self::NotFound(id) if id.is_empty() => {
+                "workspan forge: no claimable task found".to_string()
+            }
+            Self::NotFound(id) => format!("workspan forge: task '{id}' is not claimable"),
             Self::Ambiguous(ids) => format!(
-                "bn forge: multiple claimable tasks match; pass --task with one of: {}",
+                "workspan forge: multiple claimable tasks match; pass --task with one of: {}",
                 ids.join(", ")
             ),
         }

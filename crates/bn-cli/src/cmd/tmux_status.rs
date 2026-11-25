@@ -75,14 +75,14 @@ pub(crate) fn render_git_seg(seg: &GitSeg) -> Option<String> {
 }
 
 /// A cached segment younger than this is printed as is. Older, it is still printed, and a detached
-/// `bn tmux-git --refresh` recomputes it for the next tick. Just under tmux's default 5s
+/// `workspan tmux-git --refresh` recomputes it for the next tick. Just under tmux's default 5s
 /// `status-interval`, so every tick starts one refresh and the bar is never more than a tick
 /// behind.
 const GIT_SEG_TTL_SECS: u64 = 4;
 /// A refresh lock older than this belongs to a refresh that died; it is taken over.
 const GIT_SEG_LOCK_STALE_SECS: u64 = 60;
 
-/// `bn tmux-git [path]` — emit the git segment for `path` (tmux passes `#{pane_current_path}`)
+/// `workspan tmux-git [path]` — emit the git segment for `path` (tmux passes `#{pane_current_path}`)
 /// or cwd. Silent outside a git repo so the segment collapses.
 ///
 /// The segment is one `git status` including the untracked walk, which on a ~100k-file monorepo
@@ -183,7 +183,7 @@ fn refresh_git_seg(dir: &std::path::Path, cache: &std::path::Path) {
     let _ = std::fs::remove_file(&lock);
 }
 
-/// Re-exec `bn tmux-git --refresh <dir>` detached. Only when this process really is `bn`: under
+/// Re-exec `workspan tmux-git --refresh <dir>` detached. Only when this process really is `bn`: under
 /// `cargo test` `current_exe()` is the test harness, which would read the arguments as test
 /// filters (see `winsched::spawn_background_refresh`).
 fn spawn_git_seg_refresh(dir: &std::path::Path) {
@@ -238,7 +238,7 @@ pub(crate) fn parse_attn_row(line: &str) -> AttnRow<'_> {
 /// (`@bn_agent==done` or the silence-watch `@bn_done==✓`). `working` agents don't need you and
 /// aren't counted. The waiting badge carries the longest wait and flips amber→red past 15 min.
 ///
-/// The pure count itself lives in [`attn_window_tally`] so `bn attn badge` (which folds these
+/// The pure count itself lives in [`attn_window_tally`] so `workspan attn badge` (which folds these
 /// windows into its single total) shares one implementation.
 pub(crate) fn render_attn_count(lines: &str, now: i64) -> String {
     let t = attn_window_tally(lines, now);
@@ -296,7 +296,7 @@ pub(crate) struct AgentTally {
 }
 
 /// Pure global tally of agent windows from `list-windows` lines + the current epoch `now`.
-/// Shared by [`render_attn_count`], [`render_attn_badge`] and `bn attn badge`.
+/// Shared by [`render_attn_count`], [`render_attn_badge`] and `workspan attn badge`.
 ///
 /// `working` is counted even though it needs nothing from you: the fall-through arm used to drop
 /// those rows entirely, which made "three agents are busy" and "the machine is idle" render
@@ -395,7 +395,7 @@ pub(crate) fn render_attn_badge(
     Some(s)
 }
 
-/// `bn tmux-attn-count` — global tally of windows needing attention across ALL sessions, for the
+/// `workspan tmux-attn-count` — global tally of windows needing attention across ALL sessions, for the
 /// status bar. Emits a styled fragment or nothing when all quiet (bar stays clean).
 pub(crate) fn emit_tmux_attn_count() {
     let fmt = "#{@bn_agent}\t#{@bn_done}\t#{@bn_agent_since}";
@@ -479,8 +479,8 @@ pub(crate) fn cockpit_body(lines: &str, now: i64) -> (String, usize) {
     (out, n)
 }
 
-/// `bn tmux-cockpit` — orchestration roll-up popup (bound to prefix S). In-flight windows across
-/// every session, then fleet health (`agent supervise`) and the bn cross-branch summary. Replaces
+/// `workspan tmux-cockpit` — orchestration roll-up popup (bound to prefix S). In-flight windows across
+/// every session, then fleet health (`agent supervise`) and the workspan cross-branch summary. Replaces
 /// workflow/bin/tmux-cockpit.sh (the awk classifier is now `cockpit_body`).
 pub(crate) fn emit_tmux_cockpit(cfg: &Config) {
     let now = std::time::SystemTime::now()
@@ -508,7 +508,7 @@ pub(crate) fn emit_tmux_cockpit(cfg: &Config) {
         false,
     );
 
-    println!("\n{}", style::head("bn summary"));
+    println!("\n{}", style::head("workspan summary"));
     crate::cmd::recall::emit_summary(cfg, false);
 
     print!("\nPress Enter to close…");
@@ -519,7 +519,7 @@ pub(crate) fn emit_tmux_cockpit(cfg: &Config) {
 
 // ---- bn tmux-help : keybinding cheat-sheet popup (prefix ?) -------------------------------------
 
-/// `bn tmux-help` — the keybinding cheat-sheet popup (bound to prefix ?).
+/// `workspan tmux-help` — the keybinding cheat-sheet popup (bound to prefix ?).
 ///
 /// Generated from the live key table, never hand-written. This used to be ~95 lines of hardcoded
 /// rows, and it had drifted in both directions: it advertised `prefix B` (a briefings popup whose
@@ -542,7 +542,7 @@ pub(crate) fn emit_tmux_help() {
 
     for (table, label) in [("prefix", ""), ("copy-mode-vi", " (in copy mode)")] {
         let Some(raw) = crate::proc::tmux_raw(&noted_keys_args(table)) else {
-            eprintln!("bn: tmux is not reachable — no key table to read");
+            eprintln!("workspan: tmux is not reachable — no key table to read");
             return;
         };
         for (section, rows) in noted_key_sections(&raw, label) {
@@ -737,7 +737,7 @@ mod attn_badge_tests {
         assert!(!healthy.contains("dead"), "{healthy}");
     }
 
-    /// `bn tmux-attn-count` is a separate, unchanged surface — pin its output so the AgentTally
+    /// `workspan tmux-attn-count` is a separate, unchanged surface — pin its output so the AgentTally
     /// refactor cannot quietly alter it.
     #[test]
     fn the_standalone_attn_count_segment_is_unchanged_by_the_refactor() {

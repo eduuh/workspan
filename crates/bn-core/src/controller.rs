@@ -85,7 +85,7 @@ pub fn turn_end_decision(input: &TurnEndGuardInput<'_>) -> TurnEndDecision {
         reason: format!(
             "Controller work is still live ({} open request(s), {} owned worker(s)), but its \
              watcher heartbeat is missing or stale. Reconcile the live work now, ensure \
-             `bn control watch` is running, and continue coordination before ending the turn.",
+             `workspan control watch` is running, and continue coordination before ending the turn.",
             input.open_requests, input.live_workers
         ),
     }

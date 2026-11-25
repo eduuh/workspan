@@ -49,11 +49,11 @@ const DAY: i64 = 86_400;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "snake_case")]
 pub enum WorkClass {
-    /// The `bn orchestrate` daemon's own dispatch → gate → merge activity and planner agents.
+    /// The `workspan orchestrate` daemon's own dispatch → gate → merge activity and planner agents.
     Orchestration,
-    /// Dispatched *ship* agents (`bn dispatch` / orchestrated waves) that produce PRs.
+    /// Dispatched *ship* agents (`workspan dispatch` / orchestrated waves) that produce PRs.
     Coding,
-    /// Cron / scheduled work: Markdown agents, the night shift (#250), and `bn staff run`.
+    /// Cron / scheduled work: Markdown agents, the night shift (#250), and `workspan staff run`.
     Scheduled,
     /// Research agents that investigate without shipping.
     Research,
@@ -237,7 +237,7 @@ pub struct CostView {
     pub by_day_category: Vec<DayCategory>,
 }
 
-/// What [`rollup`] should fold. `window_days` is the trailing window (`bn cost` defaults it to the
+/// What [`rollup`] should fold. `window_days` is the trailing window (`workspan cost` defaults it to the
 /// current month-to-date); `now` anchors it (overridable for tests); `repo`, when set, restricts
 /// the fold to one note-canonical repo. `window_secs`, when `Some`, overrides `window_days` with a
 /// finer trailing window in seconds — the resource-aware scheduler (#377) uses it for a strict
@@ -458,7 +458,7 @@ const ATTRIBUTION_KIND: &str = "run_attribution";
 
 /// Canonical form of a harness session id for the attribution join. UUIDs are case-insensitive by
 /// spec, yet the two sides of the join are produced independently: a launch path pins the id it
-/// generates (macOS `uuidgen` is upper-case; `bn dispatch` lower-cases it) while the harness later
+/// generates (macOS `uuidgen` is upper-case; `workspan dispatch` lower-cases it) while the harness later
 /// records the id it *actually* used in its own log — and nothing guarantees the two agree on case
 /// or surrounding whitespace. An exact-string join therefore silently drops any such variance into
 /// `unattributed` (the same key-shape trap as the #530 model-id `.`↔`-` fold). Canonicalizing both
@@ -471,7 +471,7 @@ pub fn canonical_session_id(session_id: &str) -> String {
 
 /// Record that the harness session `session_id` belongs to `work_class` (with its `repo`/`branch`
 /// for context). Appended to the machine-local state log at launch time by every launch path that
-/// pins a session id (`bn dispatch` generates the id it passes as `--session`, so it is the
+/// pins a session id (`workspan dispatch` generates the id it passes as `--session`, so it is the
 /// harness session id [`crate::agent::session::ingest`] later keys on). [`attribution_map`] reads
 /// these back so ingest can stamp `work_class` onto the `agent_session` event. Best-effort: a
 /// failed write just leaves the session `unattributed`.
@@ -800,7 +800,7 @@ fn sample_from_staff_run(e: &Event, machine: &str) -> RunSample {
 /// metrics log (real #309 token capture, machine = source-log segment) plus the machine-local
 /// `staff_run` ledger (#267 scheduled estimate). Both are windowed to `filter.now -
 /// filter.window_days` and, when `filter.repo` is set, restricted to that repo. This is the
-/// reusable core the `bn cost` CLI calls.
+/// reusable core the `workspan cost` CLI calls.
 pub fn rollup(cfg: &Config, filter: &CostFilter) -> CostView {
     let cutoff = match filter.window_secs {
         Some(secs) => filter.now - secs.max(0),
@@ -865,7 +865,7 @@ fn repo_matches(filter: &CostFilter, repo: &str) -> bool {
 // --- live (in-flight run so far) ------------------------------------------------------------
 
 /// A snapshot of currently-running agents' usage so far, categorized by work-class — what
-/// `bn cost --live` shows. Live Copilot logs surface only `output_tokens` mid-session and no model
+/// `workspan cost --live` shows. Live Copilot logs surface only `output_tokens` mid-session and no model
 /// (the model / AIC land in the final `session.shutdown`, folded by ingest), so `aic` and
 /// `cost_usd` here are `None` until the run finishes.
 #[derive(Debug, Clone, Default, PartialEq, Serialize)]

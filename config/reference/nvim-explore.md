@@ -18,8 +18,8 @@ once the server is attached to a running nvim. If all you can see is `get_target
 
 1. `get_targets` — lists the nvim instances advertising themselves. A hit means one is running;
    pass its path to `connect` and the rest of the tools appear.
-2. Nothing listed? Open one, in the worktree: `bn edit show` puts this worktree's nvim on screen,
-   `bn edit land` opens it on the branch's diff. Then `get_targets` again.
+2. Nothing listed? Open one, in the worktree: `workspan edit show` puts this worktree's nvim on screen,
+   `workspan edit land` opens it on the branch's diff. Then `get_targets` again.
 3. Still nothing after an editor is open? The editor half is missing — nvim advertises itself only
    with the nvim-mcp plugin loaded (`require('nvim-mcp').setup({})`). Say so plainly and fall back
    to grep and the build; do not keep retrying.
@@ -220,7 +220,7 @@ status. An authentication failure before the installer starts is not a dependenc
 ## Wiring
 
 The server is registered per machine by `install.sh` (user scope, Claude Code + both Copilots), and
-can also be wired per repo with `bn setup mcp init <claude|copilot> --with-extras` or `[mcp] extras` in
+can also be wired per repo with `workspan setup mcp init <claude|copilot> --with-extras` or `[mcp] extras` in
 config.toml. It discovers the nvim for the current git root via `--connect auto`, so no socket path
 is configured anywhere. The binary and the nvim plugin must come from the same commit — upstream's
 lazy.nvim spec builds it from the plugin checkout (`build = "cargo install --path ."`), which is

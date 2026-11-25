@@ -56,25 +56,25 @@ fn read_plan(plan: Option<String>, plan_file: Option<String>) -> String {
         (Some(p), _) => p,
         (None, Some(f)) if f != "-" => std::fs::read_to_string(&f).unwrap_or_else(|e| {
             fail(&format!(
-                "bn review submit: cannot read --plan-file '{f}': {e}"
+                "workspan review submit: cannot read --plan-file '{f}': {e}"
             ))
         }),
         _ => {
             let mut s = String::new();
             if std::io::stdin().read_to_string(&mut s).is_err() {
-                fail("bn review submit: failed to read the plan from stdin");
+                fail("workspan review submit: failed to read the plan from stdin");
             }
             s
         }
     };
     let text = text.trim_end().to_string();
     if text.trim().is_empty() {
-        fail("bn review submit: empty plan — pass --plan, --plan-file, or pipe it on stdin");
+        fail("workspan review submit: empty plan — pass --plan, --plan-file, or pipe it on stdin");
     }
     text
 }
 
-/// `bn review submit --repo R --branch B [--session S] [--plan… ]` — the agent registers (or
+/// `workspan review submit --repo R --branch B [--session S] [--plan… ]` — the agent registers (or
 /// re-submits) a plan and pauses. Prints the review id + status.
 pub(crate) fn emit_review_submit(
     repo: &str,
@@ -147,15 +147,15 @@ pub(crate) fn emit_review_submit(
                         )
                     }
                 );
-                println!("  poll:    bn review status {}", review.id);
-                println!("  approve: bn review approve {}", review.id);
+                println!("  poll:    workspan review status {}", review.id);
+                println!("  approve: workspan review approve {}", review.id);
             }
         }
-        Err(e) => fail(&format!("bn review submit: {e}")),
+        Err(e) => fail(&format!("workspan review submit: {e}")),
     }
 }
 
-/// `bn review status <id>` — the agent's poll read. Prints just the status label (so a shell loop
+/// `workspan review status <id>` — the agent's poll read. Prints just the status label (so a shell loop
 /// can branch on it); `--json` prints the full record.
 pub(crate) fn emit_review_status(id: &str, as_json: bool) {
     match plan_review::get(id) {
@@ -198,14 +198,14 @@ pub(crate) fn emit_review_status(id: &str, as_json: bool) {
                         .to_json()
                 );
             } else {
-                eprintln!("bn review status: no plan-review '{id}'");
+                eprintln!("workspan review status: no plan-review '{id}'");
             }
             std::process::exit(1);
         }
     }
 }
 
-/// `bn review list` (and bare `bn review`) — every plan-review, newest first, pending ones flagged.
+/// `workspan review list` (and bare `workspan review`) — every plan-review, newest first, pending ones flagged.
 pub(crate) fn emit_review_list(as_json: bool) {
     let reviews = plan_review::list();
     if as_json {
@@ -217,7 +217,7 @@ pub(crate) fn emit_review_list(as_json: bool) {
         return;
     }
     if reviews.is_empty() {
-        println!("No plan-reviews — a `bn dispatch --plan` agent raises one before it ships.");
+        println!("No plan-reviews — a `workspan dispatch --plan` agent raises one before it ships.");
         return;
     }
     for r in &reviews {
@@ -244,11 +244,11 @@ pub(crate) fn emit_review_list(as_json: bool) {
     }
     let pending = reviews.iter().filter(|r| r.status.is_pending()).count();
     if pending > 0 {
-        println!("\n{pending} pending — `bn review approve <id>` / `request-changes <id> --notes` / `reject <id>`");
+        println!("\n{pending} pending — `workspan review approve <id>` / `request-changes <id> --notes` / `reject <id>`");
     }
 }
 
-/// `bn review show <id>` — one review in full, plan text included.
+/// `workspan review show <id>` — one review in full, plan text included.
 pub(crate) fn emit_review_show(id: &str, reviewer: Option<&str>, as_json: bool) {
     match plan_review::get(id) {
         Some(review) => {
@@ -271,7 +271,7 @@ pub(crate) fn emit_review_show(id: &str, reviewer: Option<&str>, as_json: bool) 
                         .to_json()
                 );
             } else {
-                eprintln!("bn review show: no plan-review '{id}'");
+                eprintln!("workspan review show: no plan-review '{id}'");
             }
             std::process::exit(1);
         }
@@ -282,7 +282,7 @@ pub(crate) fn emit_review_vote(id: &str, args: ReviewVoteArgs<'_>, as_json: bool
     let verdict = match (args.approve, args.reject) {
         (true, false) => VoteVerdict::Approve,
         (false, true) => VoteVerdict::Reject,
-        _ => fail("bn review vote: pass exactly one of --approve or --reject"),
+        _ => fail("workspan review vote: pass exactly one of --approve or --reject"),
     };
     match plan_review::vote_with_feedback(
         id,
@@ -326,7 +326,7 @@ pub(crate) fn emit_review_vote(id: &str, args: ReviewVoteArgs<'_>, as_json: bool
                     Envelope::failure("review", code, e.to_string()).to_json()
                 );
             } else {
-                eprintln!("bn review vote: {e}");
+                eprintln!("workspan review vote: {e}");
             }
             std::process::exit(1);
         }
@@ -343,17 +343,17 @@ pub(crate) fn emit_review_agents(
     as_json: bool,
 ) {
     let review = plan_review::get(id)
-        .unwrap_or_else(|| fail(&format!("bn review agents: no plan-review '{id}'")));
+        .unwrap_or_else(|| fail(&format!("workspan review agents: no plan-review '{id}'")));
     if !review.status.is_pending() {
         fail(&format!(
-            "bn review agents: plan-review '{}' is {} — not pending",
+            "workspan review agents: plan-review '{}' is {} — not pending",
             review.id,
             review.status.label()
         ));
     }
     if review.reviewer_count == 0 {
         fail(&format!(
-            "bn review agents: plan-review '{}' is human-only; submit it with --reviewers",
+            "workspan review agents: plan-review '{}' is human-only; submit it with --reviewers",
             review.id
         ));
     }
@@ -363,9 +363,9 @@ pub(crate) fn emit_review_agents(
     // fills the currently-unfilled slots with generic critics, as before.
     let (review, specs) = if add.is_some() || !kinds.is_empty() {
         let kinds =
-            resolve_kinds(add, kinds).unwrap_or_else(|e| fail(&format!("bn review agents: {e}")));
+            resolve_kinds(add, kinds).unwrap_or_else(|e| fail(&format!("workspan review agents: {e}")));
         let grown = plan_review::add_reviewers(id, kinds.len(), bn_core::util::now_epoch_secs())
-            .unwrap_or_else(|e| fail(&format!("bn review agents: {e}")));
+            .unwrap_or_else(|e| fail(&format!("workspan review agents: {e}")));
         let specs = typed_specs(&grown, &kinds);
         (grown, specs)
     } else {
@@ -434,7 +434,7 @@ pub(crate) fn emit_review_agents(
             latest.quorum
         );
         for failure in &failures {
-            eprintln!("bn review agents: {failure}");
+            eprintln!("workspan review agents: {failure}");
         }
     }
     if !failures.is_empty() {
@@ -465,7 +465,7 @@ fn allocate_specs(kind: ReviewerKind, count: usize, taken: &mut Vec<String>) -> 
     specs
 }
 
-/// Generic reviewers for every currently-unfilled ballot — the historical `bn review agents`
+/// Generic reviewers for every currently-unfilled ballot — the historical `workspan review agents`
 /// behavior, preserved for a bare invocation.
 fn default_specs(review: &Review) -> Vec<ReviewerSpec> {
     let unfilled = review.reviewer_count.saturating_sub(review.votes.len());
@@ -640,7 +640,7 @@ where
         .ok_or_else(|| serde::de::Error::custom(format!("unknown verdict '{value}'")))
 }
 
-/// `bn review approve|request-changes|reject <id>` — the human's decision on a pending review.
+/// `workspan review approve|request-changes|reject <id>` — the human's decision on a pending review.
 pub(crate) fn emit_review_decide(id: &str, decision: Decision, notes: Option<&str>, as_json: bool) {
     let timer = bn_core::log::enabled().then(bn_core::log::Timer::start);
     let now = bn_core::util::now_epoch_secs();
@@ -697,7 +697,7 @@ pub(crate) fn emit_review_decide(id: &str, decision: Decision, notes: Option<&st
                     Envelope::failure("review", code, e.to_string()).to_json()
                 );
             } else {
-                eprintln!("bn review: {e}");
+                eprintln!("workspan review: {e}");
             }
             std::process::exit(1);
         }
@@ -720,7 +720,7 @@ fn print_full_review_json(review: &Review) {
 }
 
 /// Persist an approved review's plan into its branch note as a verbatim `## Plan` section, so the
-/// plan the human signed off on lands in `bn notes` (#648). Best-effort — a note-write failure must
+/// plan the human signed off on lands in `workspan notes` (#648). Best-effort — a note-write failure must
 /// never undo the approval. Returns whether the plan was recorded.
 fn record_approved_plan_to_note(review: &Review) -> bool {
     let cfg = Config::load();
@@ -733,7 +733,7 @@ fn record_approved_plan_to_note(review: &Review) -> bool {
         Ok(()) => true,
         Err(e) => {
             eprintln!(
-                "bn review: approved, but couldn't save the plan into the note: {}",
+                "workspan review: approved, but couldn't save the plan into the note: {}",
                 e
             );
             false
@@ -800,7 +800,7 @@ fn review_text(r: &Review) -> String {
         ReviewStatus::Pending => {
             let _ = writeln!(
                 out,
-                "Pending — `bn review approve {}` / `request-changes {} --notes …` / `reject {}`",
+                "Pending — `workspan review approve {}` / `request-changes {} --notes …` / `reject {}`",
                 r.id, r.id, r.id
             );
         }
@@ -820,7 +820,7 @@ fn review_text(r: &Review) -> String {
     out
 }
 
-/// `bn review edit [id]` — open a plan in `$EDITOR` (nvim by default), save the edits back to the
+/// `workspan review edit [id]` — open a plan in `$EDITOR` (nvim by default), save the edits back to the
 /// review store, then decide. With no id it edits the newest *open* (pending/changes-requested)
 /// review — the one you're most likely reviewing. `--approve` / `--request-changes <notes>` skip
 /// the interactive prompt (for scripting); otherwise a bare invocation prompts. Bound to `prefix E`
@@ -834,18 +834,18 @@ pub(crate) fn emit_review_edit(
     // Resolve which review to edit: the given id, else the newest open one.
     let review = match id {
         Some(id) => plan_review::get(&id)
-            .unwrap_or_else(|| fail(&format!("bn review edit: no plan-review '{id}'"))),
+            .unwrap_or_else(|| fail(&format!("workspan review edit: no plan-review '{id}'"))),
         None => match plan_review::open_reviews().into_iter().next() {
             Some(r) => r,
             None => {
-                println!("No open plan-reviews to edit — see `bn review list`.");
+                println!("No open plan-reviews to edit — see `workspan review list`.");
                 return;
             }
         },
     };
     if review.status.is_terminal() {
         fail(&format!(
-            "bn review edit: plan-review {} is {} — not editable",
+            "workspan review edit: plan-review {} is {} — not editable",
             review.id,
             review.status.label()
         ));
@@ -855,7 +855,7 @@ pub(crate) fn emit_review_edit(
     let path = std::env::temp_dir().join(format!("bn-plan-review-{}.md", review.id));
     if let Err(e) = std::fs::write(&path, &review.plan) {
         fail(&format!(
-            "bn review edit: cannot write {}: {e}",
+            "workspan review edit: cannot write {}: {e}",
             path.display()
         ));
     }
@@ -866,7 +866,7 @@ pub(crate) fn emit_review_edit(
     if ran.map(|s| !s.success()).unwrap_or(true) {
         // Editor missing or non-zero exit — don't guess at intent; leave the review untouched.
         fail(&format!(
-            "bn review edit: editor '{editor}' did not exit cleanly — review {} unchanged",
+            "workspan review edit: editor '{editor}' did not exit cleanly — review {} unchanged",
             review.id
         ));
     }
@@ -876,11 +876,11 @@ pub(crate) fn emit_review_edit(
     let changed = edited.trim_end() != review.plan.trim_end();
     if changed {
         if edited.trim().is_empty() {
-            fail("bn review edit: the edited plan is empty — review left unchanged");
+            fail("workspan review edit: the edited plan is empty — review left unchanged");
         }
         match plan_review::update_plan(&review.id, &edited, now) {
             Ok(_) => println!("plan-review {} plan updated", review.id),
-            Err(e) => fail(&format!("bn review edit: {e}")),
+            Err(e) => fail(&format!("workspan review edit: {e}")),
         }
     } else {
         println!("plan-review {} plan unchanged", review.id);
@@ -900,7 +900,7 @@ pub(crate) fn emit_review_edit(
         }
         Some((Decision::RequestChanges, notes)) => {
             let notes = notes.filter(|n| !n.trim().is_empty()).unwrap_or_else(|| {
-                fail("bn review edit: request-changes needs notes for the agent")
+                fail("workspan review edit: request-changes needs notes for the agent")
             });
             emit_review_decide(&review.id, Decision::RequestChanges, Some(&notes), as_json)
         }
@@ -908,13 +908,13 @@ pub(crate) fn emit_review_edit(
             emit_review_decide(&review.id, Decision::Reject, None, as_json)
         }
         None => println!(
-            "plan-review {} left pending — approve with `bn review approve {}`.",
+            "plan-review {} left pending — approve with `workspan review approve {}`.",
             review.id, review.id
         ),
     }
 }
 
-/// Interactive approve/request-changes/reject/leave-pending prompt for `bn review edit`. Returns
+/// Interactive approve/request-changes/reject/leave-pending prompt for `workspan review edit`. Returns
 /// `None` (leave pending) when stdin isn't a terminal or the user declines to decide.
 fn prompt_decision() -> Option<(Decision, Option<String>)> {
     use std::io::{IsTerminal, Write};
@@ -943,14 +943,14 @@ fn prompt_decision() -> Option<(Decision, Option<String>)> {
 
 /// Whether an attention item is the mirror of a pending plan-review — the `plan-review` source (or
 /// legacy `mode = "review"`) the gate raises on submit ([`bn_core::plan_review`]). Such a row opens
-/// the plan in an nvim popup (`bn review edit`) instead of a browser link.
+/// the plan in an nvim popup (`workspan review edit`) instead of a browser link.
 pub(crate) fn is_plan_review_attn(item: &bn_core::attention::AttnItem) -> bool {
     item.source == "plan-review" || item.mode.as_deref() == Some("review")
 }
 
 /// The plan-review id an attention `id` mirrors, or `None` when the id isn't a plan-review row. The
 /// gate keys the mirrored item by the review id ([`bn_core::plan_review`] `raise_attn`), so the
-/// item's `key` *is* the review id — that's what `bn review edit <id>` / `show <id>` take.
+/// item's `key` *is* the review id — that's what `workspan review edit <id>` / `show <id>` take.
 pub(crate) fn plan_review_id_for_attn(attn_id: &str) -> Option<String> {
     let item = bn_core::attention::get(attn_id)?;
     if !is_plan_review_attn(&item) {
@@ -976,9 +976,9 @@ pub(crate) fn plan_review_popup_cmd(bn: &str, review_id: &str) -> Vec<String> {
     ]
 }
 
-/// Open a plan-review attention row: the plan in an nvim popup (`bn review edit <id>`) rather than a
+/// Open a plan-review attention row: the plan in an nvim popup (`workspan review edit <id>`) rather than a
 /// browser link. Inside tmux it's a `display-popup` (clean return, mirroring `prefix e`); with no
-/// tmux it falls back to running `bn review edit` directly in the current terminal. Returns `true`
+/// tmux it falls back to running `workspan review edit` directly in the current terminal. Returns `true`
 /// when `attn_id` was a plan-review and got handled, `false` to let the caller fall back to its
 /// default (link/start) action.
 pub(crate) fn open_plan_review_popup(attn_id: &str) -> bool {

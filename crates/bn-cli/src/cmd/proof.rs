@@ -1,4 +1,4 @@
-//! `bn proof` — the CLI over [`bn_core::proof`]: who is acting, which branch, which commit, then
+//! `workspan proof` — the CLI over [`bn_core::proof`]: who is acting, which branch, which commit, then
 //! the store call and a render. Readiness itself is derived in core.
 
 use crate::cli::coord_group::ProofTarget;
@@ -46,7 +46,7 @@ pub(crate) fn emit_proof(cfg: &Config, action: Option<ProofCmd>, json: bool) {
                 sha: sha.or(head.sha),
                 dirty: head.dirty,
                 author: who,
-                source: "bn proof add".into(),
+                source: "workspan proof add".into(),
                 cmd,
                 exit,
             };
@@ -57,9 +57,9 @@ pub(crate) fn emit_proof(cfg: &Config, action: Option<ProofCmd>, json: bool) {
             } else {
                 println!("{} added — {} for {}", p.id, p.kind, for_line(&p.for_));
                 if p.for_.is_empty() {
-                    println!("  link it to a criterion: bn proof link {} w1", p.id);
+                    println!("  link it to a criterion: workspan proof link {} w1", p.id);
                 }
-                println!("  it counts once someone else accepts it: bn proof judge {} accept --reason …", p.id);
+                println!("  it counts once someone else accepts it: workspan proof judge {} accept --reason …", p.id);
             }
         }
         ProofCmd::Judge {
@@ -248,7 +248,7 @@ pub(crate) fn record_run(cfg: &Config, ctx: &Resolved, run: Run<'_>) -> Option<S
         for_: criteria(run.for_),
         title: format!("{} {}: {verdict}", run.kind, run.job),
         body: format!(
-            "`bn {}` ran `{}` and exited {}.{}",
+            "`workspan {}` ran `{}` and exited {}.{}",
             run.kind,
             run.job,
             run.code,
@@ -264,14 +264,14 @@ pub(crate) fn record_run(cfg: &Config, ctx: &Resolved, run: Run<'_>) -> Option<S
         sha: run.sha,
         dirty: run.dirty,
         author: identity(cfg, None, false),
-        source: format!("bn {}", run.kind),
+        source: format!("workspan {}", run.kind),
         cmd: Some(run.job.to_string()),
         exit: Some(run.code),
     };
     match proof::add(cfg, ctx, &new, &bn_core::util::now_rfc3339_utc()) {
         Ok(p) => Some(p.id),
         Err(e) => {
-            eprintln!("bn {}: run not kept as proof ({e})", run.kind);
+            eprintln!("workspan {}: run not kept as proof ({e})", run.kind);
             None
         }
     }

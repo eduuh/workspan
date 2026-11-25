@@ -42,7 +42,7 @@ pub(crate) enum EditCmd {
     Hide(EditArgs),
     /// Park it if it is showing, show it otherwise. What `prefix e` is bound to.
     Toggle(EditArgs),
-    /// Report what bn knows about this worktree's editor without changing anything.
+    /// Report what workspan knows about this worktree's editor without changing anything.
     #[command(visible_alias = "status")]
     Where(EditArgs),
     /// Put the editor on this branch's diff, with the agent terminal spawned. Idempotent: landing
@@ -52,9 +52,9 @@ pub(crate) enum EditCmd {
     /// the preview. Enter switches you there, so the code you read is rooted in the right repo.
     /// Edit this branch on another machine of the tunnel mesh: nvim runs there (in a tmux window,
     /// so buffers, undo and LSP survive any drop) and this terminal is its UI, reconnecting after
-    /// a dropped connection. `:qa` quits it, `:detach` leaves it running. bn edit remote <machine>.
+    /// a dropped connection. `:qa` quits it, `:detach` leaves it running. workspan edit remote <machine>.
     Remote {
-        /// The machine, as `ssh <machine>` knows it (see `bn tunnels`).
+        /// The machine, as `ssh <machine>` knows it (see `workspan tunnels`).
         host: String,
     },
     Diff {
@@ -149,7 +149,7 @@ impl EditArgs {
     }
 }
 
-/// Dispatch for `bn edit`.
+/// Dispatch for `workspan edit`.
 ///
 /// Every mutating verb is **silent on success**: these run from tmux keybindings via `run-shell`,
 /// which displays a command's stdout in view mode after it finishes, so a single stray `println!`
@@ -218,7 +218,7 @@ pub(crate) fn route(cfg: &Config, cmd: EditCmd, json: bool) {
         if json {
             println!("{}", Envelope::failure("edit", "edit_failed", &e).to_json());
         } else {
-            eprintln!("bn edit: {e}");
+            eprintln!("workspan edit: {e}");
         }
         std::process::exit(1);
     }
@@ -247,7 +247,7 @@ fn no_target(json: bool, e: &TargetError) -> ! {
             Envelope::failure("edit", "no_worktree", e.to_string()).to_json()
         );
     } else {
-        eprintln!("bn edit: {e}");
+        eprintln!("workspan edit: {e}");
     }
     std::process::exit(EXIT_NO_TARGET);
 }
@@ -385,7 +385,7 @@ fn fail_edit(json: bool, msg: &str) -> ! {
             Envelope::failure("edit", "edit_failed", msg).to_json()
         );
     } else {
-        eprintln!("bn edit: {msg}");
+        eprintln!("workspan edit: {msg}");
     }
     std::process::exit(1);
 }
@@ -481,7 +481,7 @@ fn first_pane_of(window: &str) -> Option<String> {
 }
 
 /// `tmux_ok`, never `tmux_run`: the latter inherits stdio, so `display-message -p` would print the
-/// window id to the terminal — and every `bn edit` verb runs from a `run-shell` keybinding, where
+/// window id to the terminal — and every `workspan edit` verb runs from a `run-shell` keybinding, where
 /// any stdout at all flashes a pager over the session.
 fn window_exists(window: &str) -> bool {
     !window.is_empty() && tmux_ok(&["display-message", "-p", "-t", window, "#{window_id}"])

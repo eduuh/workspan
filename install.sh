@@ -103,7 +103,7 @@ if [ "$layout" = "home" ] && [ "$cfgdir" != "$legacy_cfg" ]; then
     echo "note: $legacy_cfg is a real dir; leaving it. Move its contents into $cfgdir and replace it with a symlink to fully migrate." >&2
   fi
 fi
-echo "bn layout: $layout (home=$bn_home, config=$cfgdir, bin=$bindir)"
+echo "workspan layout: $layout (home=$bn_home, config=$cfgdir, bin=$bindir)"
 # Canonicalize to an absolute path so the stable anchor below (~/.config/bn/bn) never
 # records a relative or symlinked bindir. Reject a temp dir outright: bn must be installed
 # somewhere persistent, or the anchor dangles the moment the temp dir is reaped — silently
@@ -112,7 +112,7 @@ echo "bn layout: $layout (home=$bn_home, config=$cfgdir, bin=$bindir)"
 bindir="$(cd "$bindir" && pwd -P)"
 case "$bindir" in
   /tmp/* | /var/tmp/* | /private/tmp/* | */tmp.??????????/*)
-    echo "error: refusing to install bn into a temp dir ($bindir)." >&2
+    echo "error: refusing to install workspan into a temp dir ($bindir)." >&2
     echo "       Set BN_BIN_DIR to a persistent dir on PATH, e.g. BN_BIN_DIR=\$HOME/.local/bin" >&2
     exit 1
     ;;
@@ -205,7 +205,7 @@ download_release() {
   # A GNU/Linux archive can exist yet need a newer glibc than this machine has. Probe before
   # replacing anything, so a binary that cannot run here never lands on top of one that does.
   if ! "$bn_src" --version >/dev/null 2>&1; then
-    echo "error: the downloaded bn will not run here (usually a glibc older than the one the" >&2
+    echo "error: the downloaded workspan will not run here (usually a glibc older than the one the" >&2
     echo "       release was built against). Compile the checkout instead: ./build.sh" >&2
     rm -rf "$tmp"
     return 1
@@ -219,7 +219,7 @@ download_release() {
     fi
   done
   rm -rf "$tmp"
-  echo "Installed prebuilt bn + bn-mcp ($target) from the latest release."
+  echo "Installed prebuilt workspan + bn-mcp ($target) from the latest release."
 }
 
 # Place the binaries ./build.sh has just compiled. That script re-enters this one with
@@ -240,14 +240,14 @@ install_built_binaries() {
   for bin in bn bn-mcp; do
     atomic_install "$target_dir/$bin" "$bindir/$bin"
   done
-  echo "Installed bn + bn-mcp into $bindir from $target_dir (source build)."
+  echo "Installed workspan + bn-mcp into $bindir from $target_dir (source build)."
 }
 
 if [ "$from_build" = "1" ]; then
   install_built_binaries
 else
   download_release || {
-    echo "error: could not install bn from the latest $slug release." >&2
+    echo "error: could not install workspan from the latest $slug release." >&2
     echo "       A private repo's assets are only reachable through an authenticated gh, so on a" >&2
     echo "       fresh machine run \`gh auth login\` first and try again." >&2
     echo "       To compile this checkout instead: ./build.sh" >&2
@@ -309,7 +309,7 @@ deregister_legacy_services() {
     fi
   fi
   if [ -n "$removed" ]; then
-    echo "Retired legacy queue dispatcher unit(s):$removed. bn has no queue now."
+    echo "Retired legacy queue dispatcher unit(s):$removed. workspan has no queue now."
   fi
   return 0
 }
@@ -557,7 +557,7 @@ if ! "$bindir/bn" agents validate; then
   # checkout's config/agents but installs bn from the published release, so a platform whose
   # release assets have gone stale gets a bn that has never heard of a field main added since.
   # Compare the two before editing anything the checkout is right about.
-  echo "       If the manifest matches main, this is version skew: the installed bn is" >&2
+  echo "       If the manifest matches main, this is version skew: the installed workspan is" >&2
   echo "       $("$bindir/bn" --version 2>/dev/null || echo unknown)" >&2
   echo "       while config/agents comes from this checkout. Build the checkout instead: ./build.sh" >&2
   exit 1
@@ -569,10 +569,10 @@ fi
 # Platform timer installation remains non-fatal; catalog validation above does not.
 "$bindir/bn" cron register || true
 
-echo "Completion: add to ~/.zshrc -> source <(bn completion zsh)"
-echo "Wrappers:   add to ~/.zshrc -> source <(bn shell-init zsh)   # claude|copilot start inside bn"
+echo "Completion: add to ~/.zshrc -> source <(workspan completion zsh)"
+echo "Wrappers:   add to ~/.zshrc -> source <(workspan shell-init zsh)   # claude|copilot start inside Workspan"
 echo "            (nothing is appended for you — your rc is usually a symlink into a dotfiles repo."
-echo "             'bn doctor' warns while the wrappers are missing, inactive, or shadowed.)"
+echo "             'workspan doctor' warns while the wrappers are missing, inactive, or shadowed.)"
 
 # --- register the bn MCP server globally for MCP clients (Claude Code + VS Code Copilot + Copilot
 # CLI) ---------------------------------------------------------------------------------------------
@@ -590,10 +590,10 @@ register_mcp() {
   # from the Dock) inherits none of the shell PATH — its PATH is /usr/bin:/bin:/usr/sbin:/sbin, so
   # `command: "bn"` simply fails to start and the client shows an MCP server that never connects.
   # An absolute path is also immune to a stale shadowing copy earlier on PATH. Prefer the stable
-  # $cfgdir/bn anchor for the same reason the cron units use it: it survives the binary moving
+  # $cfgdir/workspan anchor: it survives the binary moving
   # between $bindir layouts.
-  local bn_cmd="$cfgdir/bn"
-  [ -x "$bn_cmd" ] || bn_cmd="$bindir/bn"
+  local bn_cmd="$cfgdir/workspan"
+  [ -x "$bn_cmd" ] || bn_cmd="$bindir/workspan"
 
   # nvim-mcp — the editor MCP server (buffers, LSP diagnostics, definitions, references, rename),
   # registered next to bn wherever it is installed. Absolute path for the same reason bn is: a
@@ -621,7 +621,7 @@ register_mcp() {
   tmp=$(mktemp)
   if jq --arg bn "$bn_cmd" '.mcpServers.bn = {type: "stdio", command: $bn, args: ["mcp","serve"]}' \
         "$cc" > "$tmp" 2>/dev/null; then
-    mv "$tmp" "$cc"; echo "Registered bn MCP for Claude Code (user scope) -> $cc"
+    mv "$tmp" "$cc"; echo "Registered workspan MCP for Claude Code (user scope) -> $cc"
   else
     rm -f "$tmp"; echo "warning: could not update $cc (not valid JSON?)" >&2
   fi
@@ -657,7 +657,7 @@ register_mcp() {
     tmp=$(mktemp)
     if jq --arg bn "$bn_cmd" '.servers.bn = {type: "stdio", command: $bn, args: ["mcp","serve"]}' \
           "$f" > "$tmp" 2>/dev/null; then
-      mv "$tmp" "$f"; echo "Registered bn MCP for VS Code Copilot -> $f"; wrote=1
+      mv "$tmp" "$f"; echo "Registered workspan MCP for VS Code Copilot -> $f"; wrote=1
     else
       rm -f "$tmp"; echo "warning: could not update $f (JSONC comments?) — see README for manual setup" >&2
     fi
@@ -688,7 +688,7 @@ register_mcp() {
     tmp=$(mktemp)
     if jq --arg bn "$bn_cmd" '.mcpServers.bn = {command: $bn, args: ["mcp","serve"]}' \
           "$dcfg" > "$tmp" 2>/dev/null; then
-      mv "$tmp" "$dcfg"; echo "Registered bn MCP for Claude Desktop -> $dcfg"
+      mv "$tmp" "$dcfg"; echo "Registered workspan MCP for Claude Desktop -> $dcfg"
     else
       rm -f "$tmp"; echo "warning: could not update $dcfg (not valid JSON?)" >&2
     fi
@@ -705,7 +705,7 @@ register_mcp() {
     if jq --argjson tools "$tools" --arg bn "$bn_cmd" \
           '.mcpServers.bn = {type: "local", command: $bn, args: ["mcp","serve"], tools: $tools}' \
           "$cli" > "$tmp" 2>/dev/null; then
-      mv "$tmp" "$cli"; echo "Registered bn MCP for GitHub Copilot CLI -> $cli"
+      mv "$tmp" "$cli"; echo "Registered workspan MCP for GitHub Copilot CLI -> $cli"
     else
       rm -f "$tmp"; echo "warning: could not update $cli (not valid JSON?)" >&2
     fi
@@ -739,7 +739,7 @@ register_user_mcp() {
   local bn_cmd="$cfgdir/bn"
   [ -x "$bn_cmd" ] || bn_cmd="$bindir/bn"
   [ -x "$bn_cmd" ] || return 0
-  "$bn_cmd" mcp sync-user --no-prompt || echo "warning: bn mcp sync-user failed (continuing)" >&2
+  "$bn_cmd" mcp sync-user --no-prompt || echo "warning: workspan mcp sync-user failed (continuing)" >&2
 }
 register_user_mcp
 
@@ -785,9 +785,9 @@ if [ "$force_home" = "1" ]; then
   done
 fi
 if "$bindir/bn" skills install >/dev/null 2>&1; then
-  echo "Regenerated ~/.copilot/skills and ~/.claude/skills from bn skills (slash commands)"
+  echo "Regenerated ~/.copilot/skills and ~/.claude/skills from workspan skills (slash commands)"
 else
-  echo "note: 'bn skills install' skipped/failed; native slash-command skills not refreshed" >&2
+  echo "note: 'workspan skills install' skipped/failed; native slash-command skills not refreshed" >&2
 fi
 
 # Upstream open-source skills (Agent Skills format) that cover what bn's own prompts do not:
@@ -888,9 +888,9 @@ bn_install_stow "$cfgdir/repo/config/stow" "$HOME" "$force_home"
 # they sync across machines. (Re)compile them here from the discovered specialist sources.
 # Idempotent, guarded, and prunes stale bn-managed agent files.
 if "$bindir/bn" agents install >/dev/null 2>&1; then
-  echo "Regenerated ~/.copilot/agents + ~/.claude/agents from bn review specialists"
+  echo "Regenerated ~/.copilot/agents + ~/.claude/agents from workspan review specialists"
 else
-  echo "note: 'bn agents install' skipped/failed; review specialists not refreshed" >&2
+  echo "note: 'workspan agents install' skipped/failed; review specialists not refreshed" >&2
 fi
 
 # The worktree/session/agent helpers are now native bn subcommands (`bn tat`/`bn wt clone`/

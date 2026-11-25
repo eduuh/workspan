@@ -23,9 +23,9 @@ pub(crate) fn resolve_registered_session<'a>(
 
 fn registry_rows(cfg: &Config) -> Vec<bn_core::agent::SessionRecord> {
     crate::cmd::control::reconcile_controller_liveness()
-        .unwrap_or_else(|error| fail(&format!("bn sessions: reconcile controllers: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan sessions: reconcile controllers: {error}")));
     let mut rows = bn_core::agent::session_registry(cfg)
-        .unwrap_or_else(|error| fail(&format!("bn sessions: read registry: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan sessions: read registry: {error}")));
     let live = agent_live::collect(
         cfg,
         bn_core::agent::DEFAULT_IDLE_MINS,
@@ -104,7 +104,7 @@ struct WindowLaunch<'a> {
 /// Why a checkout may not host a resumed agent, if it may not.
 ///
 /// A repo's main worktree is off limits: it hosts no agents and only ever gets refreshed to latest.
-/// `bn agent launch` enforces that at its own chokepoint, but every resume path builds the *window*
+/// `workspan agent launch` enforces that at its own chokepoint, but every resume path builds the *window*
 /// first — so without this a resume into main opened a detached pane that then sat on
 /// `redirect_from_main`'s "What is this worktree for?" prompt with nobody looking at it.
 fn off_limits(worktree: &std::path::Path) -> Option<String> {
@@ -173,7 +173,7 @@ fn launch_session_window(launch: &WindowLaunch<'_>, json: bool) -> Result<(), St
 
 /// Open a window running `command` in `worktree`, taking the agent lease for it.
 ///
-/// The create half of `bn resume --all`'s restore, exposed so the crash path reuses the exact
+/// The create half of `workspan resume --all`'s restore, exposed so the crash path reuses the exact
 /// launch this command already performs rather than reimplementing harness startup. Deliberately
 /// *not* a split of `agent_relaunch`: this is the branch that has never killed a process, so
 /// sharing it cannot leak a teardown into a recovery path.
@@ -268,7 +268,7 @@ fn launch_recorded_session(row: &bn_core::agent::SessionRecord, json: bool, comm
     }
 }
 
-/// The `bn agent launch` invocation for a recorded session.
+/// The `workspan agent launch` invocation for a recorded session.
 ///
 /// `--resume-session` rides along only when a transcript backs the id. A harness handed an
 /// unresumable id degrades silently to a fresh, unseeded agent — so passing it unconditionally is
@@ -302,7 +302,7 @@ fn launch_fresh_session(cfg: &Config, worktree: &std::path::Path, json: bool, co
             json,
             command_tag,
             "not_in_git_worktree",
-            "bn resume must be run inside a git worktree",
+            "workspan resume must be run inside a git worktree",
         )
     });
     let session_id = gen_uuid();
@@ -378,7 +378,7 @@ pub(crate) fn resume_registered_session(
             json,
             command_tag,
             "not_in_git_worktree",
-            "bn resume must be run inside a git worktree",
+            "workspan resume must be run inside a git worktree",
         );
     }
     let worktree_text = worktree
@@ -414,7 +414,7 @@ pub(crate) fn resume_registered_session(
                     json,
                     command_tag,
                     "not_in_git_worktree",
-                    "bn resume must be run inside a git worktree",
+                    "workspan resume must be run inside a git worktree",
                 )
             });
             launch_fresh_session(cfg, &worktree, json, command_tag);
@@ -426,7 +426,7 @@ pub(crate) fn resume_registered_session(
 pub(crate) struct WorktreeResume {
     pub(crate) harness: String,
     pub(crate) session_id: String,
-    /// The `bn agent launch …` line for the window's pane.
+    /// The `workspan agent launch …` line for the window's pane.
     pub(crate) command: String,
 }
 

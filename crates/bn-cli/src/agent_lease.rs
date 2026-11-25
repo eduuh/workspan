@@ -1,6 +1,6 @@
 //! CLI bridge between the durable core lease registry and tmux process/window liveness.
 
-/// The finished-occupant probe `bn dispatch` asks before refusing a same-branch pool slot.
+/// The finished-occupant probe `workspan dispatch` asks before refusing a same-branch pool slot.
 mod finished;
 pub(crate) use finished::only_finished_agents_in;
 
@@ -24,7 +24,7 @@ pub(crate) struct AgentLeaseRequest<'a> {
     pub tmux_target: &'a str,
     pub replace: bool,
     /// The agent runs in a window that **already exists** — the caller's own pane, not one the
-    /// launcher is about to create. `bn agent launch` sets this for an in-place launch; a dispatch
+    /// launcher is about to create. `workspan agent launch` sets this for an in-place launch; a dispatch
     /// that opens a fresh window leaves it false, so a live window at its target still means a
     /// leftover to clear (see [`remove_dead_launch_target`]).
     pub in_place: bool,
@@ -197,7 +197,7 @@ fn remove_dead_launch_target(target: &str) -> Result<(), String> {
 /// agent, and the repo/branch/worktree it belongs to.
 ///
 /// The repo/branch/worktree options are what [`observed_agent_windows`] filters on and what the
-/// supervisor's window join and `bn agent send`'s target resolution read — a window carrying only
+/// supervisor's window join and `workspan agent send`'s target resolution read — a window carrying only
 /// `@bn_session_id` is invisible to all three. `wt::open_worktree_window_cmd_named` stamps the same
 /// three when *it* creates a window; this covers the in-place case, where the window already existed
 /// and the agent moved in.
@@ -298,7 +298,7 @@ impl Occupant {
 /// 2. **`@bn_*`-stamped tmux windows** — an agent whose lease write was lost, or that predates the
 ///    registry;
 /// 3. **any live pane rooted in the checkout running a harness binary** — the one that matters
-///    most, because an agent started outside bn (a bare `copilot` in the directory, a launch with
+///    most, because an agent started outside workspan (a bare `copilot` in the directory, a launch with
 ///    `BN_AGENT_GUARD=0`) appears in neither of the first two, and is exactly the tenant a pool
 ///    slot got handed out from under.
 ///
@@ -433,7 +433,7 @@ const HARNESS_PANE_FORMAT: &str = "#{session_name}:#{window_name}\t#{pane_curren
 /// Live panes (from a `list-panes -a` in [`HARNESS_PANE_FORMAT`]) whose working directory is inside
 /// `worktree` and whose foreground command is a known agent harness — or whose nvim host is
 /// running one in a terminal buffer. This is still the
-/// unregistered-agent source: it catches an agent bn never leased or stamped before the launch
+/// unregistered-agent source: it catches an agent workspan never leased or stamped before the launch
 /// guard or the pool makes a decision.
 fn harness_panes_in(output: &str, worktree: &Path) -> Vec<Occupant> {
     let now = bn_core::util::now_epoch_secs();
@@ -656,13 +656,13 @@ pub(crate) enum WorktreeHolder {
     /// Nobody — the launch should take a lease of its own.
     Free,
     /// Only this window holds it: a lease taken moments ago by the launcher that seeded this agent
-    /// (`bn dispatch`, `bn control start`). Not a conflict, and not something to lease over.
+    /// (`workspan dispatch`, `workspan control start`). Not a conflict, and not something to lease over.
     Ours,
     /// A different live agent. The launch must refuse rather than put two agents in one checkout.
     Other(Box<Occupant>),
 }
 
-/// Read the occupancy of `worktree` for the one-agent-per-worktree guard in `bn agent launch`.
+/// Read the occupancy of `worktree` for the one-agent-per-worktree guard in `workspan agent launch`.
 ///
 /// [`WorktreeHolder::Ours`] exists because a seeded launch runs *inside* the window its launcher
 /// just leased; without it every dispatched agent would refuse itself. But a live agent in **any

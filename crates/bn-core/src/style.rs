@@ -74,7 +74,7 @@ static ENABLED_ERR: OnceLock<bool> = OnceLock::new();
 
 /// Whether colour is on for this process, resolved once and cached.
 ///
-/// Deliberately reads the environment only on the first call: bn's renderers ask this per *row*,
+/// Deliberately reads the environment only on the first call: workspan's renderers ask this per *row*,
 /// and a process that starts writing plain text should not start writing escapes halfway down a
 /// list because something else in the process mutated the environment.
 pub fn enabled() -> bool {
@@ -83,7 +83,7 @@ pub fn enabled() -> bool {
 
 /// The same question for stderr, answered separately.
 ///
-/// The two streams get redirected independently — `bn wt merge 2>build.log` leaves a terminal on
+/// The two streams get redirected independently — `workspan wt merge 2>build.log` leaves a terminal on
 /// stdout and a file on stderr — so a single answer is wrong for one of them whichever way it
 /// goes. Diagnostics and error text are the stderr surface; everything else is [`enabled`].
 pub fn enabled_stderr() -> bool {
@@ -181,7 +181,7 @@ impl Tone {
         }
     }
 
-    /// The severity ramp shared by `bn attn`, `bn doctor` and the attention rollups: `urgent` is
+    /// The severity ramp shared by `workspan attn`, `workspan doctor` and the attention rollups: `urgent` is
     /// [`Tone::Danger`], `warn` is [`Tone::Warn`], and anything else (`info`, and any severity a
     /// future writer invents) stays [`Tone::Meta`] rather than inventing a colour for itself.
     pub fn from_severity(sev: &str) -> Self {
@@ -207,7 +207,7 @@ impl Ink {
         Ink(enabled())
     }
 
-    /// The `fzf --ansi` surface: always paints, because the pipe bn writes into is not the
+    /// The `fzf --ansi` surface: always paints, because the pipe workspan writes into is not the
     /// terminal that ends up rendering the row.
     pub const fn always() -> Self {
         Ink(true)
@@ -271,7 +271,7 @@ impl Ink {
     /// The opening escape for `tone`, or `""` when this painter is off.
     ///
     /// The escape hatch for a block that interleaves many short runs inside one format string,
-    /// where a helper call per fragment reads worse than an explicit pair — `bn tmux-help`'s
+    /// where a helper call per fragment reads worse than an explicit pair — `workspan tmux-help`'s
     /// cheat-sheet is the case that earned it. The codes still live here, which is the part that
     /// has to stay in one place. Always pair with [`Ink::close`].
     pub fn open(self, tone: Tone) -> &'static str {
@@ -339,7 +339,7 @@ pub fn severity(sev: &str, text: &str) -> String {
 
 /// Remove every SGR (colour/attribute) escape from `text`, leaving other escapes alone.
 ///
-/// Non-SGR sequences survive on purpose: bn also emits terminal *control* — `\x1b[2J\x1b[H` to
+/// Non-SGR sequences survive on purpose: workspan also emits terminal *control* — `\x1b[2J\x1b[H` to
 /// repaint the orchestrate dashboard, the termios dance in the picker — and stripping those would
 /// break the screen rather than clean it.
 pub fn strip(text: &str) -> String {
@@ -383,7 +383,7 @@ fn sgr_len(s: &str) -> Option<usize> {
 /// The fzf row builders paint with [`Ink::always`], which is right while `fzf` is doing the
 /// rendering — but every one of those call sites also has a fallback that prints the same rows
 /// straight to stdout when `fzf` is missing from `PATH`. On that path the row is ordinary stdout
-/// again and has to obey [`enabled`], or `bn jump > out.txt` on a box without `fzf` writes raw
+/// again and has to obey [`enabled`], or `workspan jump > out.txt` on a box without `fzf` writes raw
 /// escapes into the file.
 pub fn strip_unless_enabled(text: &str) -> String {
     if enabled() {

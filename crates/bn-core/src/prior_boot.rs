@@ -358,7 +358,7 @@ mod tests {
     }
 
     /// `run_attribution` records are never garbage-collected — 86 of them on the machine this was
-    /// written for. Without a lower bound, `bn resume --all` offered to restore branches abandoned
+    /// written for. Without a lower bound, `workspan resume --all` offered to restore branches abandoned
     /// weeks earlier, including one named after a date.
     #[test]
     fn evidence_older_than_the_window_is_archaeology_not_prior_work() {

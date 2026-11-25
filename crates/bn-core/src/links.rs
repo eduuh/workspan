@@ -23,7 +23,7 @@ pub mod check;
 pub mod when;
 use serde::{Deserialize, Serialize};
 
-/// The tag vocabulary bn ships with, used when `[links] tags` is absent from config.toml.
+/// The tag vocabulary workspan ships with, used when `[links] tags` is absent from config.toml.
 ///
 /// Absent and empty mean different things: a machine whose config predates the setting should
 /// still get a working vocabulary, while an explicit `tags = []` is someone saying they want
@@ -67,12 +67,12 @@ pub struct Link {
     /// Date of the most recent open. `None` until the link has been opened once.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub last: Option<String>,
-    /// Saved by the session hook and not yet reviewed with `bn links new`. Never set by an
+    /// Saved by the session hook and not yet reviewed with `workspan links new`. Never set by an
     /// explicit add or capture: a link you chose is already reviewed.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub new: bool,
     /// The first date (`YYYY-MM-DD`) the link is hidden from every listing, from `--ttl`.
-    /// Hidden, never deleted on its own: `bn links prune` deletes.
+    /// Hidden, never deleted on its own: `workspan links prune` deletes.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub expires: Option<String>,
 }
@@ -444,7 +444,7 @@ fn haystack(l: &Link) -> String {
 }
 
 /// True when `q` appears (case-insensitively) in the link's name, tags or URL — the filter
-/// behind `bn links list <words>` and the MCP `bn_links_search` tool.
+/// behind `workspan links list <words>` and the MCP `bn_links_search` tool.
 pub fn matches_query(l: &Link, q: &str) -> bool {
     format!("{} {} {}", l.name, l.tags.join(" "), l.url)
         .to_lowercase()
@@ -611,11 +611,11 @@ pub struct Capturable {
 
 /// The note's PR and work item as URLs a browser can open.
 ///
-/// A value that is already http(s) passes through. A bare id (`bn link 11047593` stores one)
+/// A value that is already http(s) passes through. A bare id (`workspan link 11047593` stores one)
 /// is resolved through this repo's forge, so a work item is capturable rather than skipped.
 /// Anything that yields no URL is dropped — an absent link beats one that 404s.
 ///
-/// The single source of truth for URLs offered by the explicit `bn links capture` command.
+/// The single source of truth for URLs offered by the explicit `workspan links capture` command.
 pub fn capturable(
     cfg: &Config,
     repo: &str,
@@ -794,11 +794,11 @@ pub fn harvest(
     Ok(saved)
 }
 
-/// How many of a repo's links `bn cat` shows. Enough for the board, the PR and a dashboard;
+/// How many of a repo's links `workspan cat` shows. Enough for the board, the PR and a dashboard;
 /// the picker has the rest.
 pub const NOTE_LINKS: usize = 5;
 
-/// What `bn cat` lists under the note, at most `n`: the links saved on this branch, then the
+/// What `workspan cat` lists under the note, at most `n`: the links saved on this branch, then the
 /// rest of the repo's, each in picker order.
 pub fn for_note(cfg: &Config, repo: &str, branch: &str, today: &str, n: usize) -> Vec<Link> {
     let items = read(cfg);
@@ -809,7 +809,7 @@ pub fn for_note(cfg: &Config, repo: &str, branch: &str, today: &str, n: usize) -
     mine.into_iter().chain(rest).take(n).cloned().collect()
 }
 
-/// How many stored links carry each tag, for `bn links tags`.
+/// How many stored links carry each tag, for `workspan links tags`.
 pub fn tag_counts(items: &[Link]) -> std::collections::BTreeMap<String, usize> {
     let mut counts = std::collections::BTreeMap::new();
     for tag in items.iter().flat_map(|l| l.tags.iter()) {

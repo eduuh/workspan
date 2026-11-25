@@ -191,7 +191,7 @@ pub fn mark_done(id: &str, notes: Option<&str>, link: Option<&str>) -> std::io::
 
 /// Open `urgent` items not yet pushed as a notification — the `notify` job's work queue. An
 /// item leaves this queue once [`mark_notified`] records it, so the job never re-toasts. Warn/
-/// info items never push (only the badge and `bn doctor` surface them), per the urgent-only
+/// info items never push (only the badge and `workspan doctor` surface them), per the urgent-only
 /// threshold.
 pub fn to_notify(today: &str) -> Vec<AttnItem> {
     let notified = notified_ids();

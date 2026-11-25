@@ -153,7 +153,7 @@ impl FileLock {
                         // loudly: without the lock a concurrent read-modify-write can silently
                         // lose an update, so leave the operator a trace instead of a silent race.
                         eprintln!(
-                            "bn: warning: proceeding without lock after {LOCK_WAIT_MS}ms on {} — a concurrent edit may be lost",
+                            "workspan: warning: proceeding without lock after {LOCK_WAIT_MS}ms on {} — a concurrent edit may be lost",
                             path.display()
                         );
                         return FileLock { path, owned: false };

@@ -46,16 +46,16 @@ impl JobConfig {
     }
 }
 
-/// The opt-in curated MCP extras (`[mcp].extras`) that `bn mcp init` and the dispatch setup path
-/// wire alongside bn's server (#323). Names are validated against [`crate::mcp::EXTRAS`] at wire
-/// time. Empty = bn only (the default).
+/// The opt-in curated MCP extras (`[mcp].extras`) that `workspan mcp init` and the dispatch setup path
+/// wire alongside workspan's server (#323). Names are validated against [`crate::mcp::EXTRAS`] at wire
+/// time. Empty = workspan only (the default).
 pub fn mcp_extras() -> Vec<String> {
     ConfigFile::load()
         .and_then(|f| f.mcp_extras())
         .unwrap_or_default()
 }
 
-/// The user-scoped MCP servers declared in `[mcp.servers.<name>]`, which `bn mcp sync-user` writes
+/// The user-scoped MCP servers declared in `[mcp.servers.<name>]`, which `workspan mcp sync-user` writes
 /// into every MCP client on this machine. Because they resolve through the normal config layering,
 /// the shared `<notes_root>/config.toml` declares the ones every machine should have and a
 /// machine's own file can add to (or override) them. Empty = nothing beyond what install.sh
@@ -84,7 +84,7 @@ pub enum JobScope {
     /// synced through the same notes git repo as everything else in `notes_root`. Deliberately
     /// carries no `machine()` segment: one script per repo, not one per machine. A script that
     /// truly needs to branch on machine can do so internally (e.g. `hostname`/`uname`) rather
-    /// than bn maintaining separate near-duplicate copies that drift.
+    /// than workspan maintaining separate near-duplicate copies that drift.
     Repo,
     /// `~/.config/bn/jobs/` (→ repo `jobs/`) — machine-level jobs.
     Global,
@@ -285,7 +285,7 @@ pub fn list_jobs(cfg: &Config, ctx: Option<&Resolved>) -> Vec<JobRef> {
 /// Job scripts are plain `sh`, so the comments at the top are the only place for metadata a runner
 /// can act on. One directive so far — `# bn: latest-main`, which asks whoever runs the script to
 /// fetch and fast-forward the repo's main *before* starting it. The runner honours it, not the
-/// surface that started the script, so a script gets latest main whether a cron, `bn run` or the
+/// surface that started the script, so a script gets latest main whether a cron, `workspan run` or the
 /// picker asked; the picker's side pane reads the same header to say so up front.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct ScriptHeader {

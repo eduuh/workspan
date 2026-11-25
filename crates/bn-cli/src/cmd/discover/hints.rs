@@ -4,7 +4,7 @@ use super::shell_word;
 use std::ffi::OsString;
 
 pub(super) fn bn(args: &[&str]) -> Result<String, String> {
-    let argv = std::iter::once("bn")
+    let argv = std::iter::once("workspan")
         .chain(args.iter().copied())
         .map(OsString::from)
         .collect();
@@ -14,7 +14,7 @@ pub(super) fn bn(args: &[&str]) -> Result<String, String> {
     crate::regroup::command()
         .try_get_matches_from(argv)
         .map_err(|e| format!("invalid discovery command hint: {e}"))?;
-    Ok(std::iter::once("bn".to_owned())
+    Ok(std::iter::once("workspan".to_owned())
         .chain(args.iter().map(|arg| shell_word(arg)))
         .collect::<Vec<_>>()
         .join(" "))
@@ -52,14 +52,14 @@ mod tests {
             .unwrap()
             .iter()
             .filter_map(|w| w["read_command"].as_str())
-            .filter(|command| command.starts_with("bn "));
+            .filter(|command| command.starts_with("workspan "));
         for command in commands.chain(reads) {
             // These fixtures emit single-word arguments and quoted one-word placeholders.
             let words = command
                 .split_whitespace()
                 .map(|s| s.trim_matches('\''))
                 .collect::<Vec<_>>();
-            assert_eq!(words[0], "bn");
+            assert_eq!(words[0], "workspan");
             let args = &words[1..];
             assert_eq!(bn(args).unwrap(), command);
         }
@@ -103,11 +103,11 @@ mod tests {
         assert!(data["commands"]
             .as_array()
             .unwrap()
-            .contains(&serde_json::json!(format!("bn task doc {}", task.id().unwrap()))));
+            .contains(&serde_json::json!(format!("workspan task doc {}", task.id().unwrap()))));
         assert!(data["commands"]
             .as_array()
             .unwrap()
-            .contains(&serde_json::json!("bn pipeline status")));
+            .contains(&serde_json::json!("workspan pipeline status")));
         check_emitted(&data);
         assert_eq!(snapshot(dir.path()), before);
     }
@@ -123,7 +123,7 @@ mod tests {
         std::fs::write(&source, "---\ndescription: Read an argument workflow\narguments:\n- name: request\n  required: true\n---\n{{request}}\n").unwrap();
         assert_eq!(
             skill_read(&cfg, &cwd, "argument-workflow").unwrap(),
-            "bn skills render argument-workflow --arg 'request=<request>'",
+            "workspan skills render argument-workflow --arg 'request=<request>'",
         );
         std::fs::remove_file(&source).unwrap();
         assert!(skill_read(&cfg, &cwd, "argument-workflow").is_err());

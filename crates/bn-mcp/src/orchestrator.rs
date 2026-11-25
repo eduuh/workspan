@@ -46,12 +46,12 @@ struct SpinUpArgs {
     /// copilot. Pass a literal `none` to open a plain shell window with no agent.
     #[serde(default)]
     agent: Option<String>,
-    /// Workflow skill to seed the agent with (see the bn skill prompts): its rendered body becomes
-    /// the agent's process, ending with a `bn reflect "skill:<name> — …"` line. Defaults to
+    /// Workflow skill to seed the agent with (see the workspan skill prompts): its rendered body becomes
+    /// the agent's process, ending with a `workspan reflect "skill:<name> — …"` line. Defaults to
     /// `ship-solo`; pass `debug` for a repro-first bugfix.
     #[serde(default)]
     skill: Option<String>,
-    /// Gate "done" on verification: the ship agent must run `bn verify` (the repo's build/test/lint gate)
+    /// Gate "done" on verification: the ship agent must run `workspan verify` (the repo's build/test/lint gate)
     /// and only report done once it passes. Default false.
     #[serde(default)]
     verify: bool,
@@ -69,7 +69,7 @@ struct SendArgs {
     /// The message to send.
     msg: String,
     /// Fire-and-forget for a LONG task (implement + PR): run the turn detached and return now; the
-    /// agent reports back with `bn agent done`. Use this for anything that will take minutes — a
+    /// agent reports back with `workspan agent done`. Use this for anything that will take minutes — a
     /// blocking send would time out. Default false (waits for the reply, good for quick questions).
     #[serde(default)]
     detach: bool,
@@ -81,7 +81,7 @@ impl BnOrchestratorServer {
         Self
     }
 
-    /// Run `bn --json <args...>` and return the parsed JSON envelope. Errors carry the CLI's stderr.
+    /// Run `workspan --json <args...>` and return the parsed JSON envelope. Errors carry the CLI's stderr.
     fn run_bn(&self, args: &[&str]) -> Result<Value, ErrorData> {
         self.run_bn_env(args, &[])
     }
@@ -98,7 +98,7 @@ impl BnOrchestratorServer {
             let stdout = out.stdout.trim();
             let detail = if stderr.is_empty() { stdout } else { stderr };
             return Err(ErrorData::internal_error(
-                format!("bn {}: {detail}", args.join(" ")),
+                format!("workspan {}: {detail}", args.join(" ")),
                 None,
             ));
         }
@@ -107,7 +107,7 @@ impl BnOrchestratorServer {
         // tolerate that leading noise instead of choking on it.
         out.json.ok_or_else(|| {
             ErrorData::internal_error(
-                format!("bn {} returned no JSON envelope", args.join(" ")),
+                format!("workspan {} returned no JSON envelope", args.join(" ")),
                 None,
             )
         })
@@ -244,7 +244,7 @@ impl BnOrchestratorServer {
 
     #[tool(
         name = "send_to_agent",
-        description = "Steer a running agent (repo:branch from list_agents) and get its reply — reliable, works even against a live session. Validated against the live fleet first. For a LONG task (implement + open a PR), set detach:true so it runs in the background and reports back via `bn agent done` — a blocking send would time out. For a quick question, leave detach false to get the reply."
+        description = "Steer a running agent (repo:branch from list_agents) and get its reply — reliable, works even against a live session. Validated against the live fleet first. For a LONG task (implement + open a PR), set detach:true so it runs in the background and reports back via `workspan agent done` — a blocking send would time out. For a quick question, leave detach false to get the reply."
     )]
     async fn send_to_agent(
         &self,
@@ -286,7 +286,7 @@ impl BnOrchestratorServer {
 
     #[tool(
         name = "plan_day",
-        description = "The ranked cross-repo action queue (bn next): failing crons, attention items, PRs awaiting your review, your stale PRs, today's goals, and blockers — most-pressing first. The \"what's up / what to do next today\" read the buddy leads with."
+        description = "The ranked cross-repo action queue (workspan next): failing crons, attention items, PRs awaiting your review, your stale PRs, today's goals, and blockers — most-pressing first. The \"what's up / what to do next today\" read the buddy leads with."
     )]
     async fn plan_day(
         &self,
@@ -308,7 +308,7 @@ impl ServerHandler for BnOrchestratorServer {
                 env!("CARGO_PKG_VERSION"),
             ))
             .with_instructions(
-                "bn orchestrator — the opt-in CROSS-WORKTREE surface (separate from the scoped \
+                "Workspan orchestrator — the opt-in CROSS-WORKTREE surface (separate from the scoped \
                  per-worktree bn server). Manage the whole desk from anywhere: plan_day for the \
                  ranked next-action queue; list_attention for the attention list (each item tagged \
                  auto vs confirm — spin up the auto ones unattended, ask about the confirm ones); \

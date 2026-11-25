@@ -3,7 +3,7 @@ use bn_core::clock::FixedClock;
 
 const T0: i64 = 1_790_000_000;
 
-/// `bn agent checkin 15 "…"` is a one-shot reminder to the target, due 15 minutes out, with an
+/// `workspan agent checkin 15 "…"` is a one-shot reminder to the target, due 15 minutes out, with an
 /// exact-time timer armed to fire that very watchdog.
 #[test]
 fn a_checkin_registers_a_one_shot_reminder_and_arms_its_timer() {

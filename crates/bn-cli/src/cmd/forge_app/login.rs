@@ -11,7 +11,7 @@ use serde_json::{json, Value};
 use std::io::{BufRead, IsTerminal, Write};
 use std::time::{Duration, Instant};
 
-/// A browser tab bn can steer: open a URL and evaluate a JavaScript function in the page.
+/// A browser tab workspan can steer: open a URL and evaluate a JavaScript function in the page.
 pub(crate) trait Page {
     fn open(&mut self, url: &str) -> Result<(), String>;
     /// Evaluate `js` (a function expression) in the page and return what it printed.
@@ -140,13 +140,13 @@ fn wait_for_sign_in(page: &mut dyn Page, endpoint: &str, opts: &Options) -> Resu
         }
         if started.elapsed() >= opts.timeout {
             return Err(format!(
-                "not signed in to Forge after {}s; sign in in the browser window and run `bn forge login` again, or use `bn forge login --paste`",
+                "not signed in to Forge after {}s; sign in in the browser window and run `workspan forge login` again, or use `workspan forge login --paste`",
                 opts.timeout.as_secs()
             ));
         }
         if !told {
             eprintln!(
-                "Sign in to Forge in the browser window bn opened. Waiting up to {}s...",
+                "Sign in to Forge in the browser window workspan opened. Waiting up to {}s...",
                 opts.timeout.as_secs()
             );
             told = true;

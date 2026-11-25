@@ -37,10 +37,10 @@ pub(super) fn finished_session_ids(cfg: &Config) -> HashSet<String> {
 ///
 /// Two ways a launch is already answered for, and the session id catches only the first:
 ///
-/// * **The id came up.** A transcript exists for exactly the id bn pinned, or ingest has already
+/// * **The id came up.** A transcript exists for exactly the id workspan pinned, or ingest has already
 ///   filed that id as finished.
 /// * **The checkout is busy.** A session is at work in the worktree the launch targeted, under some
-///   *other* id. Harnesses do not always keep the id bn asks for — a `--resume`, a relaunch, a
+///   *other* id. Harnesses do not always keep the id workspan asks for — a `--resume`, a relaunch, a
 ///   compaction can each write a fresh one — and then the id half never matches, so the placeholder
 ///   sat beside the very agent it was waiting for until [`DEFAULT_STARTING_MINS`] retired it. One
 ///   dispatch rendering as two rows is the same work counted twice.

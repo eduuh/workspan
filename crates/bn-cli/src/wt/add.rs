@@ -377,7 +377,7 @@ pub(crate) fn create_worktree(bare_s: &str, branch: &str, wt_s: &str, pull: bool
 /// Give a freshly created worktree this repo's repo-tier skills, so an agent dispatched into it
 /// can reach them.
 ///
-/// Hooked here rather than in `bn dispatch` because every worktree deserves them, not just the
+/// Hooked here rather than in `workspan dispatch` because every worktree deserves them, not just the
 /// dispatched ones — and because creation is the one moment there is no prior state to clobber.
 /// [`bn_core::skills::seed_worktree_skills`] owns both preconditions (the repo has repo-tier
 /// skills; the native root is gitignored) and refuses rather than writing when either fails.
@@ -409,7 +409,7 @@ fn seed_skills(wt: &Path) {
 }
 
 /// The ref new work should be cut from: `origin/HEAD`'s branch, else the local default, via the
-/// one base-branch resolver every other part of bn already uses. Falls back to `main` only when
+/// one base-branch resolver every other part of workspan already uses. Falls back to `main` only when
 /// the repo offers no answer at all — the same last resort the resolver's own callers take.
 fn base_ref(bare_s: &str) -> String {
     bn_core::gitbase::base_ref(

@@ -9,7 +9,7 @@ tasks, and stamp the day. **Do not implement anything.**
 
 ## 1. Read the packet
 
-Run `bn task triage --dry-run`. It prints today's date, any capacity hint, the deterministic
+Run `workspan task triage --dry-run`. It prints today's date, any capacity hint, the deterministic
 ranked shortlist, and on its last line the path of today's triage note. That shortlist is your
 candidate set.
 
@@ -28,7 +28,7 @@ candidate set.
 
 ## 3. Stamp it
 
-Stamp each chosen task with `bn task set <id> day:<YYYY-MM-DD> priority:<A|B|C>`. Append one line per
+Stamp each chosen task with `workspan task set <id> day:<YYYY-MM-DD> priority:<A|B|C>`. Append one line per
 decision to today's triage note (the path `--dry-run` printed), as `<id>: in|out, <why>`. That line
 is what makes tomorrow's triage better than today's.
 
@@ -42,4 +42,4 @@ say plainly in your report that you did.
 ## 5. Close out
 
 Report the shortlist you stamped, in order, one line each, and note anything you dropped and why.
-Then `bn reflect "skill:task-triage — …"` with anything that would sharpen this stage next time.
+Then `workspan reflect "skill:task-triage — …"` with anything that would sharpen this stage next time.

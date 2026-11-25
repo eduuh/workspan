@@ -9,7 +9,7 @@
 //! bookkeeping, so a generic `key:value` setter would let any caller forge them.
 use crate::*;
 
-/// The keys `bn task set` accepts, in the order the help text lists them.
+/// The keys `workspan task set` accepts, in the order the help text lists them.
 pub(crate) const SETTABLE: &[&str] = &["day", "due", "est", "priority", "q", "repo"];
 
 /// One validated edit: a key and its new value, `None` to clear it.
@@ -61,7 +61,7 @@ fn parse_edit(pair: &str) -> Result<Edit, String> {
     Ok(Edit { key, value: Some(value) })
 }
 
-/// A repo name: the charset bn uses for state paths and argv slots.
+/// A repo name: the charset workspan uses for state paths and argv slots.
 fn valid_repo(s: &str) -> bool {
     s.len() <= 100
         && s.chars()
@@ -85,24 +85,24 @@ pub(crate) fn apply(task: &mut bn_core::todo::Task, edits: &[Edit]) {
 }
 
 pub(crate) fn emit_task_set(cfg: &Config, id: &str, pairs: &[String], as_json: bool) {
-    let edits = parse_edits(pairs).unwrap_or_else(|e| fail(&format!("bn task set: {e}")));
+    let edits = parse_edits(pairs).unwrap_or_else(|e| fail(&format!("workspan task set: {e}")));
     let store = crate::cmd::task::task_store(cfg);
     // Serialize the load→mutate→save against a concurrent append add (held to fn end).
     let _lock = store.lock();
     let mut file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task set: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task set: {e}")));
     let task = file
         .task_mut(id)
-        .unwrap_or_else(|| fail(&format!("bn task set: no task {id}")));
+        .unwrap_or_else(|| fail(&format!("workspan task set: no task {id}")));
     if edits.iter().any(|edit| edit.key == "repo") {
         bn_core::task_doc::ensure(cfg, task)
-            .unwrap_or_else(|error| fail(&format!("bn task set: cannot preserve context: {error}")));
+            .unwrap_or_else(|error| fail(&format!("workspan task set: cannot preserve context: {error}")));
     }
     apply(task, &edits);
     store
         .save(&file)
-        .unwrap_or_else(|e| fail(&format!("bn task set: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task set: {e}")));
     if as_json {
         let set: serde_json::Map<String, serde_json::Value> = edits
             .iter()

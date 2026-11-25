@@ -4,7 +4,7 @@ use crate::runner::{CommandRunner, RealRunner};
 use std::collections::{BTreeMap, BTreeSet, HashMap};
 use std::path::{Path, PathBuf};
 
-/// Every repo bn manages on this machine — the worktree layout's own inventory, read from
+/// Every repo workspan manages on this machine — the worktree layout's own inventory, read from
 /// `<worktree_dir>/../bare`. This is the only source that knows about a repo you have cloned but
 /// not yet taken a note on, so cross-repo views seed their repo list from it rather than showing
 /// only the repos that happen to have notes. Empty when the bare dir is unreadable.
@@ -45,7 +45,7 @@ fn managed_repos(bare_dir: &Path) -> BTreeMap<String, PathBuf> {
 /// Live worktree PATHS per repo, `repo_lc → { dashed-branch → worktree_path }`, discovered via git.
 /// The pool-aware answer to "where is `<branch>` actually checked out": a branch dispatched into a
 /// pool slot (`_pool/N`) lives there, not at the conventional `<worktree_dir>/<repo>/<branch>`, so
-/// any consumer that needs the on-disk worktree (the session registry, `bn resume`) must consult
+/// any consumer that needs the on-disk worktree (the session registry, `workspan resume`) must consult
 /// git rather than reconstruct the conventional path. Only repos whose bare git enumerated
 /// successfully appear; a repo absent here (unreadable / not a real bare) leaves callers to their
 /// own fallback. Keyed like note keys (`crate::resolver::normalize`): repo lowercased, branch

@@ -25,8 +25,8 @@ Target: `{{topic}}`. Kind: `{{kind}}` (use the requested format).
 
 ## Step 1: load the rules
 
-Run `bn ref` to list available references. If `writing-voice` exists, read it with
-`bn ref writing-voice` for my saved preferences. Otherwise, use the explicit writing rules below.
+Run `workspan ref` to list available references. If `writing-voice` exists, read it with
+`workspan ref writing-voice` for my saved preferences. Otherwise, use the explicit writing rules below.
 Do not invent personal preferences.
 
 For a blog post, also read two or three real posts from

@@ -15,7 +15,7 @@ Task:
 When work is complete:
 
 - If code changed, commit with a conventional message, push the branch, open a draft PR, then run
-  `bn attn done {{id}} --link <pr-url> --notes "<one-line summary>"`.
-- Otherwise run `bn attn done {{id}} --notes "<one-line summary>"`.
+  `workspan attn done {{id}} --link <pr-url> --notes "<one-line summary>"`.
+- Otherwise run `workspan attn done {{id}} --notes "<one-line summary>"`.
 
-Do not run `bn attn ack`, do not merge the PR, and do not close the human review gate.
+Do not run `workspan attn ack`, do not merge the PR, and do not close the human review gate.

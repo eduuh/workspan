@@ -25,7 +25,7 @@ fn ssh_dir() -> PathBuf {
     match std::env::var("BN_SSH_DIR") {
         Ok(d) if !d.is_empty() => PathBuf::from(d),
         _ => dirs::home_dir()
-            .unwrap_or_else(|| crate::fail("bn cs: could not determine the home directory"))
+            .unwrap_or_else(|| crate::fail("workspan cs: could not determine the home directory"))
             .join(".ssh"),
     }
 }
@@ -182,15 +182,16 @@ struct Cs {
 fn list_codespaces() -> Vec<Cs> {
     let out = crate::gh::gh_command(&["cs", "list", "--json", "name,displayName,state"])
         .output()
-        .unwrap_or_else(|error| crate::fail(&format!("bn cs: could not run gh: {error}")));
+        .unwrap_or_else(|error| crate::fail(&format!("workspan cs: could not run gh: {error}")));
     if !out.status.success() {
         crate::fail(&format!(
-            "bn cs: gh cs list failed: {}",
+            "workspan cs: gh cs list failed: {}",
             String::from_utf8_lossy(&out.stderr).trim()
         ));
     }
-    serde_json::from_slice(&out.stdout)
-        .unwrap_or_else(|error| crate::fail(&format!("bn cs: invalid gh cs list output: {error}")))
+    serde_json::from_slice(&out.stdout).unwrap_or_else(|error| {
+        crate::fail(&format!("workspan cs: invalid gh cs list output: {error}"))
+    })
 }
 
 /// Resolve a codespace by full name, name prefix, or display name.
@@ -220,7 +221,7 @@ fn resolve(query: &str, all: &[Cs]) -> Result<usize, String> {
 
 fn print_choices(all: &[Cs], cfg_text: &str) {
     let blocks = managed_blocks(cfg_text);
-    eprintln!("codespaces (connect one with: bn cs connect <name> [--alias cs-x]):");
+    eprintln!("codespaces (connect one with: workspan cs connect <name> [--alias cs-x]):");
     for c in all {
         let alias = blocks
             .iter()
@@ -241,7 +242,7 @@ fn read_config(path: &std::path::Path) -> String {
         Ok(text) => text,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => String::new(),
         Err(error) => crate::fail(&format!(
-            "bn cs: could not read {}: {error}",
+            "workspan cs: could not read {}: {error}",
             path.display()
         )),
     }
@@ -252,20 +253,23 @@ fn write_config(path: &std::path::Path, text: &str) {
     let dir = path.parent().unwrap_or_else(|| std::path::Path::new("."));
     std::fs::create_dir_all(dir).unwrap_or_else(|error| {
         crate::fail(&format!(
-            "bn cs: could not create {}: {error}",
+            "workspan cs: could not create {}: {error}",
             dir.display()
         ))
     });
     let backup = dir.join("config.bak-bn-cs");
     if backup.exists() && !backup.is_file() {
-        crate::fail(&format!("bn cs: backup {} is not a file", backup.display()));
+        crate::fail(&format!(
+            "workspan cs: backup {} is not a file",
+            backup.display()
+        ));
     }
     if path.exists() && !backup.exists() {
         std::fs::copy(path, &backup)
             .and_then(|_| std::fs::set_permissions(&backup, std::fs::Permissions::from_mode(0o600)))
             .unwrap_or_else(|error| {
                 crate::fail(&format!(
-                    "bn cs: could not backup {}: {error}",
+                    "workspan cs: could not backup {}: {error}",
                     path.display()
                 ))
             });
@@ -276,7 +280,10 @@ fn write_config(path: &std::path::Path, text: &str) {
         .and_then(|_| std::fs::rename(&tmp, path))
     {
         let _ = std::fs::remove_file(&tmp);
-        crate::fail(&format!("bn cs: could not write {}: {e}", path.display()));
+        crate::fail(&format!(
+            "workspan cs: could not write {}: {e}",
+            path.display()
+        ));
     }
 }
 
@@ -285,7 +292,7 @@ pub(crate) fn connect(query: Option<&str>, alias: Option<&str>) {
     let cfg_text = read_config(&cfg_path);
     let all = list_codespaces();
     if all.is_empty() {
-        crate::fail("bn cs connect: `gh cs list` returned no codespaces (gh auth status; gh auth refresh -s codespace)");
+        crate::fail("workspan cs connect: `gh cs list` returned no codespaces (gh auth status; gh auth refresh -s codespace)");
     }
     let Some(query) = query else {
         print_choices(&all, &cfg_text);
@@ -294,7 +301,7 @@ pub(crate) fn connect(query: Option<&str>, alias: Option<&str>) {
     let cs = match resolve(query, &all) {
         Ok(i) => &all[i],
         Err(e) => {
-            eprintln!("bn cs connect: {e}");
+            eprintln!("workspan cs connect: {e}");
             print_choices(&all, &cfg_text);
             std::process::exit(2);
         }
@@ -304,7 +311,7 @@ pub(crate) fn connect(query: Option<&str>, alias: Option<&str>) {
         .unwrap_or_else(|| default_alias(&cs.name, cs.display.as_deref().unwrap_or("")));
     if !crate::cmd::agent::safe_ssh_host(&alias) {
         crate::fail(&format!(
-            "bn cs connect: '{alias}' is not a usable ssh alias"
+            "workspan cs connect: '{alias}' is not a usable ssh alias"
         ));
     }
     if let Some((other, _)) = managed_blocks(&cfg_text)
@@ -312,7 +319,7 @@ pub(crate) fn connect(query: Option<&str>, alias: Option<&str>) {
         .find(|(a, n)| a == &alias && n != &cs.name)
     {
         crate::fail(&format!(
-            "bn cs connect: alias '{other}' already points at another codespace; pick one with --alias or run bn cs disconnect {other}"
+            "workspan cs connect: alias '{other}' already points at another codespace; pick one with --alias or run workspan cs disconnect {other}"
         ));
     }
     let running = cs.state == "Available";
@@ -331,7 +338,7 @@ pub(crate) fn connect(query: Option<&str>, alias: Option<&str>) {
             .any(|(a, n)| a == &alias && n == &cs.name)
         {
             println!(
-                "bn cs connect: {} is already `ssh {alias}`; left unchanged",
+                "workspan cs connect: {} is already `ssh {alias}`; left unchanged",
                 cs.name
             );
         } else {
@@ -339,7 +346,7 @@ pub(crate) fn connect(query: Option<&str>, alias: Option<&str>) {
             let block = render_block(&alias, &cs.name, &tpl);
             write_config(&cfg_path, &upsert_block(&cfg_text, &alias, &block));
             println!(
-                "bn cs connect: {} is now `ssh {alias}` ({})",
+                "workspan cs connect: {} is now `ssh {alias}` ({})",
                 cs.name,
                 cfg_path.display()
             );
@@ -356,15 +363,15 @@ pub(crate) fn connect(query: Option<&str>, alias: Option<&str>) {
             String::from_utf8_lossy(&o.stdout).into_owned()
         }
         Ok(o) => crate::fail(&format!(
-            "bn cs connect: gh cs ssh --config failed: {}",
+            "workspan cs connect: gh cs ssh --config failed: {}",
             String::from_utf8_lossy(&o.stderr).trim()
         )),
-        Err(e) => crate::fail(&format!("bn cs connect: could not run gh: {e}")),
+        Err(e) => crate::fail(&format!("workspan cs connect: could not run gh: {e}")),
     };
     let block = render_block(&alias, &cs.name, &gh_config);
     write_config(&cfg_path, &upsert_block(&cfg_text, &alias, &block));
     println!(
-        "bn cs connect: {} is now `ssh {alias}` ({})",
+        "workspan cs connect: {} is now `ssh {alias}` ({})",
         cs.name,
         cfg_path.display()
     );
@@ -402,13 +409,13 @@ pub(crate) fn disconnect(alias: &str) {
     let cfg_text = read_config(&cfg_path);
     if !managed_blocks(&cfg_text).iter().any(|(a, _)| a == alias) {
         crate::fail(&format!(
-            "bn cs disconnect: no `{MARK_OPEN}{alias} >>>` block in {}",
+            "workspan cs disconnect: no `{MARK_OPEN}{alias} >>>` block in {}",
             cfg_path.display()
         ));
     }
     write_config(&cfg_path, &remove_block(&cfg_text, alias));
     println!(
-        "bn cs disconnect: removed {alias} from {} (the codespace itself is untouched)",
+        "workspan cs disconnect: removed {alias} from {} (the codespace itself is untouched)",
         cfg_path.display()
     );
 }

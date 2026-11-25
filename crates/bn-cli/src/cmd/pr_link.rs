@@ -1,7 +1,7 @@
 //! `bn pr`/`bn link` — attach a PR/issue URL to the note; open/copy URLs.
 use crate::*;
 
-/// `bn pr [url] [--copy|--show]` — record a PR, or resolve the stored/gh-discovered PR and
+/// `workspan pr [url] [--copy|--show]` — record a PR, or resolve the stored/gh-discovered PR and
 /// open/copy/show it. Ports cmd_pr (minus the duplicate ## Collaboration line).
 pub(crate) fn emit_pr(
     cfg: &Config,
@@ -21,7 +21,7 @@ pub(crate) fn emit_pr(
                     "PR opened",
                     Some(&o.pr),
                 )
-                .unwrap_or_else(|e| fail(&format!("bn pr: controller event: {e}")));
+                .unwrap_or_else(|e| fail(&format!("workspan pr: controller event: {e}")));
                 if as_json {
                     println!(
                         "{}",
@@ -56,14 +56,14 @@ pub(crate) fn emit_pr(
                 );
             } else {
                 println!("No PR linked for {}/{}", ctx.repo, ctx.branch);
-                eprintln!("Usage: bn pr <url>");
+                eprintln!("Usage: workspan pr <url>");
             }
             std::process::exit(1);
         }
     }
 }
 
-/// `bn link [id]` — record a work item id on the note, or read back the stored id.
+/// `workspan link [id]` — record a work item id on the note, or read back the stored id.
 pub(crate) fn emit_link(cfg: &Config, ctx: &Resolved, id: Option<String>, as_json: bool) {
     if let Some(i) = id {
         match commands::set_work_item(cfg, ctx, &i, &today()) {
@@ -89,7 +89,7 @@ pub(crate) fn emit_link(cfg: &Config, ctx: &Resolved, id: Option<String>, as_jso
             );
         } else {
             println!("No work item linked for {}/{}", ctx.repo, ctx.branch);
-            eprintln!("Usage: bn link <id>");
+            eprintln!("Usage: workspan link <id>");
         }
         std::process::exit(1);
     };
@@ -175,7 +175,7 @@ pub(crate) fn capture_title(url: &str) -> String {
 }
 
 /// `gh <issue|pr> view <num> --repo <owner/repo> --json title -q .title`, or None on any failure
-/// (gh absent, not authed, no such item). Best-effort title lookup for `bn capture`.
+/// (gh absent, not authed, no such item). Best-effort title lookup for `workspan capture`.
 pub(crate) fn gh_view_title(kind: &str, owner_repo: &str, num: &str) -> Option<String> {
     bn_core::runner::view_title(&bn_core::runner::RealRunner, kind, owner_repo, num)
 }

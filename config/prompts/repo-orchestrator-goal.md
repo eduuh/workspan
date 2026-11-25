@@ -10,7 +10,7 @@ repo-wide backlog orchestration, not ordinary task-level research. Supervise the
 wave of independent issue workers, expanding only when another actionable issue can progress
 without conflicting write scope. Respect the caller's resource limits and stop conditions;
 there is no fixed agent-count cap. Pick actionable open issues, dispatch a worker per issue
-with `bn dispatch --repo {{repo}} --agent --yolo <issue-url>`, and monitor them through pull
+with `workspan dispatch --repo {{repo}} --agent --yolo <issue-url>`, and monitor them through pull
 request completion. Do not nest another backlog supervisor.
 
 Write no code yourself and open no pull request yourself. Orchestrate.

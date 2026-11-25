@@ -12,7 +12,7 @@ use std::path::{Path, PathBuf};
 
 /// What a cron *is for* — a descriptive label, not a behaviour switch. `Info` crons gather
 /// information a person reads; `Housekeeping` crons (the default) do background estate work. Every
-/// cron runs headlessly either way; the class only tags the `bn cron` dashboard row so you can see
+/// cron runs headlessly either way; the class only tags the `workspan cron` dashboard row so you can see
 /// at a glance which crons surface information. This is the explicit knob the user classifies each
 /// cron with; there is no inference.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default, serde::Deserialize, Serialize)]
@@ -63,7 +63,7 @@ pub struct CronEntry {
     /// `network-online.target`. Default false (offline jobs need no ordering).
     #[serde(default)]
     pub network: bool,
-    /// Also fire this job on the **first bn event of the day** (via `bn run <job> --if-stale`), not
+    /// Also fire this job on the **first workspan event of the day** (via `workspan run <job> --if-stale`), not
     /// only on its `on_calendar` timer. For refreshes whose value is tied to *when you start work*
     /// rather than a fixed clock time — a standup-style morning view — so a variable start time still
     /// gets a fresh result without you matching a wall-clock slot. Default false.
@@ -71,7 +71,7 @@ pub struct CronEntry {
     pub catch_up: bool,
     /// Repository required by this cron. Entry-level values override the manifest's top-level
     /// `repo`; absent means the cron is genuinely machine-global. `repo = ""` on an entry opts it
-    /// out of the manifest's repo: machine-global even in a repo-owned manifest (bn's own tunnel
+    /// out of the manifest's repo: machine-global even in a repo-owned manifest (workspan's own tunnel
     /// keepalive must run on build machines that do not list the `bn` repo).
     #[serde(default)]
     pub repo: Option<String>,
@@ -203,7 +203,7 @@ pub fn discover(cfg: &Config, ctx: Option<&Resolved>) -> Vec<ResolvedCron> {
                     });
                 }
             }
-            Err(e) => eprintln!("bn: skipping malformed cron manifest {e}"),
+            Err(e) => eprintln!("workspan: skipping malformed cron manifest {e}"),
         }
     }
     out
@@ -329,7 +329,7 @@ pub const ALERT_MIN_FAILURES: usize = 3;
 /// How long a job that nothing declares may stay silent before the watchdog treats it as retired
 /// rather than broken.
 ///
-/// Deliberately longer than the slowest cadence bn ships (weekly), because the recency half of
+/// Deliberately longer than the slowest cadence workspan ships (weekly), because the recency half of
 /// [`LiveJobs::is_retired`] is what covers natively-implemented jobs: those live in the binary's
 /// dispatch table, not in any manifest [`LiveJobs`] can read, so the only evidence that one is
 /// still scheduled is that it keeps running. A two-week silence clears every real cadence.
@@ -341,7 +341,7 @@ const _: () = assert!(
      be mistaken for a deleted one and silently stop alerting"
 );
 
-/// The job names this machine can still resolve — every source `bn run` looks in that is written
+/// The job names this machine can still resolve — every source `workspan run` looks in that is written
 /// down somewhere: declared `[[cron]]` entries, agent manifests, and `<job>.sh` scripts — plus any
 /// explicit tombstones ([`crate::events::retire_cron`]).
 ///
@@ -356,7 +356,7 @@ pub struct LiveJobs {
 }
 
 impl LiveJobs {
-    /// Fold the three manifest-backed job sources across the same tiers `bn run` resolves through,
+    /// Fold the three manifest-backed job sources across the same tiers `workspan run` resolves through,
     /// and read the tombstone log. An unreadable agent catalog is not fatal here: a watchdog that
     /// went silent because one manifest failed to parse would hide exactly the failures it exists
     /// to surface, so a broken catalog yields the other two sources and leaves the recency clause
@@ -401,7 +401,7 @@ impl LiveJobs {
     /// Two independent routes, because retirement has two sources of truth. The operator can say so
     /// outright — a tombstone retires the name at once, and only a run *after* it was written
     /// revives it, so reviving a job needs nothing but running it. Failing that, the watchdog has
-    /// to infer it, and inference needs both clauses: a job bn can still resolve is never retired
+    /// to infer it, and inference needs both clauses: a job workspan can still resolve is never retired
     /// no matter how long it has been quiet, and a job that is still running is never retired no
     /// matter what does or does not declare it. Both directions fail toward alerting.
     pub fn is_retired(&self, status: &CronJobStatus, now: i64) -> bool {
@@ -455,7 +455,7 @@ pub struct CronView {
     pub description: Option<String>,
     /// The declared entry hits the network (drives scheduler ordering).
     pub network: bool,
-    /// Also fired on the first bn event of the day (`catch_up`).
+    /// Also fired on the first workspan event of the day (`catch_up`).
     pub catch_up: bool,
     /// Whether a `<job>.sh` script backs this job.
     pub has_script: bool,
@@ -486,7 +486,7 @@ pub struct CronView {
 /// One scheduled Markdown agent nested beneath the common `agent-scheduler` status row.
 #[derive(Debug, Clone, Serialize)]
 pub struct AgentScheduleView {
-    /// The stable identity accepted by `bn run <job>`.
+    /// The stable identity accepted by `workspan run <job>`.
     pub job: String,
     /// The manifest's explicit execution kind.
     pub kind: crate::agents::AgentKind,

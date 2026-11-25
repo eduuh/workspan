@@ -260,7 +260,7 @@ fn currently_open(cfg: &Config, date: &str, ts: i64) -> Option<String> {
 
 /// The currently-open interval on `date` as of `ts` — the punch you're "in" right now, carrying
 /// its auto-stamped repo/branch. `None` when punched out or nothing tracked yet. This is what
-/// momentum-aware ranking (`bn next`) reads to know where you currently are.
+/// momentum-aware ranking (`workspan next`) reads to know where you currently are.
 pub fn open_interval(cfg: &Config, date: &str, ts: i64) -> Option<Interval> {
     let punches = read_day(cfg, date);
     intervals(&punches, ts).into_iter().find(|iv| iv.open)
@@ -286,13 +286,13 @@ pub fn fmt_dur(secs: i64) -> String {
     }
 }
 
-/// Human render for `bn track`: a header line, then one row per interval
+/// Human render for `workspan track`: a header line, then one row per interval
 /// (`HH:MM–HH:MM  2h10m  activity [branch] [#tag]`), then the day total. The open activity
 /// shows `now` as its end and a `·` marker.
 pub fn render_day(date: &str, intervals: &[Interval]) -> String {
     let mut out = format!("Track — {date}\n");
     if intervals.is_empty() {
-        out.push_str("  (nothing tracked yet — `bn in \"<activity>\"`)\n");
+        out.push_str("  (nothing tracked yet — `workspan in \"<activity>\"`)\n");
         return out;
     }
     for iv in intervals {
@@ -322,7 +322,7 @@ pub fn render_day(date: &str, intervals: &[Interval]) -> String {
     out
 }
 
-/// Human render for `bn track report`: one row per bucket (`2h10m  label`) then the total.
+/// Human render for `workspan track report`: one row per bucket (`2h10m  label`) then the total.
 pub fn render_report(rows: &[ReportRow], by: ReportBy) -> String {
     let axis = match by {
         ReportBy::Activity => "activity",
@@ -343,14 +343,14 @@ pub fn render_report(rows: &[ReportRow], by: ReportBy) -> String {
     out
 }
 
-/// Resolve the effective timestamp for a `bn in` punch, honoring an optional backdate.
+/// Resolve the effective timestamp for a `workspan in` punch, honoring an optional backdate.
 ///
 /// Exactly one of `at` / `ago` may be supplied:
 /// - `at`  — a `HH:MM` wall-clock time *today* (local), e.g. the morning you actually started;
 /// - `ago` — a duration before `now` (`45m`, `2h`, `1h30m`), e.g. "I started 45m ago".
 ///
 /// With neither, returns `now`. Rejects a future time, an unparseable value, or both flags at
-/// once — `bn in` is a *past-or-present* punch, never a future one. Callers derive the punch's
+/// once — `workspan in` is a *past-or-present* punch, never a future one. Callers derive the punch's
 /// day from the returned epoch (via [`crate::util::date_of`]) so a backdate lands in the right
 /// day's log even across midnight.
 pub fn resolve_in_ts(
@@ -379,7 +379,7 @@ pub fn resolve_in_ts(
 }
 
 /// Resolve a `HH:MM` clock time on `date` (YYYY-MM-DD) to local-time epoch seconds. `None`
-/// for an unparseable date/time. Backs `bn track at <HH:MM>`.
+/// for an unparseable date/time. Backs `workspan track at <HH:MM>`.
 pub fn parse_at(date: &str, hm: &str) -> Option<i64> {
     use chrono::TimeZone;
     let naive =

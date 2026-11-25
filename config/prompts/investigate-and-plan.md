@@ -1,15 +1,15 @@
 ---
 name: investigate-and-plan
 internal: true
-description: "Investigate a task then write the plan in one pass and submit it to bn review, raising the Planning gate. Use for an ad-hoc task that needs both research and a plan."
+description: "Investigate a task then write the plan in one pass and submit it to workspan review, raising the Planning gate. Use for an ad-hoc task that needs both research and a plan."
 when: A task needs a rigorous investigate-then-plan pass whose output is a reviewed plan, not code — dispatched ad hoc via `--skill investigate-and-plan` (the pipeline's own Plan stage runs the `plan` skill). Composes `investigate` in pipeline/read-only mode + `plan`.
-keywords: [investigate-and-plan, investigate then plan, planning gate, bn review submit, rigorous planning, research and plan, reviewed plan]
+keywords: [investigate-and-plan, investigate then plan, planning gate, workspan review submit, rigorous planning, research and plan, reviewed plan]
 arguments:
   - { name: task, description: The task/goal to plan. Omit to use the assigned task., required: false }
   - { name: url, description: Source issue/PR url for grounding. Omit if none., required: false }
 ---
 Investigate the task rigorously, then turn what you learn into a **verifiable plan submitted to
-`bn review`**. You write **no product code** here: the deliverable is a reviewed plan an execution
+`workspan review`**. You write **no product code** here: the deliverable is a reviewed plan an execution
 lane will burn down. Once the plan is submitted, STOP for human review.
 
 1. **Frame the task.** Read the assigned task's context. Take the task ({{task}}) if given, otherwise
@@ -26,7 +26,7 @@ lane will burn down. Once the plan is submitted, STOP for human review.
    return paths, sources, reproduction evidence, and unresolved questions; they do not write
    competing plans or launch another layer. Keep cheap validation of a known fact local.
 
-3. **Write the plan artifact.** Run `bn plan init`, then write the file `bn plan path` prints
+3. **Write the plan artifact.** Run `workspan plan init`, then write the file `workspan plan path` prints
    (use the reported path, not a guessed directory): the goal in one
    line; 2–5 **done-when criteria** — observable, checkable outcomes (this repo's test gate green,
    no new lint warnings, a behavior verifiable by command — named as the commands this repo
@@ -36,7 +36,7 @@ lane will burn down. Once the plan is submitted, STOP for human review.
    artifact is the contract.
 
 4. **Submit the plan to review (raise the Planning gate).** Run
-   `bn review submit --repo <repo> --branch <branch> --plan-file "$(bn plan path)"`
+   `workspan review submit --repo <repo> --branch <branch> --plan-file "$(workspan plan path)"`
    (repo and branch are the current worktree's; inspect Git identity). It prints the review id and
    raises the **Planning** attention entry the Plan gate waits on. If it fails, report its error and
    stop. Do **not** implement: execution picks up only after a human approves.

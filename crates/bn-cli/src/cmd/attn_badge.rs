@@ -9,13 +9,13 @@ use crate::*;
 /// Styled status-bar fragment for attention: ONE number — the total of everything that wants
 /// you — with a bell glyph. Sums raised attention (cron failures + urgent/other items, via
 /// `doctor::badge`) AND live agent windows (`waiting` needing input + `done`/ready, across all
-/// sessions — shared with `bn tmux-attn-count` via [`tmux_status::attn_window_tally`]). Red when
+/// sessions — shared with `workspan tmux-attn-count` via [`tmux_status::attn_window_tally`]). Red when
 /// anything is urgent (an urgent item, a cron failure, or a wait ignored 15+ minutes), amber
 /// otherwise; nothing when all quiet, so the bar stays clean. The single attention producer in
 /// status-format (the window tally used to be a separate `bn-attention-count.sh` fragment).
 ///
 /// Returns the tmux-markup fragment (`#[fg=…]`), or `None` when everything is quiet. Split out of
-/// [`emit_attn_badge`] so `bn tat`'s status header can reuse the same lanes without shelling out —
+/// [`emit_attn_badge`] so `workspan tat`'s status header can reuse the same lanes without shelling out —
 /// tat translates the markup to ANSI rather than growing a second set of colour rules (#1349).
 pub(crate) fn attn_badge() -> Option<String> {
     let today = today();
@@ -43,9 +43,9 @@ pub(crate) fn emit_attn_badge() {
 
 /// Whether today's notifications all failed to reach a backend — i.e. the push channel is broken
 /// rather than deliberately quiet. The ledger is not rolled on load, so roll it first (as
-/// `bn doctor` does) or a stale day's tallies leak into today's answer.
+/// `workspan doctor` does) or a stale day's tallies leak into today's answer.
 ///
-/// This is the difference between "bn chose not to interrupt you" and "bn tried and could not
+/// This is the difference between "workspan chose not to interrupt you" and "workspan tried and could not
 /// reach you", which nothing on the bar could previously express.
 fn notify_channel_is_dead(today: &str) -> bool {
     let mut ledger = bn_core::notify::policy::load_ledger();

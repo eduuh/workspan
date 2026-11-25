@@ -171,7 +171,7 @@ impl Client {
 /// The config files to write on *this* machine.
 ///
 /// Only paths whose parent directory already exists are returned: a machine without VS Code should
-/// not grow a VS Code profile because bn synced a server into it. `~/.copilot` is the one
+/// not grow a VS Code profile because workspan synced a server into it. `~/.copilot` is the one
 /// exception install.sh also makes — the Copilot CLI creates it lazily, so the presence of either
 /// the directory or the binary counts.
 pub fn targets() -> Vec<(Client, PathBuf)> {
@@ -589,7 +589,7 @@ fn restrict(_path: &Path) -> Result<(), String> {
 }
 
 /// Merge `servers` into `<server_key>` of a client config, preserving every other key and every
-/// server bn did not declare.
+/// server workspan did not declare.
 ///
 /// A file that is absent or blank starts from `{}`. A file that is not valid JSON is an error
 /// rather than a clobber: VS Code's `mcp.json` may legally contain JSONC comments, and silently

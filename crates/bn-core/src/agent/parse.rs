@@ -367,7 +367,7 @@ fn claude_code_changes(lines: &[Value]) -> (i64, i64, i64) {
 
 // --- shared helpers -------------------------------------------------------------------------
 
-/// Map a session's cwd + harness branch hint onto a bn note key. Repo comes from the cwd's first
+/// Map a session's cwd + harness branch hint onto a workspan note key. Repo comes from the cwd's first
 /// segment under the worktree root (matching `resolver::resolve` Case A), falling back to the
 /// harness `repository` (`owner/repo` → `repo`). Returns `None` when neither yields a repo or the
 /// branch is unknown — an unattributable session is dropped rather than mis-filed.

@@ -68,7 +68,7 @@ pub(crate) fn emit_switch(
     // claiming it did.
     let Some(wt) = agent_worktree(cfg, &ctx.repo, &ctx.branch) else {
         let msg = format!(
-            "bn switch: no checkout for {}:{} — git lists no worktree for the branch, so there is \
+            "workspan switch: no checkout for {}:{} — git lists no worktree for the branch, so there is \
              nothing to swap in place",
             ctx.repo, ctx.branch
         );
@@ -162,7 +162,7 @@ pub(crate) fn emit_switch(
         Some(SwapOutcome {
             error: Some(why), ..
         }) => {
-            eprintln!("bn switch --in-place: {why}");
+            eprintln!("workspan switch --in-place: {why}");
             println!("\nStart {to} here:\n  {launch}");
             return false;
         }
@@ -171,10 +171,10 @@ pub(crate) fn emit_switch(
     true
 }
 
-/// The envelope `bn switch --json` prints, given the swap outcome.
+/// The envelope `workspan switch --json` prints, given the swap outcome.
 ///
 /// A `--in-place` swap that failed used to ride inside a **success** envelope with the reason buried
-/// at `data.in_place.error`, so `bn switch --json` exited 0 with `ok:true` while nothing had been
+/// at `data.in_place.error`, so `workspan switch --json` exited 0 with `ok:true` while nothing had been
 /// swapped — and the dashboard cheerfully toasted "restarting under claude…" over an agent that
 /// never moved. A failure the caller can only find by reading a nested field is a failure the caller
 /// will not find. Pure → unit-testable; `launch` is folded into the message so the operator still
@@ -197,13 +197,13 @@ fn switch_envelope(
         }) => Envelope::failure(
             "switch",
             "swap_failed",
-            format!("bn switch --in-place: {why} — start it manually:\n  {launch}"),
+            format!("workspan switch --in-place: {why} — start it manually:\n  {launch}"),
         ),
         _ => Envelope::success("switch", data),
     }
 }
 
-/// Outcome of `bn switch --in-place`: the pane the target harness was respawned into (`None`
+/// Outcome of `workspan switch --in-place`: the pane the target harness was respawned into (`None`
 /// when the swap fell back), which harness configs got folder trust, and why it fell back.
 pub(crate) struct SwapOutcome {
     pane: Option<String>,
@@ -214,7 +214,7 @@ pub(crate) struct SwapOutcome {
 /// Perform the in-place harness swap for `ctx`'s worktree: grant `to` folder trust for the
 /// worktree, then respawn its tmux pane with `launch` shell-backed (the pane drops to a shell
 /// when the harness exits, so a crash leaves an inspectable pane instead of a dead window).
-/// Targets the dispatch-layout window `=<repo>:<branch>`, else — when bn itself runs inside the
+/// Targets the dispatch-layout window `=<repo>:<branch>`, else — when workspan itself runs inside the
 /// worktree — the calling pane (`$TMUX_PANE`). Never errors hard: a missing tmux target is
 /// reported in the outcome and the caller falls back to printing the launch command.
 pub(crate) fn run_in_place_swap(
@@ -266,7 +266,7 @@ pub(crate) fn run_in_place_swap(
 }
 
 /// The tmux pane an in-place swap should respawn: the worktree's window pane when one exists,
-/// else the calling pane — but only when bn is running inside the worktree, so a swap driven
+/// else the calling pane — but only when workspan is running inside the worktree, so a swap driven
 /// from an orchestrator window can never respawn the orchestrator itself. Pure → unit-testable.
 pub(crate) fn swap_pane_target(
     ctx: &Resolved,
@@ -345,7 +345,7 @@ pub(crate) fn git_wip(wt: &std::path::Path) -> Option<bn_core::agent::WorkingCha
     })
 }
 
-/// Resolve `bn switch`'s target harness: an explicit arg (validated), else the opposite of the
+/// Resolve `workspan switch`'s target harness: an explicit arg (validated), else the opposite of the
 /// harness driving bn, else the review harness, else copilot. Errors on an unknown explicit arg.
 pub(crate) fn resolve_switch_target(
     arg: Option<&str>,
@@ -366,7 +366,7 @@ pub(crate) fn switch_target_or_default(
         return match h {
             "claude" | "copilot" => Ok(Some(h.to_string())),
             other => Err(format!(
-                "bn switch: unknown harness '{other}' — use 'claude' or 'copilot'"
+                "workspan switch: unknown harness '{other}' — use 'claude' or 'copilot'"
             )),
         };
     }
@@ -377,7 +377,7 @@ pub(crate) fn switch_target_or_default(
     })
 }
 
-/// The live session on this branch, if one is running — the session `bn switch` is leaving. A
+/// The live session on this branch, if one is running — the session `workspan switch` is leaving. A
 /// full-fs supervise pass (one-shot; switch isn't a loop), filtered to this note key.
 pub(crate) fn live_outgoing(
     cfg: &Config,

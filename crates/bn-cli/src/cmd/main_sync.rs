@@ -89,7 +89,7 @@ pub(crate) fn job_main_sync(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
 /// Bring one repo's main checkout and main slot up to date. `false` when something that should
 /// have worked failed (the caller turns that into a non-zero exit).
 ///
-/// `pub(crate)` because `bn reset` needs exactly this before it tears the other worktrees down,
+/// `pub(crate)` because `workspan reset` needs exactly this before it tears the other worktrees down,
 /// and used to hand-roll a weaker version: a fetch plus `merge --ff-only origin/main`, which
 /// hardcoded the branch name and gave up silently on the dirty checkouts this exists to fix.
 pub(crate) fn sync_repo(bare: &Path, worktree_dir: &Path, repo: &str) -> bool {
@@ -169,7 +169,7 @@ Commit or clean {main_s} yourself; nothing was discarded."
 const DISCARD_REPORT_LIMIT: usize = 10;
 
 /// Where the pre-reset snapshot is kept. Outside `refs/heads` and `refs/remotes`, so it shows up
-/// in neither the branch list nor a push, and outside the stash stack, which bn shares across
+/// in neither the branch list nor a push, and outside the stash stack, which workspan shares across
 /// worktrees and warns against touching.
 const RESCUE_REF: &str = "refs/bn/main-rescue";
 

@@ -71,7 +71,7 @@ impl PrRef {
     }
 }
 
-/// The live state of a remote run for bn's status surfaces: still running, gone (`gh` can no longer
+/// The live state of a remote run for workspan's status surfaces: still running, gone (`gh` can no longer
 /// resolve it), or finished and mapped onto the #271 taxonomy ([`RunStatus`]).
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum RemoteRunState {
@@ -102,7 +102,7 @@ impl RemoteRunState {
         }
     }
 
-    /// Whether the run has reached a terminal state — the signal that bn can stop polling it and
+    /// Whether the run has reached a terminal state — the signal that workspan can stop polling it and
     /// persist the outcome into the note.
     pub fn is_terminal(self) -> bool {
         matches!(self, RemoteRunState::Done(_))
@@ -121,7 +121,7 @@ impl Serialize for RemoteRunState {
 /// taxonomy. The log is consulted only for `failure` / `startup_failure`, where [`classify_run`]
 /// separates a dead login (`auth`) or a hit usage window (`rate-limited`) from a genuine `fail`;
 /// every other conclusion maps by name alone. An unknown conclusion is an honest `fail` — a
-/// completed run bn can't vouch for. Table: #279 spike (`remote-gh-spike.md`).
+/// completed run workspan can't vouch for. Table: #279 spike (`remote-gh-spike.md`).
 pub fn gh_conclusion_status(conclusion: &str, log: &str) -> RunStatus {
     match conclusion {
         "success" => RunStatus::Ok,
@@ -311,8 +311,8 @@ pub fn find_run_pr(runner: &dyn CommandRunner, slug: &str, run_url: &str) -> PrL
 }
 
 /// One reconciled remote run: its live [`RemoteRunState`] and the linked PR when found. Built from
-/// live `gh` by [`reconcile_remote_run`]; the shared record `bn status` / `bn agent live` render and (on
-/// `bn status`) write back into the branch note once terminal.
+/// live `gh` by [`reconcile_remote_run`]; the shared record `workspan status` / `workspan agent live` render and (on
+/// `workspan status`) write back into the branch note once terminal.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct RemoteRunReport {
     pub run_id: u64,

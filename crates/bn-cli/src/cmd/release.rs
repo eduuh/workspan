@@ -10,7 +10,7 @@ use crate::*;
 use bn_core::release::{self, GateDecision};
 use bn_core::runner::RealRunner;
 
-/// `bn release` — the manual entrypoint. Evaluate the release gate for the current checkout and, if
+/// `workspan release` — the manual entrypoint. Evaluate the release gate for the current checkout and, if
 /// it passes, cut the release. `bump` selects the semver component (default patch). `dry_run`
 /// prints the plan without touching git/GitHub. `skip_verify` trusts the caller that `main` is
 /// green instead of running the local gate.
@@ -27,7 +27,7 @@ pub(crate) fn emit_release(
             as_json,
             "release",
             "not_a_repo",
-            "bn release: not in a git repo",
+            "workspan release: not in a git repo",
         );
     }
     let bump = match bump.as_deref().map(release::Bump::parse) {
@@ -36,7 +36,7 @@ pub(crate) fn emit_release(
             as_json,
             "release",
             "bad_bump",
-            "bn release: --bump must be major|minor|patch",
+            "workspan release: --bump must be major|minor|patch",
         ),
         None => release::Bump::default(),
     };
@@ -100,7 +100,7 @@ pub(crate) fn emit_release(
                     as_json,
                     "release",
                     "cut_failed",
-                    &format!("bn release: {e}"),
+                    &format!("workspan release: {e}"),
                 ),
             }
         }
@@ -149,7 +149,7 @@ fn cut_release(plan: &release::ReleasePlan) -> Result<String, String> {
     }
 }
 
-/// Run the local `bn verify` gate in `cwd` (as a child `bn` process) and report whether it passed.
+/// Run the local `workspan verify` gate in `cwd` (as a child `bn` process) and report whether it passed.
 /// This is the "main is green" signal for [`emit_release`]; the orchestrator companion supplies its
 /// own fleet signal instead.
 fn local_verify_passes(cwd: &std::path::Path) -> bool {

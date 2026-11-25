@@ -29,7 +29,7 @@ pub fn resolve(cfg: &Config, dir: &Path) -> Result<Resolved, ContextError> {
     Ok(normalize(repo, branch))
 }
 
-/// Git-free context hint for capture paths (`bn q`): best-effort repo/branch derived by
+/// Git-free context hint for capture paths (`workspan q`): best-effort repo/branch derived by
 /// reading `.git` metadata files directly — no `git` subprocess, so capture stays fast and
 /// works even when git is absent. Mirrors [`resolve`]'s precedence (common dir for
 /// bare-backed worktrees, directory layout otherwise) but is only ever a *hint*: `None`
@@ -88,7 +88,7 @@ pub fn resolve_hint(cfg: &Config, dir: &Path) -> Option<Resolved> {
 /// `/var/folders/...` root reports as `/private/var/folders/...` and never matches the configured
 /// `/var/...` root. Same shape on Linux whenever `worktree_dir` is reached through a symlink (a
 /// symlinked `$HOME`, `/home` → `/mnt/home`). Missing the match isn't inert — it silently derives
-/// the repo from the toplevel basename, so `bn link` in `<wt>/acme/main` filed its note under
+/// the repo from the toplevel basename, so `workspan link` in `<wt>/acme/main` filed its note under
 /// repo `main`. Resolution is best-effort: unresolvable paths (a config pointing at a directory
 /// that doesn't exist yet) keep the literal answer.
 fn repo_segment(cfg: &Config, dir: &Path) -> Option<String> {
@@ -212,7 +212,7 @@ fn normalize(repo: String, branch: String) -> Resolved {
 /// answer instead of one falling back to cwd.
 ///
 /// A repo alone used to be a partial target too, and that refusal failed real work: a cron job
-/// bound to the repo it serves with no branch runs as `bn run <job> --repo R`, so every such job
+/// bound to the repo it serves with no branch runs as `workspan run <job> --repo R`, so every such job
 /// (`watch` sixty times a day, `pr-observe`, `agent-observe`) exited 1 with "--repo and --branch
 /// must be given together" for work that only ever meant the repo. `main` is where the job tiers
 /// resolve and where the repo's main slot sits, so it is the branch a repo-only target means.

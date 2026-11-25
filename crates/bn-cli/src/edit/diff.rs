@@ -16,7 +16,7 @@ use std::process::{Command, Stdio};
 /// fzf field separator. Field 1 is what you see; 2..=4 are hidden lookup columns.
 const TAB: char = '\t';
 
-/// The stages fzf re-enters bn for. Same shape as `bn jump --pick-stage`.
+/// The stages fzf re-enters workspan for. Same shape as `workspan jump --pick-stage`.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, clap::ValueEnum)]
 pub(crate) enum DiffStage {
     /// Emit the row list (the `start`/`ctrl-r` reload feed).
@@ -160,7 +160,7 @@ fn open(cfg: &Config, repo: &str, branch: &str, base: Option<&str>) {
     let spec = TargetSpec::RepoBranch(repo.to_string(), branch.to_string());
     let target = match super::target::resolve_target(cfg, &spec) {
         Ok(t) => t,
-        Err(e) => return notify(&format!("bn edit diff: {e}")),
+        Err(e) => return notify(&format!("workspan edit diff: {e}")),
     };
 
     let mut sess = super::session::probe(target.clone());
@@ -200,7 +200,7 @@ fn goto(window: &str, pane: &str) {
 /// When the editor cannot be reached, show the diff rather than leaving the user half-switched
 /// with nothing to look at.
 fn fallback(target: &EditTarget, why: &str) {
-    eprintln!("bn edit diff: {why} — showing the diff here instead");
+    eprintln!("workspan edit diff: {why} — showing the diff here instead");
     let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
     let out = Command::new(exe)
         .args([

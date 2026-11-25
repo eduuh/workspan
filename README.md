@@ -44,7 +44,7 @@ Project onboarding also needs the [Entire CLI](https://docs.entire.com/installat
 
 ## Project setup
 
-Use the `setup-bn` skill (its compatibility name is retained) to configure agent tools and the
+Use the `setup-workspan` skill to configure agent tools and the
 repository's build/verification commands. It includes required Entire setup.
 To configure capture directly, save an approved `github:owner/private-checkpoints` destination in
 `~/.config/bn/entire-checkpoint-remote`, then run from the project:
@@ -66,7 +66,7 @@ and `ws` as its short alias while keeping `bn` as an executable compatibility al
 An existing unrelated `ws` command is never replaced. Set `WORKSPAN_INSTALL_WP=1` during
 installation to request an optional `wp` alias; an existing `wp` command is never replaced.
 
-Existing `BN_*` environment
+The `setup-bn` skill remains a compatibility alias for `setup-workspan`. Existing `BN_*` environment
 variables, `~/.config/bn`, `.bn` project files, worktree paths, internal crate names, and release
 binary names remain compatible. Branch-note commands and MCP tools are retired. Workspan tasks
 (file or Forge), task context, plans, and execution state do not require a branch note. Entire

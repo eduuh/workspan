@@ -1,4 +1,4 @@
-//! `bn agent send` — the steer channels and their delivery logic.
+//! `workspan agent send` — the steer channels and their delivery logic.
 //!
 //! Split out of `cmd/agent.rs` so the file-size ratchet leaves room for the supervision commands
 //! and so the two delivery channels live together:
@@ -75,7 +75,7 @@ pub(crate) fn steer_via_resume(
 /// Fire a `-p --resume` turn **detached** and return immediately (its log path on success). The
 /// child runs in its OWN process group (so a killed caller — e.g. a timed-out shell — doesn't take
 /// it down) with output redirected to a log file. For long ship tasks: the agent works in the
-/// background and reports back via `bn agent done`. `None` for an unknown harness / spawn failure.
+/// background and reports back via `workspan agent done`. `None` for an unknown harness / spawn failure.
 pub(crate) fn steer_detached(
     harness: &str,
     id: &str,
@@ -189,7 +189,7 @@ fn submit_landed_transport(transport: &dyn bn_core::agent::AgentTransport, msg: 
 }
 
 /// Deliver `text` to `target` over the auto-selected channel, quietly. The shared primitive behind
-/// `bn agent instruct`'s live half. Returns whether it landed.
+/// `workspan agent instruct`'s live half. Returns whether it landed.
 pub(crate) fn deliver_instruction(cfg: &Config, target: &str, text: &str) -> bool {
     match choose_channel(cfg, target, SteerChannel::Auto) {
         SteerChannel::Keys => deliver_via_keys(cfg, target, text).0,
@@ -253,7 +253,7 @@ pub(crate) enum LiveDelivery {
     Failed,
 }
 
-/// Paste `text` into `target`'s live pane, or report why not. Unlike `bn agent send` it never
+/// Paste `text` into `target`'s live pane, or report why not. Unlike `workspan agent send` it never
 /// falls back to a headless `--resume` turn and never exits: for a watchdog, reaching a live
 /// agent is a courtesy, and the watchdog's eval is the record whether or not it lands.
 pub(crate) fn try_deliver_live(cfg: &Config, target: &str, text: &str) -> LiveDelivery {
@@ -273,7 +273,7 @@ pub(crate) fn try_deliver_live(cfg: &Config, target: &str, text: &str) -> LiveDe
 ///
 /// Pasting prose at a numbered menu is how a stray character becomes a menu selection nobody chose —
 /// and the message would be swallowed by the prompt rather than read. The refusal names the options
-/// and points at `bn agent answer`. `verb` is the `bn agent <verb>` being refused; it names both the
+/// and points at `workspan agent answer`. `verb` is the `workspan agent <verb>` being refused; it names both the
 /// human prefix and the `agent_<verb>` JSON envelope so `send` and `msg` report identically.
 fn refuse_if_dialog(cfg: &Config, verb: &str, target: &str, as_json: bool) {
     let Some(prompt) = super::read_prompt(cfg, target, bn_core::agent::PROMPT_SCAN_LINES) else {
@@ -286,7 +286,7 @@ fn refuse_if_dialog(cfg: &Config, verb: &str, target: &str, as_json: bool) {
         .collect::<Vec<_>>()
         .join("; ");
     let msg = format!(
-        "{target} is waiting on a dialog ({}) — answer it with `bn agent answer {target}`, \
+        "{target} is waiting on a dialog ({}) — answer it with `workspan agent answer {target}`, \
          not a message. {} Options: {opts}",
         prompt.kind.label(),
         prompt.question
@@ -296,7 +296,7 @@ fn refuse_if_dialog(cfg: &Config, verb: &str, target: &str, as_json: bool) {
         env.data = serde_json::json!({ "target": target, "prompt": prompt });
         println!("{}", env.to_json());
     } else {
-        eprintln!("bn agent {verb}: {msg}");
+        eprintln!("workspan agent {verb}: {msg}");
     }
     std::process::exit(1);
 }
@@ -311,7 +311,7 @@ fn refuse_if_dialog(cfg: &Config, verb: &str, target: &str, as_json: bool) {
 ///
 /// An agent sitting on a **dialog** is refused outright. Pasting prose at a numbered menu is how a
 /// stray character becomes a menu selection nobody chose — and the message would be swallowed by
-/// the prompt rather than read. The refusal names the options and points at `bn agent answer`.
+/// the prompt rather than read. The refusal names the options and points at `workspan agent answer`.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_agent_send(
     cfg: &Config,
@@ -345,7 +345,7 @@ pub(crate) fn emit_agent_send(
     if !keys {
         if let Some((wt, harness, id)) = &session {
             // Async: fire the turn detached and return now (for long ship tasks — the agent reports
-            // back via `bn agent done`). It survives the caller exiting.
+            // back via `workspan agent done`). It survives the caller exiting.
             if detach {
                 let log = steer_detached(harness, id, wt, msg);
                 let ok = log.is_some();
@@ -359,11 +359,11 @@ pub(crate) fn emit_agent_send(
                 } else if ok {
                     println!("→ {target} ({harness}, detached): {msg}");
                     println!(
-                        "  running in background — the agent will `bn agent done` when finished"
+                        "  running in background — the agent will `workspan agent done` when finished"
                     );
                 } else {
                     fail(&format!(
-                        "bn agent send: could not spawn detached turn for {target}"
+                        "workspan agent send: could not spawn detached turn for {target}"
                     ));
                 }
                 return;
@@ -376,7 +376,7 @@ pub(crate) fn emit_agent_send(
                 None => {
                     // Resume failed (session gone / harness error) — fall through to send-keys.
                     resume_failed = true;
-                    eprintln!("bn agent send: resume steer failed for {target}, trying send-keys");
+                    eprintln!("workspan agent send: resume steer failed for {target}, trying send-keys");
                 }
             }
         }
@@ -437,11 +437,11 @@ pub(crate) fn emit_agent_send(
         println!("→ {target} (keys): {msg}");
     } else if !pasted {
         fail(&format!(
-            "bn agent send: couldn't deliver to '{target}' (no recorded session and no tmux window)"
+            "workspan agent send: couldn't deliver to '{target}' (no recorded session and no tmux window)"
         ));
     } else {
         fail(&format!(
-            "bn agent send: pasted into '{target}' but could not confirm submission (the TUI may have eaten the Enter); no session id recorded to escalate to --resume"
+            "workspan agent send: pasted into '{target}' but could not confirm submission (the TUI may have eaten the Enter); no session id recorded to escalate to --resume"
         ));
     }
 }
@@ -452,7 +452,7 @@ pub(crate) fn emit_agent_send(
 /// agent can answer without any store telling it who asked.
 pub(crate) fn peer_envelope(sender: &str, text: &str) -> String {
     format!(
-        "[bn msg from {sender}] {} — reply: bn agent msg {sender} \"<your answer>\"",
+        "[bn msg from {sender}] {} — reply: workspan agent msg {sender} \"<your answer>\"",
         text.split_whitespace().collect::<Vec<_>>().join(" ")
     )
 }
@@ -468,13 +468,13 @@ fn normalize_target(target: &str) -> String {
     }
 }
 
-/// The validation `bn agent msg` runs before touching tmux. Pure so the refusals are testable:
+/// The validation `workspan agent msg` runs before touching tmux. Pure so the refusals are testable:
 /// `Err((code, message))` is the failure envelope, `Ok(sender)` the resolved sender target.
 fn validate_msg(target: &str, sender: Option<&str>) -> Result<String, (&'static str, String)> {
     if !target.contains(':') || target.starts_with(':') || target.ends_with(':') {
         return Err((
             "invalid_target",
-            format!("'{target}' is not a repo:branch target (see `bn agent live`)"),
+            format!("'{target}' is not a repo:branch target (see `workspan agent live`)"),
         ));
     }
     let sender = sender.ok_or_else(|| {
@@ -502,7 +502,7 @@ fn fail_msg(code: &str, msg: &str, as_json: bool) -> ! {
     if as_json {
         println!("{}", Envelope::failure("agent_msg", code, msg).to_json());
     } else {
-        eprintln!("bn agent msg: {msg}");
+        eprintln!("workspan agent msg: {msg}");
     }
     std::process::exit(1);
 }
@@ -526,7 +526,7 @@ fn undelivered(to: &str, from: &str, text: &str, code: &str, why: &str, as_json:
         println!("{}", Envelope::success("agent_msg", data).to_json());
     } else {
         println!("→ {to} (parked {id}): {text}");
-        println!("  not delivered yet ({why}); retried every minute until it lands — `bn agent outbox` shows it");
+        println!("  not delivered yet ({why}); retried every minute until it lands — `workspan agent outbox` shows it");
     }
     std::process::exit(0);
 }
@@ -560,16 +560,16 @@ fn pane_sender() -> Option<String> {
     (!repo.is_empty() && !branch.is_empty()).then(|| format!("{repo}:{branch}"))
 }
 
-/// Message another live agent, peer to peer: `bn agent msg <repo:branch> "<text>"`.
+/// Message another live agent, peer to peer: `workspan agent msg <repo:branch> "<text>"`.
 ///
-/// Where `bn agent send` is a human (or the dashboard) steering an agent, this is one agent asking
+/// Where `workspan agent send` is a human (or the dashboard) steering an agent, this is one agent asking
 /// another for something — so the sender's own `repo:branch` rides in the delivered line, and the
 /// reply is just another `msg` back. The text lands in the target's live pane as its next prompt;
 /// a target mid-turn queues it and reads it when the turn ends.
 ///
 /// Live-only, by design. There is no `-p --resume` fallback: that forks a headless turn the session
 /// on screen never sees, which for two agents talking is a phantom conversation. A target with no
-/// live window is refused instead, and `bn agent live` says who can be reached.
+/// live window is refused instead, and `workspan agent live` says who can be reached.
 pub(crate) fn emit_agent_msg(
     cfg: &Config,
     target: &str,
@@ -620,18 +620,18 @@ pub(crate) fn emit_agent_msg(
             }) => (
                 "no_live_agent",
                 format!(
-                    "{target} has no live agent window here{}{} — `bn agent live --mesh` lists who can be reached",
+                    "{target} has no live agent window here{}{} — `workspan agent live --mesh` lists who can be reached",
                     if searched.is_empty() { String::new() } else { format!(" or on {}", searched.join(", ")) },
                     if unreachable.is_empty() {
                         String::new()
                     } else {
-                        format!(" ({} did not answer: down, or no bn there)", unreachable.join(", "))
+                        format!(" ({} did not answer: down, or no Workspan there)", unreachable.join(", "))
                     }
                 ),
             ),
             None => (
                 "no_live_agent",
-                format!("{target} has no live agent window — `bn agent live` lists who can be reached"),
+                format!("{target} has no live agent window — `workspan agent live` lists who can be reached"),
             ),
         };
         undelivered(target, &sender, text, code, &why, as_json);
@@ -690,7 +690,7 @@ mod tests {
         let line = peer_envelope("bn:feat-a", "please bump the schema");
         assert_eq!(
             line,
-            "[bn msg from bn:feat-a] please bump the schema — reply: bn agent msg bn:feat-a \"<your answer>\""
+            "[bn msg from bn:feat-a] please bump the schema — reply: workspan agent msg bn:feat-a \"<your answer>\""
         );
         assert!(!line.contains('\n'));
     }

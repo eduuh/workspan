@@ -16,7 +16,7 @@ fn parse_finding(raw: &str) -> NewFinding {
         _ => (Severity::Blocking, raw.trim()),
     };
     if text.is_empty() {
-        fail("bn review-gate record: a --finding must have text (e.g. 'blocking: eager unwrap panics')");
+        fail("workspan review-gate record: a --finding must have text (e.g. 'blocking: eager unwrap panics')");
     }
     NewFinding {
         severity: sev,
@@ -45,7 +45,7 @@ fn print_status(gs: &GateStatus, key: &str, as_json: bool) {
     }
 }
 
-/// `bn review-gate record <repo> <number> --reviewer R --verdict approve|block --sha SHA
+/// `workspan review-gate record <repo> <number> --reviewer R --verdict approve|block --sha SHA
 /// [--summary ..] [--finding 'blocking: ..']…` — one reviewer's diff-only verdict + findings.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_review_gate_record(
@@ -64,12 +64,12 @@ pub(crate) fn emit_review_gate_record(
     let timer = bn_core::log::enabled().then(bn_core::log::Timer::start);
     let Some(v) = Verdict::parse(verdict) else {
         fail(&format!(
-            "bn review-gate record: --verdict must be approve|block (got '{verdict}')"
+            "workspan review-gate record: --verdict must be approve|block (got '{verdict}')"
         ));
     };
     if sha.trim().is_empty() {
         fail(
-            "bn review-gate record: --sha is required (the head you reviewed: git rev-parse HEAD)",
+            "workspan review-gate record: --sha is required (the head you reviewed: git rev-parse HEAD)",
         );
     }
     let new_findings: Vec<NewFinding> = findings.iter().map(|f| parse_finding(f)).collect();
@@ -116,7 +116,7 @@ pub(crate) fn emit_review_gate_record(
             }
             print_status(&gs, &format!("{repo}#{number}"), as_json);
         }
-        Err(e) => fail(&format!("bn review-gate record: {e}")),
+        Err(e) => fail(&format!("workspan review-gate record: {e}")),
     }
 }
 
@@ -169,9 +169,9 @@ fn set_finding(
             }
         }
         Ok(false) => fail(&format!(
-            "bn review-gate: no finding '{finding_id}' on {repo}#{number}"
+            "workspan review-gate: no finding '{finding_id}' on {repo}#{number}"
         )),
-        Err(e) => fail(&format!("bn review-gate: {e}")),
+        Err(e) => fail(&format!("workspan review-gate: {e}")),
     }
 }
 
@@ -209,7 +209,7 @@ pub(crate) fn emit_review_gate_waive(
     );
 }
 
-/// `bn review-gate status <repo> <number> [--sha SHA]` — the gate verdict. Without `--sha` it
+/// `workspan review-gate status <repo> <number> [--sha SHA]` — the gate verdict. Without `--sha` it
 /// evaluates against the most recently reviewed head (the "as reviewed" view); pass `--sha` (the
 /// PR's current head) for the true land-eligibility answer.
 pub(crate) fn emit_review_gate_status(
@@ -225,7 +225,7 @@ pub(crate) fn emit_review_gate_status(
         let gs = review_gate::gate_status(repo, number, sha.unwrap_or(""), required);
         print_status(&gs, &format!("{repo}#{number}"), as_json);
         if !as_json {
-            println!("  (no diff-only reviews recorded yet — run `bn review-gate prompt {repo} {number}`)");
+            println!("  (no diff-only reviews recorded yet — run `workspan review-gate prompt {repo} {number}`)");
         }
         return;
     };
@@ -262,7 +262,7 @@ pub(crate) fn emit_review_gate_status(
     }
 }
 
-/// `bn review-gate list` — every tracked PR with its gate verdict (evaluated at each PR's most
+/// `workspan review-gate list` — every tracked PR with its gate verdict (evaluated at each PR's most
 /// recently reviewed head).
 pub(crate) fn emit_review_gate_list(required: usize, as_json: bool) {
     let timer = bn_core::log::enabled().then(bn_core::log::Timer::start);
@@ -293,7 +293,7 @@ pub(crate) fn emit_review_gate_list(required: usize, as_json: bool) {
     );
 }
 
-/// `bn review-gate prompt <repo> <number> [--reviewer R]` — emit the canonical diff-only reviewer
+/// `workspan review-gate prompt <repo> <number> [--reviewer R]` — emit the canonical diff-only reviewer
 /// seed. An orchestrator (or human) dispatches an independent reviewer agent with exactly this
 /// prompt, whose context provably excludes the implementer's reasoning.
 pub(crate) fn emit_review_gate_prompt(
@@ -318,7 +318,7 @@ pub(crate) fn emit_review_gate_prompt(
     }
     let prompt =
         bn_core::skills::render_required(cfg, &base, "review-gate-critic", Some(&args))
-            .unwrap_or_else(|error| fail(&format!("bn review-gate prompt: {error}")));
+            .unwrap_or_else(|error| fail(&format!("workspan review-gate prompt: {error}")));
     if as_json {
         println!(
             "{}",

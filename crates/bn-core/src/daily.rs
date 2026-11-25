@@ -46,11 +46,11 @@ pub struct DailyFront {
     pub reflections: Vec<LogEntry>,
 }
 
-/// A dated day-log line — a `bn learned` or `bn reflect` entry. Distinct from [`Item`] (a goal):
+/// A dated day-log line — a `workspan learned` or `workspan reflect` entry. Distinct from [`Item`] (a goal):
 /// it has no done-state and no carry-forward, but it *does* carry optional provenance stamped at
-/// write time so `bn learnings` can attribute a fleet's learnings back to the branch/issue/harness
+/// write time so `workspan learnings` can attribute a fleet's learnings back to the branch/issue/harness
 /// that produced them. All provenance is `Option` and skipped-when-absent, so a plain-shell
-/// `bn learned` on the daily axis (no worktree) round-trips byte-identically to the legacy
+/// `workspan learned` on the daily axis (no worktree) round-trips byte-identically to the legacy
 /// `{id, text, created}` shape.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LogEntry {
@@ -58,7 +58,7 @@ pub struct LogEntry {
     pub text: String,
     #[serde(alias = "added")]
     pub created: String,
-    /// Repo the entry was recorded in (basename, e.g. `bn`), when `bn learned`/`bn reflect` ran
+    /// Repo the entry was recorded in (basename, e.g. `bn`), when `workspan learned`/`workspan reflect` ran
     /// inside a resolvable worktree. Absent for the daily/global axis.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub repo: Option<String>,
@@ -69,7 +69,7 @@ pub struct LogEntry {
     /// so a learning can be traced back to the dispatch that produced it.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub issue: Option<String>,
-    /// Harness driving bn when the entry was recorded (`claude`/`copilot`), from
+    /// Harness driving workspan when the entry was recorded (`claude`/`copilot`), from
     /// [`crate::util::detect_harness`]. `Some` ⇒ an agent authored it; `None` ⇒ recorded at a
     /// plain shell (mine).
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -125,7 +125,7 @@ pub struct DoneOutcome {
     pub id: String,
     pub text: String,
     /// Recorded partial progress (1–99) when the goal was advanced rather than closed
-    /// (`bn daily done --pct N`, #213); `None` means it completed.
+    /// (`workspan daily done --pct N`, #213); `None` means it completed.
     pub pct: Option<u8>,
     /// Actual duration stamped from the punch log at close (calibration), when the goal carried
     /// an `est` and its linked punch intervals summed to more than zero — else `None`.
@@ -386,7 +386,7 @@ pub struct RolloverOutcome {
     pub due: Vec<ScheduledItem>,
     /// Inbox captures auto-routed to their hinted branch's todos by the rollover drain.
     pub inbox_routed: Vec<crate::inbox::RoutedOutcome>,
-    /// Captures still in the inbox afterwards — they need interactive triage (`bn q drain`).
+    /// Captures still in the inbox afterwards — they need interactive triage (`workspan q drain`).
     pub inbox_left: usize,
     /// Goals retired because the PR they hang off has merged or closed (#966) — they can't be
     /// acted on any more, so they leave the list instead of carrying forever.
@@ -417,7 +417,7 @@ impl PruneOutcome {
 /// Force today's roll-forward: ensure today exists (carry prior open goals + drain due
 /// follow-ups) and report what moved. Idempotent — running twice in a day carries nothing
 /// the second time. Backs the morning `daily-rollover` job so unfinished goals advance even
-/// on days bn is never opened interactively.
+/// on days workspan is never opened interactively.
 pub fn rollover(cfg: &Config, today: &str) -> Result<RolloverOutcome, StoreError> {
     let existed = cfg.daily_file(today).exists();
     // Capture provenance BEFORE ensure_today merges everything together.
@@ -621,11 +621,11 @@ pub fn add_full(
 mod projection;
 pub use projection::task_goals;
 
-/// Today, as the rest of bn should read it: goals projected from tasks, plus the day file's own
+/// Today, as the rest of workspan should read it: goals projected from tasks, plus the day file's own
 /// learnings and reflections.
 ///
 /// Legacy goals written into the day file before #1004 are kept and listed after the projected
-/// ones, so nothing anyone recorded disappears and no migration has to run. `bn daily add` writes
+/// ones, so nothing anyone recorded disappears and no migration has to run. `workspan daily add` writes
 /// tasks from here on, so that set only shrinks.
 pub fn view(cfg: &Config, today: &str) -> Daily {
     let mut daily = read(&cfg.daily_file(today)).unwrap_or_else(|_| Daily::empty(today));
@@ -645,8 +645,8 @@ enum LogField {
 }
 
 /// Append a non-checkable note (a learning or a reflection) to today's day file. These aren't
-/// goals — no done state, no carry-forward — they're a record `bn weekly` rolls up and
-/// `bn learnings` reviews. `prov` stamps the entry with the branch/issue/harness it came from
+/// goals — no done state, no carry-forward — they're a record `workspan weekly` rolls up and
+/// `workspan learnings` reviews. `prov` stamps the entry with the branch/issue/harness it came from
 /// (all `None` on the daily/global axis).
 fn log_entry(
     cfg: &Config,
@@ -684,7 +684,7 @@ fn log_entry(
     })
 }
 
-/// Record something learned today (`bn learned "…"`).
+/// Record something learned today (`workspan learned "…"`).
 pub fn learned(
     cfg: &Config,
     today: &str,
@@ -694,7 +694,7 @@ pub fn learned(
     log_entry(cfg, today, text, LogField::Learned, prov)
 }
 
-/// Record a reflection — one thing to improve (`bn reflect "…"`).
+/// Record a reflection — one thing to improve (`workspan reflect "…"`).
 pub fn reflect(
     cfg: &Config,
     today: &str,
@@ -793,7 +793,7 @@ pub fn done(
 /// Remove a goal from today's list outright, by explicit id (`g3`) or a case-insensitive
 /// substring — the escape hatch for a goal that should never have been raised (a stale agent
 /// ping, a duplicate). Distinct from [`done`] on purpose: a dropped goal was not accomplished,
-/// so it must not land in the completed fold that standup, `bn brag`, and the metrics read.
+/// so it must not land in the completed fold that standup, `workspan brag`, and the metrics read.
 /// Matches goals in any state (a wrongly-closed goal can be dropped too) via [`goal_index`].
 pub fn drop_goal(cfg: &Config, today: &str, query: &str) -> Result<DropOutcome, CmdError> {
     let mut daily = ensure_today(cfg, today)?;
@@ -1187,7 +1187,7 @@ pub fn defer(cfg: &Config, today: &str, query: &str, on: &str) -> Result<DeferOu
 // ---- DXI self-rating (#110) ----------------------------------------------------------
 
 /// One day's optional <10s self-rating — the perceptual axis (DX Core 4 effectiveness). Stored
-/// privately beside the daily files; `bn weekly` plots the trend next to the objective metrics.
+/// privately beside the daily files; `workspan weekly` plots the trend next to the objective metrics.
 /// `focus` and `friction` are 1–5; `mood` is a free one-word tag.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct DxiRating {
@@ -1284,11 +1284,11 @@ pub fn scheduled_pending(cfg: &Config, today: &str) -> Vec<ScheduledItem> {
     items
 }
 
-/// Human render for `bn daily`: a counts header, then open goals as `- [ ] [g1] text`
+/// Human render for `workspan daily`: a counts header, then open goals as `- [ ] [g1] text`
 /// (with `→ <link>` when present). Completed goals are collapsed to the header's `done` count and
 /// intentionally NOT enumerated — they're kept as history in the day file (read a past-day view for
 /// the full log), but listing every `- [x]` line only bloats the token budget of the agents that
-/// ground on `bn daily`. `upcoming` is the not-yet-due follow-up queue (only today's view passes a
+/// ground on `workspan daily`. `upcoming` is the not-yet-due follow-up queue (only today's view passes a
 /// non-empty slice); when present it's appended as an "Upcoming follow-ups" tail.
 pub fn render(daily: &Daily, upcoming: &[ScheduledItem]) -> String {
     let open: Vec<&Item> = daily.open().collect();
@@ -1300,7 +1300,7 @@ pub fn render(daily: &Daily, upcoming: &[ScheduledItem]) -> String {
         done_count
     );
     if open.is_empty() && done_count == 0 {
-        out.push_str("  (no goals yet — `bn daily add <text>`)\n");
+        out.push_str("  (no goals yet — `workspan daily add <text>`)\n");
     }
     for g in open {
         out.push_str(&format!("- [ ] [{}] {}", g.id, g.text));

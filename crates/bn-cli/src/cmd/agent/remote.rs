@@ -57,7 +57,7 @@ pub(crate) enum Started {
 const MISSING: i32 = 3;
 
 /// Shell lines, for a script run on the remote machine, that set `$wt` to the branch's checkout
-/// there, making one with `bn wt add` when the branch is pushed but not checked out yet; without
+/// there, making one with `workspan wt add` when the branch is pushed but not checked out yet; without
 /// one they print MISSING and exit [`MISSING`]. They expect `$root`, `$repo` and `$branch`, and bn
 /// on PATH.
 pub(crate) fn checkout_snippet() -> String {
@@ -71,9 +71,9 @@ wt=$(find_wt)
 }
 
 /// The script run on the remote machine. It finds the branch's checkout, making one with
-/// `bn wt add` when the branch is pushed but not checked out there, then:
+/// `workspan wt add` when the branch is pushed but not checked out there, then:
 /// - no window for the branch: starts `launch` in a new detached one;
-/// - the branch's window is an idle shell (`bn wt add` opens one): types `launch` into it, so the
+/// - the branch's window is an idle shell (`workspan wt add` opens one): types `launch` into it, so the
 ///   shell is back when the agent exits, as with a local window;
 /// - the window is already running something (a launched agent, or a program in that shell):
 ///   leaves it alone.
@@ -90,7 +90,7 @@ pub(crate) fn remote_start_script(
     let q = crate::wt::shq;
     let launch = launch.iter().map(|a| q(a)).collect::<Vec<_>>().join(" ");
     let cmd = format!(
-        "{launch}; rc=$?; [ $rc -eq 0 ] || {{ echo \"bn agent launch exited with $rc\"; sleep 600; }}"
+        "{launch}; rc=$?; [ $rc -eq 0 ] || {{ echo \"workspan agent launch exited with $rc\"; sleep 600; }}"
     );
     format!(
         r#"{path}
@@ -133,8 +133,8 @@ pub(crate) fn attach_loop(host: &str, target: &str) -> String {
     format!(
         "while :; do ssh -tt -o ControlPath=none -o ServerAliveInterval=15 -o ServerAliveCountMax=4 {h} {attach} && exit 0; \
          ssh -o BatchMode=yes -o ConnectTimeout=10 {h} {exists} 2>/dev/null; \
-         [ $? -eq 1 ] && {{ echo \"bn: the agent's window on {hs} is gone.\"; exit 0; }}; \
-         echo \"bn: lost the connection to {hs}; the agent is still running there. Attaching again in 5s (Ctrl-C to stop).\"; \
+         [ $? -eq 1 ] && {{ echo \"workspan: the agent's window on {hs} is gone.\"; exit 0; }}; \
+         echo \"workspan: lost the connection to {hs}; the agent is still running there. Attaching again in 5s (Ctrl-C to stop).\"; \
          sleep 5; done",
         h = q(host),
         hs = host.replace('"', ""),
@@ -155,7 +155,7 @@ pub(crate) fn parse_start(code: Option<i32>, stdout: &str) -> Result<Started, St
 /// Start the agent on `host`, or find it already running there; exits with the reason when neither.
 pub(crate) fn start(cfg: &crate::Config, host: &str, repo: &str, branch: &str, launch: &[String]) -> Started {
     if !super::safe_ssh_host(host) {
-        eprintln!("bn agent launch: '{host}' is not an ssh host alias");
+        eprintln!("workspan agent launch: '{host}' is not an ssh host alias");
         std::process::exit(2);
     }
     // Every machine keeps its worktrees in the same place unless `[hosts.<host>] repo_root` says so.
@@ -184,17 +184,17 @@ pub(crate) fn start(cfg: &crate::Config, host: &str, repo: &str, branch: &str, l
     };
     match parse_start(code, &stdout) {
         Ok(Started::Started) => {
-            eprintln!("bn agent launch: started on {host} in tmux {repo}:{window}; it keeps running if this connection drops");
+            eprintln!("workspan agent launch: started on {host} in tmux {repo}:{window}; it keeps running if this connection drops");
             Started::Started
         }
         Ok(Started::Running) => {
-            eprintln!("bn agent launch: already running on {host} in tmux {repo}:{window}; attaching");
+            eprintln!("workspan agent launch: already running on {host} in tmux {repo}:{window}; attaching");
             Started::Running
         }
         Err(why) => {
-            eprintln!("bn agent launch: {host}: {why}");
+            eprintln!("workspan agent launch: {host}: {why}");
             if code == Some(MISSING) {
-                eprintln!("  bn wt add {branch} failed there; push the branch first: git push -u origin {branch}");
+                eprintln!("  workspan wt add {branch} failed there; push the branch first: git push -u origin {branch}");
             } else if !stderr.trim().is_empty() {
                 eprintln!("  {}", stderr.trim());
             }

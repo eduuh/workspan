@@ -58,7 +58,7 @@ impl ContextLinker for NoLinker {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum CompletedKind {
-    /// A branch-note todo closed via `bn done`.
+    /// A branch-note todo closed via `workspan done`.
     Todo,
     /// A daily goal marked achieved.
     Goal,

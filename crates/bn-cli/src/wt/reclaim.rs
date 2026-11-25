@@ -87,7 +87,7 @@ pub(crate) fn run_now(repo: &str, label: &str, branch: &str, path: &Path, confir
     match run_reclaim(&cmd) {
         true => format!("closed {repo}/{label} — reclaimed"),
         false => format!(
-            "closed {repo}/{label} — the reclaim failed; run `bn wt close --reclaim --path {}`",
+            "closed {repo}/{label} — the reclaim failed; run `workspan wt close --reclaim --path {}`",
             path.display()
         ),
     }

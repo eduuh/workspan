@@ -81,7 +81,7 @@ pub fn missing_token_error() -> io::Error {
     io::Error::new(
         io::ErrorKind::PermissionDenied,
         format!(
-            "no Forge key: run `bn forge login` (or `bn forge login --paste`), or set {TOKEN_ENV}"
+            "no Forge key: run `workspan forge login` (or `workspan forge login --paste`), or set {TOKEN_ENV}"
         ),
     )
 }

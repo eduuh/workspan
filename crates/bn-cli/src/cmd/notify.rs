@@ -8,7 +8,7 @@
 use crate::*;
 use bn_core::notify::policy;
 
-/// `bn notify status` (and bare `bn notify`).
+/// `workspan notify status` (and bare `workspan notify`).
 pub(crate) fn emit_notify_status(cfg: &Config, as_json: bool) {
     let now = bn_core::util::now_epoch_secs();
     let mut ledger = policy::load_ledger();
@@ -81,7 +81,7 @@ pub(crate) fn emit_notify_status(cfg: &Config, as_json: bool) {
             .collect::<Vec<_>>()
             .join(", ");
         println!("  held today: {summary}");
-        println!("  ↳ nothing is lost — `bn next` / `bn attn` still list every one");
+        println!("  ↳ nothing is lost — `workspan next` / `workspan attn` still list every one");
     }
 
     if !cooling.is_empty() {

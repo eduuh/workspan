@@ -47,7 +47,7 @@ use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
 
-/// The hidden callback stages a `tat` fzf session re-invokes (`bn tat --pick-stage <s>`).
+/// The hidden callback stages a `tat` fzf session re-invokes (`workspan tat --pick-stage <s>`).
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub enum TatStage {
     /// Emit the decorated, frecency-sorted project list (the `start`/`ctrl-x` reload feed).
@@ -74,11 +74,11 @@ pub enum TatStage {
     #[value(name = "rmworktree")]
     RmWorktree,
     /// Warm the focused repo's pool up to its configured size (the `ctrl-w` binding) — fills cold
-    /// slots via `bn wt pool warm`. Guarded — refuses a repo that isn't pooled.
+    /// slots via `workspan wt pool warm`. Guarded — refuses a repo that isn't pooled.
     #[value(name = "warmpool")]
     WarmPool,
     /// Release the focused *leased* pool slot back to the warm pool (the `ctrl-r` binding) —
-    /// `bn wt pool return` drops the lease and resets the slot (kept warm). `--pick-arg` carries
+    /// `workspan wt pool return` drops the lease and resets the slot (kept warm). `--pick-arg` carries
     /// `kind~branch`; guarded — only a `poolbranch` row, and `return` itself refuses a dirty slot.
     #[value(name = "releasepool")]
     ReleasePool,
@@ -827,7 +827,7 @@ fn clone_name(url: &str) -> String {
     base.strip_suffix(".git").unwrap_or(base).to_string()
 }
 
-/// `bn tat` (interactive) or `bn tat <name>` (direct). `root_opt` is the `--root` scope (`Some("win")`
+/// `workspan tat` (interactive) or `workspan tat <name>` (direct). `root_opt` is the `--root` scope (`Some("win")`
 /// = the Windows root, the `tatw` replacement). Mirrors bash `resolve_and_open`.
 pub fn run(cfg: &Config, name: Option<&str>, root_opt: Option<&str>) {
     let roots = Roots::resolve(cfg, root_opt);
@@ -968,8 +968,8 @@ fn pool_eligible(roots: &Roots, r: &str) -> bool {
     ref_tag(r).is_empty() && !roots.win_scoped
 }
 
-/// Clone `<url>` into the bare+worktree layout via the native `bn wt clone`, then open it. Under
-/// `--root win` the clone is steered to the Windows root (`WT_ROOT`); otherwise `bn wt clone` uses
+/// Clone `<url>` into the bare+worktree layout via the native `workspan wt clone`, then open it. Under
+/// `--root win` the clone is steered to the Windows root (`WT_ROOT`); otherwise `workspan wt clone` uses
 /// its configured default, preserving the single-root behaviour exactly.
 fn clone_and_open(cfg: &Config, roots: &Roots, url: &str) {
     let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());

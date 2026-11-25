@@ -24,7 +24,7 @@ use std::path::PathBuf;
 /// One reaction: which events, and what to run for each.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct Rule {
-    /// Stable short id, used by `bn on rm`.
+    /// Stable short id, used by `workspan on rm`.
     pub id: String,
     /// The event `kind` to match (e.g. `pr_merged`). `*` matches every kind.
     pub kind: String,
@@ -118,7 +118,7 @@ pub fn mint_id(kind: &str, existing: &[Rule]) -> String {
 /// Whether `rule` matches `event`, ignoring timing.
 ///
 /// A field filter compares against the event field's *display* form, so `--field number=52`
-/// matches whether the log stored `52` or `"52"` — `bn event` turns all-digit values into numbers,
+/// matches whether the log stored `52` or `"52"` — `workspan event` turns all-digit values into numbers,
 /// and a rule written by hand should not have to know that.
 pub fn matches(rule: &Rule, event: &crate::events::Event) -> bool {
     if !rule.enabled {
@@ -289,7 +289,7 @@ mod tests {
         assert!(plan(&[r], &[ev("pr_merged", 10, &[])], 0).is_empty());
     }
 
-    /// `bn event` stores all-digit values as numbers, so a hand-written filter must match both.
+    /// `workspan event` stores all-digit values as numbers, so a hand-written filter must match both.
     #[test]
     fn a_field_filter_matches_a_number_stored_unquoted() {
         let mut r = rule("r1", "pr_merged", 0);

@@ -13,7 +13,7 @@ use chrono::{Datelike, Local, NaiveDate, TimeZone, Weekday};
 /// Grace window (seconds) after a scheduled slot before a no-show counts as *missed*. It has to
 /// clear every legitimate reason a run lands late: systemd `RandomizedDelaySec` (staff agents use
 /// up to 10m), a `Persistent=` catch-up fire after the box wakes, and a `catch_up` agent that
-/// waits for the first bn event of the day. Deliberately generous — a *false* "missed" is worse
+/// waits for the first workspan event of the day. Deliberately generous — a *false* "missed" is worse
 /// than a *late* "missed", because it trains you to distrust the one signal that is supposed to
 /// make silence safe.
 pub const DEFAULT_MISS_GRACE_SECS: i64 = 3 * 60 * 60;

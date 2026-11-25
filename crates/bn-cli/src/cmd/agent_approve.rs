@@ -23,7 +23,7 @@ struct AuditEntry<'a> {
     kind: &'a str,
     question: &'a str,
     subject: Option<&'a str>,
-    /// Every option the dialog offered, so the log shows what bn *could* have picked, not only what
+    /// Every option the dialog offered, so the log shows what workspan *could* have picked, not only what
     /// it did. Reviewing an approval means seeing the choice it faced.
     options: Vec<String>,
     approved: bool,
@@ -69,7 +69,7 @@ fn record(target: &str, prompt: &PendingPrompt, decision: &ApprovalDecision) {
         Ok(mut f) => {
             let _ = writeln!(f, "{line}");
         }
-        Err(e) => eprintln!("bn: could not record approval to {} ({e})", path.display()),
+        Err(e) => eprintln!("workspan: could not record approval to {} ({e})", path.display()),
     }
 }
 
@@ -85,7 +85,7 @@ fn lane_trusted(registry: &bn_core::agent::AgentLeaseRegistry, target: &str) -> 
 /// Run the policy over every live agent that is currently blocked on a dialog.
 ///
 /// The orchestrate supervisor has always applied its rule to its own lanes. An agent started by a
-/// plain `bn dispatch` — or one you launched by hand — sat on its permission prompt until a human
+/// plain `workspan dispatch` — or one you launched by hand — sat on its permission prompt until a human
 /// noticed, because nothing outside a wave was watching. This is that pass, and it is where a
 /// `scope` of `dispatched` or `all` actually takes effect.
 ///
@@ -164,14 +164,14 @@ pub(crate) fn sweep(cfg: &Config, dry_run: bool, as_json: bool) -> (usize, usize
     (answered, escalated)
 }
 
-/// `bn agent approvals` — show the effective policy and the recent decisions it produced.
+/// `workspan agent approvals` — show the effective policy and the recent decisions it produced.
 pub(crate) fn emit_approvals(_cfg: &Config, init: bool, limit: usize, as_json: bool) {
     use bn_core::render::Envelope;
     let path = bn_core::resolver::approvals_file_path();
 
     if init {
         if path.exists() {
-            eprintln!("bn agent approvals: {} already exists", path.display());
+            eprintln!("workspan agent approvals: {} already exists", path.display());
             std::process::exit(1);
         }
         if let Some(dir) = path.parent() {
@@ -180,7 +180,7 @@ pub(crate) fn emit_approvals(_cfg: &Config, init: bool, limit: usize, as_json: b
         match std::fs::write(&path, ApprovalPolicy::template()) {
             Ok(()) => println!("\u{2713} wrote {}", path.display()),
             Err(e) => {
-                eprintln!("bn agent approvals: could not write {} ({e})", path.display());
+                eprintln!("workspan agent approvals: could not write {} ({e})", path.display());
                 std::process::exit(1);
             }
         }
@@ -212,9 +212,9 @@ pub(crate) fn emit_approvals(_cfg: &Config, init: bool, limit: usize, as_json: b
 
     println!("Policy: {}", path.display());
     if !path.exists() {
-        println!("  (no file — bn's built-in default applies: an orchestrated --yolo ship lane's");
+        println!("  (no file — workspan's built-in default applies: an orchestrated --yolo ship lane's");
         println!("   command approvals are cleared with the session-scoped allow, nothing else)");
-        println!("  write one with `bn agent approvals --init`");
+        println!("  write one with `workspan agent approvals --init`");
     } else {
         println!(
             "  enabled: {}  scope: {:?}  allow rules: {}  deny rules: {}",

@@ -41,7 +41,7 @@ happened to run in — so without the sweep a note edited by an agent in another
 that window's tab. Run it by hand to see its decisions:
 
 ```
-bn tmux reconcile --dry-run
+workspan tmux reconcile --dry-run
 ```
 
 It stamps a window only where the window's name agrees with the branch its pane is actually on. A
@@ -51,7 +51,7 @@ blank one.
 
 ### Build/test runs
 
-Run `workspan cmd run -- --label build -- bn build` or wrap your test command the same way.
+Run `workspan cmd run -- --label build -- workspan build` or wrap your test command the same way.
 `prefix B` opens this worktree's run history: select a run to inspect its command, read the
 retained log, or confirm a rerun. Reruns preserve argv/cwd but use the current environment and
 new logs. `prefix c` still opens the general command picker.
@@ -76,8 +76,8 @@ enough rows between runs. To see every curated binding with its press count, and
 never press:
 
 ```
-bn tmux keys              # last 7 days
-bn tmux keys --since 30d
+workspan tmux keys              # last 7 days
+workspan tmux keys --since 30d
 ```
 
 A `gap` in the header means the tmux server restarted or the log rolled over between runs, so the
@@ -128,15 +128,15 @@ So:
 
 - Typing `claude` (or `copilot`) in the main slot doesn't dead-end — it asks *what is this worktree for?*, then hands the answer to `workspan dispatch`, which leases a warm pool slot, seeds that branch's note with the goal **and** an open todo, and starts the agent there.
 - Typing either harness outside a git worktree refuses to start. Enter an existing repository or create one first.
-- Repo-less attention items stay in the attention list until task enhancement or a human assigns a repo and branch; bn no longer opens planning scratch sessions for them.
+- Repo-less attention items stay in the attention list until task enhancement or a human assigns a repo and branch; workspan no longer opens planning scratch sessions for them.
 - Typing it in a worktree that already has a live agent refuses, naming the holder: steer it with `workspan agent send <repo>:<branch> "…"`, or free it with `workspan agent kill <repo>:<branch>`.
-- Typing it on a **bare terminal** (no surrounding tmux) opens the branch's window and attaches you to it, so the agent lands somewhere bn can steer, kill and show in the dashboard rather than in a pane nothing can address. Requires a real terminal and a running tmux server; `BN_AGENT_TMUX_REDIRECT=0` turns it off for one call.
+- Typing it on a **bare terminal** (no surrounding tmux) opens the branch's window and attaches you to it, so the agent lands somewhere workspan can steer, kill and show in the dashboard rather than in a pane nothing can address. Requires a real terminal and a running tmux server; `BN_AGENT_TMUX_REDIRECT=0` turns it off for one call.
 - `wt pool status` shows slot 1 labelled `(controller)`; the configured pool size counts it, so `<repo> 4` means one controller plus three workers.
 - `BN_AGENT_GUARD=0 claude …` bypasses the within-repo placement rules for one call — the repository requirement remains unconditional.
 
 ## Which sessions exist
 
-The rule the placement table above states for *agents* holds for every session bn opens, including the ones it opens for itself: **a session is named after a repository**, and a window after a worktree. That is what `tat`, `workspan jump`, the status bar and the dashboard all assume, so a session named anything else is invisible to every one of them.
+The rule the placement table above states for *agents* holds for every session workspan opens, including the ones it opens for itself: **a session is named after a repository**, and a window after a worktree. That is what `tat`, `workspan jump`, the status bar and the dashboard all assume, so a session named anything else is invisible to every one of them.
 
 Three exceptions, none of which is work:
 
@@ -263,7 +263,7 @@ run inside copy mode after making a selection.
 |-----|--------|
 | `u` | **extrakto:** fuzzy-search this pane's retained scrollback. `Tab` inserts the selected text without submitting it; `Enter` copies it. `C-f` switches between words, paths, URLs and lines. |
 | `F` | **fingers:** letter hints over visible paths, URLs, hashes and IDs. Press a hint to copy; a shifted hint pastes. `Esc` exits. |
-| `M-o` (copy mode) | Open the selected URL or file through bn's platform-aware opener. |
+| `M-o` (copy mode) | Open the selected URL or file through workspan's platform-aware opener. |
 | `M-e` (copy mode) | Open the selected file in a separate editor popup, not by typing a command into the shell or agent pane. |
 | `M-s` (copy mode) | Search the selected text in the browser. |
 | `Y` | Toggle output recording for this pane. The start/stop message gives the file path. |

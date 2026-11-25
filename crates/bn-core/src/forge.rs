@@ -41,7 +41,7 @@ pub struct ForgeLinks {
 }
 
 /// The `origin` URL recorded in a clone's `config`, or `None` when the file is unreadable or has no
-/// `origin`. `git_dir` is the git directory itself (`<repo>.git` for the bare clones bn manages).
+/// `origin`. `git_dir` is the git directory itself (`<repo>.git` for the bare clones workspan manages).
 /// A hand-rolled read of the one key we need — `[remote "origin"] url` — not a git-config parser:
 /// section headers and `key = value` lines are all this has to understand.
 pub fn origin_url(git_dir: &Path) -> Option<String> {

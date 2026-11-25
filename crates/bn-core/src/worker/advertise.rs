@@ -15,7 +15,7 @@ use crate::resolver::Config;
 ///
 ///   * the intrinsic `os:` / `arch:` pair and any `$BN_WORKER_LABELS` extras — i.e. the existing
 ///     [`crate::worker::node_labels`], unchanged;
-///   * one `skill:<name>` per **effective** bn skill (the highest-precedence definition per name,
+///   * one `skill:<name>` per **effective** workspan skill (the highest-precedence definition per name,
 ///     so a repo-local override does not double-count);
 ///   * one `harness:<name>` per harness actually usable here — an org-disabled harness is not
 ///     advertised, because advertising it would attract work the box then cannot run;
@@ -53,7 +53,7 @@ pub fn advertised_labels(cfg: &Config, base_dir: &std::path::Path) -> Vec<String
 
 /// The MCP servers that are a property of **this node**, by name.
 ///
-/// Only bn's own server qualifies today. Project-scoped servers (`.vscode/mcp.json`,
+/// Only workspan's own server qualifies today. Project-scoped servers (`.vscode/mcp.json`,
 /// `.github/mcp.json`) are deliberately excluded: they belong to a worktree, not a machine, so
 /// advertising them here would claim a capability that varies per checkout — and placement would
 /// then send work to a box where the requirement happens not to hold.

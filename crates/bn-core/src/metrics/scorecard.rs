@@ -41,7 +41,7 @@ pub struct Scorecard {
     /// Code churn / turnover, split agent-assisted vs hand-written — the AI-era quality axis (#128).
     #[serde(default)]
     pub churn: Churn,
-    /// Partial progress across open branch todos (`bn done --pct`, #213) — multi-day work made
+    /// Partial progress across open branch todos (`workspan done --pct`, #213) — multi-day work made
     /// visible before it closes, instead of reading as zero throughput.
     #[serde(default)]
     pub partial: PartialProgress,
@@ -145,7 +145,7 @@ pub fn pool_activity(evs: &[events::Event], now: i64, window_days: i64) -> PoolA
     }
 }
 
-/// The scorecard's default trailing window, in days. Shared so `bn metrics --since` and every
+/// The scorecard's default trailing window, in days. Shared so `workspan metrics --since` and every
 /// programmatic reader (the standup gaps beat) describe the same period without drifting apart.
 pub const DEFAULT_WINDOW_DAYS: i64 = 30;
 
@@ -408,7 +408,7 @@ impl Baselines {
         BASELINE_MIN_SAMPLES
     }
 
-    /// The anomalous positions, most-deviant first — what `bn metrics` flags at the top.
+    /// The anomalous positions, most-deviant first — what `workspan metrics` flags at the top.
     pub fn anomalies(&self) -> Vec<&BaselinePosition> {
         let mut a: Vec<&BaselinePosition> = self.positions.iter().filter(|p| p.anomaly).collect();
         a.sort_by(|x, y| {

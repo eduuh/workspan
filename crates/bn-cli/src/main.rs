@@ -125,9 +125,9 @@ fn today() -> String {
     bn_core::clock::RealClock.today()
 }
 
-/// Stamp provenance onto a `bn learned`/`bn reflect` entry: the repo/branch of the cwd worktree
+/// Stamp provenance onto a `workspan learned`/`workspan reflect` entry: the repo/branch of the cwd worktree
 /// (if any), the branch note's issue reference, and the harness driving bn. Recorded at write
-/// time so `bn learnings` can attribute a fleet's learnings back to the dispatch that produced
+/// time so `workspan learnings` can attribute a fleet's learnings back to the dispatch that produced
 /// them. Outside a worktree only the harness (if any) is stamped — the daily/global axis.
 fn log_provenance(cfg: &Config) -> bn_core::daily::LogProvenance {
     let harness = bn_core::util::detect_harness();
@@ -197,7 +197,7 @@ fn migration_notice(report: &bn_core::config_migrate::Report) -> String {
         into.join(" and ")
     };
     format!(
-        "bn: moved your config into {into}. The old file is kept at {}; {} lists what moved.",
+        "workspan: moved your config into {into}. The old file is kept at {}; {} lists what moved.",
         report.backup.display(),
         bn_core::resolver::config_dir()
             .join("config-migration.txt")
@@ -207,9 +207,9 @@ fn migration_notice(report: &bn_core::config_migrate::Report) -> String {
 
 /// Give bn, and every tmux it runs, a UTF-8 character type when the caller's locale is not one.
 ///
-/// tmux prints a tab inside a `-F` format as `_` unless the locale is UTF-8, and bn's tmux formats
-/// are tab-separated. An ssh session on a machine with no `LANG` (every bn call a remote machine
-/// makes, e.g. `ssh <machine> bn agent live`) therefore parsed no windows at all: remote agents
+/// tmux prints a tab inside a `-F` format as `_` unless the locale is UTF-8, and workspan's tmux formats
+/// are tab-separated. An ssh session on a machine with no `LANG` (every workspan call a remote machine
+/// makes, e.g. `ssh <machine> workspan agent live`) therefore parsed no windows at all: remote agents
 /// showed as windowless and cross-machine messages could not find them (2026-09-30). Runs first
 /// in `main`, before any thread exists.
 fn ensure_utf8_ctype() {
@@ -342,13 +342,13 @@ fn resolve_or_fail_json(cfg: &Config, json: bool, command: &str) -> Resolved {
 /// Is this invocation a machine-driven render rather than something the user typed?
 ///
 /// Two families, same reason. The pickers (`tat`, `jump`, `connect`) are self-referencing: fzf's
-/// `--preview`, `reload()` and action binds all re-invoke `bn … --pick-stage <stage>`. And the
+/// `--preview`, `reload()` and action binds all re-invoke `workspan … --pick-stage <stage>`. And the
 /// tmux status line re-invokes some of these commands from `#(...)` on every `status-interval`
 /// repaint — at 5s that was roughly 121k processes a day across seven segments, none of them a
 /// user action.
 ///
 /// Two of those seven are left on the bar: `tmux-git` and `tmux-status`. `tmux-goal` went when the
-/// bar folded to one row. `attn badge` and `cron running` moved into `bn tat`'s header (#1349),
+/// bar folded to one row. `attn badge` and `cron running` moved into `workspan tat`'s header (#1349),
 /// which calls them in-process. They stay
 /// listed below because they are still commands a script or a `#()` can invoke, and the reasoning
 /// has not changed for them.
@@ -434,7 +434,7 @@ pub(crate) fn fail(msg: &str) -> ! {
 
 /// Exit status for a refusal that retrying cannot change.
 ///
-/// `bn dispatch` says no for two different kinds of reason. "No slot free" and "worktree occupied
+/// `workspan dispatch` says no for two different kinds of reason. "No slot free" and "worktree occupied
 /// by a live agent" are about the moment, and a later attempt may get a different answer. "This
 /// item's branch is already active" is about the request: a merged branch's leftover ref satisfies
 /// that test with no agent alive and nothing left to finish, so every retry gets the same refusal.
@@ -533,9 +533,9 @@ mod prompt_command_tests {
         ));
     }
 
-    /// Every backtick-quoted `bn <sub>` command in the shipped prompts and agent definitions must
+    /// Every backtick-quoted `workspan <sub>` command in the shipped prompts and agent definitions must
     /// name a real first-level clap subcommand. This is the guardrail that catches phantom or
-    /// removed commands frozen into instruction text (the class of bug behind `bn dispatch
+    /// removed commands frozen into instruction text (the class of bug behind `workspan dispatch
     /// --host`, `sprint-setup`, and the `bn_next`-style tool names).
     #[test]
     fn shipped_prompts_reference_only_real_subcommands() {
@@ -554,7 +554,10 @@ mod prompt_command_tests {
                 }
                 let text = std::fs::read_to_string(&path).expect("prompt readable");
                 for span in text.split('`').skip(1).step_by(2) {
-                    let Some(rest) = span.strip_prefix("bn ") else {
+                    let Some(rest) = ["workspan ", "ws ", "bn "]
+                        .iter()
+                        .find_map(|prefix| span.strip_prefix(prefix))
+                    else {
                         continue;
                     };
                     let Some(first) = rest.split_whitespace().next() else {
@@ -566,7 +569,7 @@ mod prompt_command_tests {
                     }
                     assert!(
                         names.iter().any(|n| n == first),
-                        "{}: `bn {first} …` names an unknown subcommand",
+                        "{}: `workspan {first} …` names an unknown subcommand",
                         path.display()
                     );
                 }
@@ -574,7 +577,7 @@ mod prompt_command_tests {
         }
     }
 
-    /// Every `run:` and `gather:` line in an agent manifest must parse as a real bn invocation.
+    /// Every `run:` and `gather:` line in an agent manifest must parse as a real workspan invocation.
     ///
     /// These are the lines that actually *execute*: `run:` is what a scheduled agent does, and
     /// `gather:` is what fills its packet. The backtick check above never sees them — they live in
@@ -603,7 +606,10 @@ mod prompt_command_tests {
                     continue;
                 };
                 let command = rest.trim().trim_matches(['"', '\''].as_slice());
-                let Some(args) = command.strip_prefix("bn ") else {
+                let Some(args) = ["workspan ", "ws ", "bn "]
+                    .iter()
+                    .find_map(|prefix| command.strip_prefix(prefix))
+                else {
                     // A manifest may shell out to something that is not bn (a user script); this
                     // test only speaks for bn's own surface.
                     continue;

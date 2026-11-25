@@ -14,7 +14,7 @@ pub const TRIAGE_WINDOW: usize = 12;
 
 /// One task's deterministic rank, higher = do sooner.
 ///
-/// Every input is something bn already knows, so the score is reproducible: the same store on the
+/// Every input is something workspan already knows, so the score is reproducible: the same store on the
 /// same day always yields the same order. Weights are coarse on purpose — this is a *pre*-score
 /// whose job is to put roughly the right dozen in front of the model, not to be the final answer.
 pub fn pre_score(task: &Task, today: &str) -> i64 {
@@ -98,7 +98,7 @@ pub fn rank<'a>(tasks: &[&'a Task], today: &str) -> Vec<&'a Task> {
 /// What the operator captured with a task, as the packet advertises it.
 ///
 /// Only counts and names — never the content. The captured body may be a paste from a third-party
-/// issue, and an attachment is an arbitrary file; both belong behind `bn task doc` / `bn task
+/// issue, and an attachment is an arbitrary file; both belong behind `workspan task doc` / `workspan task
 /// attach`, where the agent reads them knowing what they are. The packet's job is to make sure the
 /// agent *knows they exist*, because an agent that never looks re-derives what it was handed.
 #[derive(Debug, Default, Clone, PartialEq, Eq)]
@@ -293,7 +293,7 @@ mod tests {
     }
 
     /// Small work first, because it is likelier to actually land within a day. Note this is the
-    /// *only* ranker in bn that reads an estimate at all.
+    /// *only* ranker in workspan that reads an estimate at all.
     #[test]
     fn the_estimate_ladder_prefers_work_that_fits_a_day() {
         for (est, weight) in [

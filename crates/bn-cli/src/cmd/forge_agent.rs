@@ -32,7 +32,7 @@ pub(crate) enum ForgeAgentCmd {
     },
 }
 
-/// `bn forge-agent <sub>`.
+/// `workspan forge-agent <sub>`.
 pub(crate) fn emit_forge_agent(cfg: &Config, action: ForgeAgentCmd, json: bool) -> i32 {
     match action {
         ForgeAgentCmd::Status => status(cfg, json),
@@ -128,7 +128,7 @@ fn call(ep: &Endpoint, tool: &str, arguments: Value) -> Result<Value, String> {
     }
 }
 
-/// `bn agent live`, keyed by `(repo lowercased, branch)`, with each row's kill target.
+/// `workspan agent live`, keyed by `(repo lowercased, branch)`, with each row's kill target.
 fn live_agents() -> Vec<(String, String, String, LiveView)> {
     let Ok(out) = bn_core::bn_subprocess::run(&["agent", "live"], None) else {
         return Vec::new();
@@ -166,7 +166,7 @@ fn kill(target: &str) {
     let _ = bn_core::bn_subprocess::run(&["agent", "kill", target], None);
 }
 
-/// The PR recorded on a run's branch note, if any. `bn pr` reads the worktree it runs in.
+/// The PR recorded on a run's branch note, if any. `workspan pr` reads the worktree it runs in.
 fn pr_url(run: &Run) -> Option<String> {
     let wt = PathBuf::from(run.worktree.as_deref()?);
     let out = bn_core::bn_subprocess::run(&["pr", "--show"], Some(&wt)).ok()?;

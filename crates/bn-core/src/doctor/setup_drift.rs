@@ -7,7 +7,7 @@ use std::path::{Path, PathBuf};
 
 const MANAGED_MARKER: &str = "bn-managed-skill:";
 
-/// One thing on this machine that has drifted from what the bn checkout tracks.
+/// One thing on this machine that has drifted from what the workspan checkout tracks.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct SetupFinding {
     /// The path (stow link or skill dir) that has drifted.
@@ -93,7 +93,7 @@ fn split_frontmatter(src: &str) -> (&str, &str) {
 /// For each `prompts_dir/<name>.md`, check `skills_dir/<name>/SKILL.md`: missing, unmanaged or
 /// skills that no longer match their prompt. Prompts marked `internal: true` are not skills and are skipped.
 pub fn skill_drift(prompts_dir: &Path, skills_dir: &Path) -> Vec<SetupFinding> {
-    let fix = "bn skills install".to_string();
+    let fix = "workspan skills install".to_string();
     let mut out = Vec::new();
     let Ok(rd) = fs::read_dir(prompts_dir) else {
         return out;

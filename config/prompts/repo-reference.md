@@ -11,13 +11,13 @@ already wrote it down. That is what the **reference notes** are: durable facts a
 repository* — how it builds, where the seams are, which failures mislead. They are independent of
 task state and Entire's session history.
 
-1. **Read the index first.** Call `bn_ref` with `scope: "repo"` and no name (CLI: `bn ref --repo`). You get every
+1. **Read the index first.** Call `bn_ref` with `scope: "repo"` and no name (CLI: `workspan ref --repo`). You get every
    note's name and one-line summary and nothing else — a handful of tokens. Do this before
    assuming the notes are empty; "there's probably nothing" is how knowledge gets re-derived for
    the fourth time.
 
 2. **Open at most what you need.** Call `bn_ref` with the one name that bears on {{question}}
-   (CLI: `bn ref <name> --repo`). Two notes is usually one too many — the index summaries exist so
+   (CLI: `workspan ref <name> --repo`). Two notes is usually one too many — the index summaries exist so
    you can choose. Global coding standards come through the same tool: `scope: "global"`.
 
 3. **Trust it the way it asks to be trusted.** Every bullet should carry where it came from and
@@ -28,7 +28,7 @@ task state and Entire's session history.
    the recording section below).
 
 4. **When the notes are wrong, say so and fix them.** Finding that a recorded fact no longer holds
-   is a result worth keeping. Correct the bullet in place — `bn ref edit <name> --repo` — rather
+   is a result worth keeping. Correct the bullet in place — `workspan ref edit <name> --repo` — rather
    than leaving a known-false claim for the next session to trip on.
 
 5. **When the notes are silent, say that too.** Do not invent a fact and attribute it to the
@@ -46,7 +46,7 @@ Record {{question}} where the next session will find it. The reference notes are
 **The one test: will this still be true next month, for anyone working on this repo?**
 
 - Yes → a reference note. "The post-checkout hook prints `node: not found` in a non-login shell,
-  so bn reports a failed switch that actually succeeded."
+  so workspan reports a failed switch that actually succeeded."
 - No → the assigned task's context for actionable state, or Entire for session history. "The test on my branch
   fails because I forgot to rebuild the dependency" is not repo knowledge, it is Tuesday.
 
@@ -57,7 +57,7 @@ Record {{question}} where the next session will find it. The reference notes are
    one is a home for it.
 
 2. **One fact per bullet, with its provenance.** Append with `bn_ref_append`
-   (CLI: `bn ref append <name> --repo --section gotchas "<fact>"`), section `facts` or `gotchas`.
+   (CLI: `workspan ref append <name> --repo --section gotchas "<fact>"`), section `facts` or `gotchas`.
    Every bullet ends with where it came from and when you checked it:
    `(src: .nvmrc, 2026-09-03)` for something read in the source, `(observed, 2026-09-03)`
    for something you saw happen. **Do not skip this.** An unsourced bullet is indistinguishable
@@ -68,7 +68,7 @@ Record {{question}} where the next session will find it. The reference notes are
    Overclaiming is how a note becomes a trap.
 
 4. **Correct, don't accumulate.** If the note already says something that this session proved
-   wrong, **edit that bullet** (`bn ref edit <name> --repo`). Appending a contradiction leaves the
+   wrong, **edit that bullet** (`workspan ref edit <name> --repo`). Appending a contradiction leaves the
    next reader to guess which line is current. `bn_ref_append` returns `appended: false` when the
    exact fact is already recorded — that is a clean no-op, not a failure.
 

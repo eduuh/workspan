@@ -289,7 +289,7 @@ fn claimed_name(text: &str) -> Option<String> {
 /// The highest-precedence definition of `name` across `dirs` (low→high), or its error.
 ///
 /// Only the requested skill's own file can fail the lookup. Resolving one prompt used to parse the
-/// whole catalog strictly, so a single half-edited personal skill stopped every `bn skills render`,
+/// whole catalog strictly, so a single half-edited personal skill stopped every `workspan skills render`,
 /// dispatch seed, critic and pipeline prompt on the machine. A broken file that claims `name` still
 /// fails: falling back to a lower-precedence copy would silently run a definition the user replaced.
 fn find_skill(dirs: &[PathBuf], name: &str) -> Result<Option<Skill>, SkillCatalogError> {
@@ -395,7 +395,7 @@ mod tests {
     const BROKEN: &str = "---\nname: broken\ndescription: x\n---\n{{undeclared}}\n";
 
     /// One broken skill used to fail every lookup, so a half-edited personal skill stopped every
-    /// dispatch seed and `bn skills render` on the machine.
+    /// dispatch seed and `workspan skills render` on the machine.
     #[test]
     fn a_broken_sibling_does_not_block_another_skill() {
         let tmp = tempfile::tempdir().expect("tempdir");
@@ -613,9 +613,9 @@ mod tests {
         }
     }
 
-    /// Every `bn_<name>` token in a shipped prompt must be a real bn MCP tool. The list mirrors the
+    /// Every `bn_<name>` token in a shipped prompt must be a real workspan MCP tool. The list mirrors the
     /// `name = "bn_…"` tools in crates/bn-mcp/src; anything else (`bn_next`, `bn_metrics`, …) is a
-    /// CLI command and must be written `bn <sub>` — prompts instructing a phantom tool fail on
+    /// CLI command and must be written `workspan <sub>` — prompts instructing a phantom tool fail on
     /// every run.
     #[test]
     fn shipped_prompts_reference_only_real_mcp_tools() {
@@ -650,8 +650,8 @@ mod tests {
                     if !preceded && token != "bn_" {
                         assert!(
                             MCP_TOOLS.contains(&token),
-                            "{} references '{token}', which is not one of the bn MCP tools — \
-                             CLI commands must be written `bn <sub>`",
+                            "{} references '{token}', which is not one of the workspan MCP tools — \
+                             CLI commands must be written `workspan <sub>`",
                             path.display()
                         );
                     }

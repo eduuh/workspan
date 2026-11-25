@@ -81,7 +81,7 @@ fn discover_without_task_or_repo_is_safe_and_does_not_list_workflows() {
     assert_eq!(data["task"], "");
     assert_eq!(data["workflows"], json!([]));
     assert_eq!(data["workflows_filtered"], false);
-    assert_eq!(data["commands"], json!(["bn discover '<task>'"]));
+    assert_eq!(data["commands"], json!(["workspan discover '<task>'"]));
     assert!(render(&data).contains("No branch context"));
     assert_eq!(snapshot(dir.path()), before);
 }
@@ -105,7 +105,7 @@ fn discover_task_selects_relevant_effective_workflows_and_real_commands() {
     assert_eq!(data["workflows"][0]["scope"], "repo-shared");
     assert_eq!(
         data["workflows"][0]["read_command"],
-        "bn skills render debug"
+        "workspan skills render debug"
     );
     assert_eq!(data["workflows"][0]["invoke"]["copilot"], "/debug");
     let output = render(&data);
@@ -117,7 +117,7 @@ fn discover_task_selects_relevant_effective_workflows_and_real_commands() {
     assert!(!cfg.personal_root.exists());
     let empty = discover(&cfg, &repo, "").unwrap();
     assert!(empty["context"]["task_id"].is_null());
-    assert_eq!(empty["commands"][0], "bn task list");
+    assert_eq!(empty["commands"][0], "workspan task list");
     assert_eq!(snapshot(dir.path()), before);
 }
 
@@ -147,7 +147,7 @@ fn discover_unknown_task_does_not_offer_irrelevant_guidance() {
     assert_eq!(data["workflows"], json!([]));
     assert_eq!(data["workflows_filtered"], false);
     assert_eq!(data["workflows_truncated"], false);
-    assert_eq!(data["commands"], json!(["bn skills"]));
+    assert_eq!(data["commands"], json!(["workspan skills"]));
     assert!(!render(&data).contains("bn goal"));
     assert!(!render(&data).contains("bn --cat"));
 }
@@ -328,7 +328,7 @@ fn discover_owned_effective_source_wins_over_generated_native_copies() {
     assert_eq!(data["workflows"][0]["invoke"]["claude"], "/bn:debug");
     assert_eq!(
         data["workflows"][0]["read_command"],
-        "bn skills render debug"
+        "workspan skills render debug"
     );
 }
 

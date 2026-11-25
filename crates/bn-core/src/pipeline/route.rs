@@ -76,7 +76,7 @@ impl Route {
 /// The task meta key carrying a stamped or hand-pinned route.
 pub const ROUTE_KEY: &str = "route";
 
-/// Signals bn itself authored or computed. May narrow a route as well as widen it.
+/// Signals workspan itself authored or computed. May narrow a route as well as widen it.
 #[derive(Debug, Clone, Default, PartialEq, Eq)]
 pub struct Declared {
     /// `est:` in minutes, already through [`crate::smart::parse_est_minutes`].

@@ -329,9 +329,9 @@ fn live_pane_pids_of_window(window_id: &str) -> Vec<i32> {
 }
 
 /// Terminate the **full process tree** rooted at each live pane of the given windows — the piece
-/// `bn wt cleanup` was missing (#503 gap 2): with `remain-on-exit on` a killed window leaves the
+/// `workspan wt cleanup` was missing (#503 gap 2): with `remain-on-exit on` a killed window leaves the
 /// pane's process reparented and alive, so cleanup must kill the tree, not just the window. The
-/// window the caller is sitting in (our own shell) is always skipped, so an interactive `bn close`
+/// window the caller is sitting in (our own shell) is always skipped, so an interactive `workspan close`
 /// from inside a worktree never shoots its own shell out mid-cleanup. Returns how many processes
 /// were signalled.
 pub(crate) fn kill_window_trees(wins: &[String]) -> usize {
@@ -737,7 +737,7 @@ pub(crate) fn run_reap(cfg: &Config, opts: ReapOpts) -> i32 {
     0
 }
 
-/// The fast opportunistic sweep folded into `bn dispatch` / `bn next`: prune dead windows and reap
+/// The fast opportunistic sweep folded into `workspan dispatch` / `workspan next`: prune dead windows and reap
 /// clearly-stale stragglers (window/worktree gone), skipping the per-candidate PR network calls.
 /// Safe by default — never touches working / WIP / orchestrator agents. Best-effort and quiet.
 pub(crate) fn sweep(cfg: &Config) {
@@ -762,7 +762,7 @@ pub(crate) fn sweep(cfg: &Config) {
     );
 }
 
-/// Launch the opportunistic sweep in the background, so `bn next` keeps its read path under a
+/// Launch the opportunistic sweep in the background, so `workspan next` keeps its read path under a
 /// second and the cleanup runs out of band.
 pub(crate) fn launch_next_sweep() {
     if cfg!(test) {
@@ -776,7 +776,7 @@ pub(crate) fn launch_next_sweep() {
     }
     if let Err(e) = std::fs::write(&path, now.to_string()) {
         eprintln!(
-            "bn: could not record next-sweep launch time at {}: {e}",
+            "workspan: could not record next-sweep launch time at {}: {e}",
             path.display()
         );
     }
@@ -784,7 +784,7 @@ pub(crate) fn launch_next_sweep() {
         Ok(_) => {}
         Err(e) => {
             let _ = std::fs::remove_file(&path);
-            eprintln!("bn: could not schedule background fleet sweep: {e}");
+            eprintln!("workspan: could not schedule background fleet sweep: {e}");
         }
     }
 }

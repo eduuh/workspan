@@ -39,7 +39,7 @@ use std::process::{Command, Output};
 pub const FROZEN_NOW: i64 = 1_768_478_400;
 const FROZEN_TODAY: &str = "2026-01-15";
 
-/// One isolated bn universe. Dropping it tears down the sandbox tmux server and temporary root.
+/// One isolated workspan universe. Dropping it tears down the sandbox tmux server and temporary root.
 pub struct Sandbox {
     root: PathBuf,
     env: BTreeMap<String, String>,
@@ -209,7 +209,7 @@ impl Sandbox {
             .stdout(Stdio::piped())
             .stderr(Stdio::piped())
             .spawn()
-            .context("spawn bn with batch input")?;
+            .context("spawn workspan with batch input")?;
         if let Some(mut stdin) = child.stdin.take() {
             stdin.write_all(input.as_bytes())?;
         }
@@ -250,9 +250,9 @@ impl Sandbox {
         self.finish(cmd, "git")
     }
 
-    /// Seed the bare+worktree layout `bn dispatch` requires, returning the bare repo's path.
+    /// Seed the bare+worktree layout `workspan dispatch` requires, returning the bare repo's path.
     ///
-    /// `bn dispatch` refuses to run without `<bare_dir>/<repo>.git` ("dispatch needs the
+    /// `workspan dispatch` refuses to run without `<bare_dir>/<repo>.git` ("dispatch needs the
     /// bare+worktree layout"), so any test of the tmux workflow has to build one first. The seeded
     /// repo has one commit on `main`, which is what `dispatch` branches from.
     pub fn seed_bare_repo(&self, name: &str) -> Result<PathBuf> {
@@ -457,7 +457,7 @@ impl Run {
         )
     }
 
-    /// stdout and stderr together — bn writes user-facing text to both.
+    /// stdout and stderr together — workspan writes user-facing text to both.
     pub fn output(&self) -> String {
         format!("{}{}", self.stdout, self.stderr)
     }
@@ -484,7 +484,7 @@ fn locate_bn() -> Result<PathBuf> {
         return Ok(debug);
     }
     bail!(
-        "no bn binary at {} — run `cargo build --workspace` first, or set BN_E2E_BIN",
+        "no workspan binary at {} — run `cargo build --workspace` first, or set BN_E2E_BIN",
         debug.display()
     )
 }
@@ -494,7 +494,7 @@ fn config_dir_of(root: &Path) -> PathBuf {
     root.join("home/.bn/config")
 }
 
-/// The bn checkout this harness was compiled from.
+/// The workspan checkout this harness was compiled from.
 fn workspace_root() -> Result<PathBuf> {
     Path::new(env!("CARGO_MANIFEST_DIR"))
         .parent()

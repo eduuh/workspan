@@ -261,7 +261,7 @@ fn warm_stamp_path(target: &str) -> PathBuf {
     cache_home().join("wt").join(format!("tat-warm-{safe}"))
 }
 
-/// Refresh the network-backed caches in a **detached** `bn tat --pick-stage warm-remote` and return
+/// Refresh the network-backed caches in a **detached** `workspan tat --pick-stage warm-remote` and return
 /// at once. Nothing waits on it: stdio is closed, so an fzf `reload()` that spawns it does not
 /// block on the child either, and the run outlives the popup that started it.
 ///

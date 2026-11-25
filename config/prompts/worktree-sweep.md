@@ -27,36 +27,36 @@ removes. Confirm any expansion beyond the requested repo before acting.
 
 Run all six from the chosen repo's worktree. Every one is read-only or dry-run by default, and
 every removal in step 4 has to cite one of them. The commands below target that repo:
-`bn wt reap --all` means all its worktrees, but pool prune's `--all` means every repo, so omit
+`workspan wt reap --all` means all its worktrees, but pool prune's `--all` means every repo, so omit
 that flag for a repo-local sweep. Only for explicitly authorized `all` scope use
-`bn wt reap --all-repos` and `bn wt pool prune --all --verbose`; run the other repo commands
+`workspan wt reap --all-repos` and `workspan wt pool prune --all --verbose`; run the other repo commands
 once per chosen repo. Agent/tmux inventory may be machine-wide, but filter all candidates and
 removals to the approved scope. Unknown ownership means keep.
 
 | command | what it tells you |
 |---------|-------------------|
-| `bn wt list` | every registered worktree and its branch (detached ones show no branch) |
-| `bn wt status --all --pr` | which are dirty, and which of those have a merged PR (`stuck`) |
-| `bn wt reap --all` | dry run: what bn already considers done and safe |
-| `bn wt pool prune --verbose` | dry run for this repo: over-size and orphaned slots, plus leaked leases |
-| `bn agent live --json` | which worktrees hold a **live** agent — every one of these is off limits |
+| `workspan wt list` | every registered worktree and its branch (detached ones show no branch) |
+| `workspan wt status --all --pr` | which are dirty, and which of those have a merged PR (`stuck`) |
+| `workspan wt reap --all` | dry run: what workspan already considers done and safe |
+| `workspan wt pool prune --verbose` | dry run for this repo: over-size and orphaned slots, plus leaked leases |
+| `workspan agent live --json` | which worktrees hold a **live** agent — every one of these is off limits |
 | `tmux list-panes -a -F '#{session_name}\t#{window_id}\t#{window_name}\t#{pane_current_command}\t#{pane_dead}'` | every window, and whether its panes are running something or sitting at a shell |
 
-`bn wt status` prints the *branch* (`repo/feat/x`) while `bn wt list` and `bn wt reap` print the
+`workspan wt status` prints the *branch* (`repo/feat/x`) while `workspan wt list` and `workspan wt reap` print the
 *directory* (`feat-x`). Same worktree, two names — reconcile them before claiming one is missing.
 
 ## 2. Classify
 
 | class | evidence | action |
 |-------|----------|--------|
-| merged ship, clean | PR `MERGED`, nothing uncommitted, nothing ahead | `bn wt reap --all --yes` |
-| merged but dirty | `bn wt status --pr` marks it `stuck` | **keep** — hand it back in step 6 |
-| leaked pool lease | pool prune: `would reclaim leaked lease — nobody is in it` | `bn wt pool prune --yes` |
+| merged ship, clean | PR `MERGED`, nothing uncommitted, nothing ahead | `workspan wt reap --all --yes` |
+| merged but dirty | `workspan wt status --pr` marks it `stuck` | **keep** — hand it back in step 6 |
+| leaked pool lease | pool prune: `would reclaim leaked lease — nobody is in it` | `workspan wt pool prune --yes` |
 | over-size or orphaned slot | pool prune: `would remove (over-size)` / bare repo gone | same command |
-| registration with no directory | listed by `git worktree list`, path does not exist | `bn wt prune` |
-| leaked agent scratch | `.agent-<branch>-<token>`, clean, nobody in it, over a day old | `bn wt reap --all --yes` |
+| registration with no directory | listed by `git worktree list`, path does not exist | `workspan wt prune` |
+| leaked agent scratch | `.agent-<branch>-<token>`, clean, nobody in it, over a day old | `workspan wt reap --all --yes` |
 | leaked agent scratch **holding work** | reap prints `hold <name> — leaked scratch worktree with dirty/unpushed work in it` | **keep** — step 5 |
-| orphaned agent process | in `bn agent live` with no window, or its worktree/PR is gone | scoped cleanup in step 4 |
+| orphaned agent process | in `workspan agent live` with no window, or its worktree/PR is gone | scoped cleanup in step 4 |
 | dead pane or window | `pane_dead=1` (a `remain-on-exit` corpse) | scoped cleanup in step 4 |
 | finished cron window | in the `machine` session, named after a job, every pane at a shell | step 6 |
 | window outliving its worktree | its worktree path no longer exists | step 6 |
@@ -88,7 +88,7 @@ And in tmux specifically:
   window is finished;
 - every repo's `main` window — the shell you come back to, idle by design;
 - a window belonging to a worktree that still exists. That window is the worktree's, and it goes
-  when the worktree does, through `bn wt cleanup` / `bn wt close` — never by a raw kill.
+  when the worktree does, through `workspan wt cleanup` / `workspan wt close` — never by a raw kill.
 
 ## 4. Sweep, safest first
 
@@ -96,14 +96,14 @@ Order matters: clear the dead processes first so nothing pulls a checkout out fr
 agent, then reclaim worktrees, then slots, then registrations.
 
 1. Clean up only evidenced orphaned resources within the approved scope. For one named orphaned
-   agent, use `bn agent kill <repo>:<branch>`, which also frees its pool slot; for dead panes/windows
-   follow step 6 and the protected set. `bn run fleet-reap` is machine-wide and **acts** without
+   agent, use `workspan agent kill <repo>:<branch>`, which also frees its pool slot; for dead panes/windows
+   follow step 6 and the protected set. `workspan run fleet-reap` is machine-wide and **acts** without
    dry-run: use it only with explicit machine-wide cleanup approval, not for a repo-local sweep.
    It honors its own gates (never a working agent, an agent with uncommitted work, or the
    orchestrator); those gates do not substitute for scope approval.
-2. `bn wt reap --all --yes` from the chosen repo; use `--all-repos --yes` only for approved `all`.
-3. `bn wt pool prune --yes` from the chosen repo; add `--all` only for approved `all`.
-4. `bn wt prune` from each chosen repo, never outside a repo to bypass the scope check.
+2. `workspan wt reap --all --yes` from the chosen repo; use `--all-repos --yes` only for approved `all`.
+3. `workspan wt pool prune --yes` from the chosen repo; add `--all` only for approved `all`.
+4. `workspan wt prune` from each chosen repo, never outside a repo to bypass the scope check.
 
 Read each command's output before running the next. Two outcomes look like errors and are not:
 
@@ -112,17 +112,17 @@ Read each command's output before running the next. Two outcomes look like error
   The gate is doing its job. Do **not** re-run with `--force`; route that worktree to step 6.
 - A pool slot still there after `pool prune --yes` is an in-size warm slot. That is the pool, kept.
 
-Never reach for `bn wt cleanup --force`, `bn wt pool destroy --include-dirty`, or `git worktree
+Never reach for `workspan wt cleanup --force`, `workspan wt pool destroy --include-dirty`, or `git worktree
 remove --force` on a dirty tree to make a stubborn worktree go away. Those flags discard
 uncommitted work, and a worktree that resists removal is usually holding the reason.
 
 ## 5. Leaked agent scratch worktrees
 
-`bn pipeline investigate` cuts a detached worktree at
+`workspan pipeline investigate` cuts a detached worktree at
 `<worktree-root>/<repo>/.agent-<branch>-<token>` and removes it from the same shell command when the
 sub-agent exits. Kill the window, reboot the host, or crash the agent and that removal never runs.
 
-`bn wt reap` collects the empty ones for you: it removes a scratch checkout only when nothing is in
+`workspan wt reap` collects the empty ones for you: it removes a scratch checkout only when nothing is in
 it, nothing is uncommitted, no commit exists on a remote nowhere else, and it is over a day old.
 You do not have to do that by hand.
 
@@ -153,7 +153,7 @@ Reclaiming a worktree takes its window with it. Nothing takes the rest, and ther
 Only remove windows/sessions demonstrably belonging to the approved repo scope. Machine-wide cron
 windows require explicit machine-wide cleanup approval; otherwise leave them alone.
 
-**Finished cron windows.** Older bn ran cron jobs in windows in a `machine` session, and a machine
+**Finished cron windows.** Older workspan ran cron jobs in windows in a `machine` session, and a machine
 that ran that version may still have them. When such a job finished, the window stayed, holding
 panes parked at a shell prompt. They are not `remain-on-exit` corpses, so `fleet-reap`'s dead-pane
 prune never sees them, and they accumulated for as long as the crons ticked. Count them first:
@@ -176,13 +176,13 @@ longer exists, usually because a reclaim removed the worktree while the window w
 the path is gone and no agent holds it, then `tmux kill-window`.
 
 **An empty repo session.** Every worktree reclaimed, nothing attached, nothing but idle shells
-left. `bn agent kill-repo <repo>` is the supported way to drop one, and it is deliberately blunt —
+left. `workspan agent kill-repo <repo>` is the supported way to drop one, and it is deliberately blunt —
 so re-read the protected set before using it, and prefer leaving a session alone when in doubt. A
 session costs almost nothing; a session killed under someone's work costs an afternoon.
 
 Work window by window and count what you killed. If the same class keeps coming back — and finished
 cron windows will, because nothing collects them — that is a bug in the job that spawns them, not a
-chore you owe every week. Say so in the report and file it with `bn task add`.
+chore you owe every week. Say so in the report and file it with `workspan task add`.
 
 ## 7. Report
 
@@ -192,13 +192,13 @@ State plainly:
 - **Kept** — each candidate you did not remove and the specific reason (dirty, open PR, live agent,
   unknown PR state). Kept is a result, not a failure.
 - **Yours to finish** — every merged-but-dirty worktree, by path and change count, with the command
-  that resolves it (`git -C <path> status`, then commit, stash, or `bn wt cleanup <path> --force`
+  that resolves it (`git -C <path> status`, then commit, stash, or `workspan wt cleanup <path> --force`
   once you have read the diff). Do not make that call for the user.
 - **Slots handed back** — how many pool slots returned to warm, since that is what the next
-  `bn dispatch` actually consumes.
+  `workspan dispatch` actually consumes.
 - **Windows closed** — how many, and of which kind. A large finished-cron count is a finding, not
   an achievement: it means the number will be just as large next week.
 
 If the sweep turned up a leak class nothing collects automatically, record it once with
-`bn ref append conventions --repo --section gotchas "<fact> (source, date)"`, and if it is worth fixing in bn itself file it with `bn task add` rather than
+`workspan ref append conventions --repo --section gotchas "<fact> (source, date)"`, and if it is worth fixing in workspan itself file it with `workspan task add` rather than
 sweeping it by hand every week.

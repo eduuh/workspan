@@ -111,7 +111,7 @@ fn ssh_capture(host: &str, script: &str) -> std::io::Result<std::process::Output
 }
 
 fn fail(msg: &str) -> ! {
-    eprintln!("bn plan view: {msg}");
+    eprintln!("workspan plan view: {msg}");
     std::process::exit(1);
 }
 
@@ -135,11 +135,11 @@ fn forward_port(host: &str, port: u16) -> ! {
                 std::thread::sleep(Duration::from_millis(250));
             }
             opened = open_here(&url);
-            eprintln!("bn plan view: {url} forwarded from {host}; Ctrl-C stops it");
+            eprintln!("workspan plan view: {url} forwarded from {host}; Ctrl-C stops it");
         }
         let status = child.wait();
         eprintln!(
-            "bn plan view: the forward to {host}:{port} ended ({status:?}); forwarding again in 3s (Ctrl-C to stop)"
+            "workspan plan view: the forward to {host}:{port} ended ({status:?}); forwarding again in 3s (Ctrl-C to stop)"
         );
         std::thread::sleep(Duration::from_secs(3));
     }

@@ -83,7 +83,7 @@ pub(crate) enum ClosePlan {
 /// is exactly those files. In a **conventional worktree** it authorises nothing extra: forcing
 /// there would `git branch -D` and destroy unpushed commits, so cleanup runs under its normal
 /// gates, refuses, and raises the existing `wt-stuck:<repo>/<branch>` attention item.
-/// `bn wt cleanup --force` stays the deliberate destroy.
+/// `workspan wt cleanup --force` stays the deliberate destroy.
 pub(crate) fn close_plan(f: &CloseFacts) -> ClosePlan {
     if !f.managed {
         return ClosePlan::KillPaneOnly("not a managed worktree");
@@ -195,7 +195,7 @@ fn close_pane(pane: &str, fallback: &Path) {
     }
 }
 
-/// `bn wt close` — see the module docs. Returns the CLI's exit semantics; with `--check` the return
+/// `workspan wt close` — see the module docs. Returns the CLI's exit semantics; with `--check` the return
 /// value *is* the answer ("does this need a prompt?"), and nothing is torn down.
 pub(crate) fn cmd_close(
     cfg: &Config,
@@ -239,10 +239,10 @@ pub(crate) fn cmd_close(
         } => {
             flash(&match occupant {
                 Some(who) => format!(
-                    "{branch}: a live {who} is working here — `bn wt close --confirmed` to close anyway"
+                    "{branch}: a live {who} is working here — `workspan wt close --confirmed` to close anyway"
                 ),
                 None => format!(
-                    "{branch}: {dirty} uncommitted, {unpushed} unpushed — `bn wt close --confirmed` to close anyway"
+                    "{branch}: {dirty} uncommitted, {unpushed} unpushed — `workspan wt close --confirmed` to close anyway"
                 ),
             });
             false
@@ -260,7 +260,7 @@ pub(crate) fn cmd_close(
     }
 }
 
-/// `bn wt close --reclaim` — the second half, re-entered from the keystroke's background process.
+/// `workspan wt close --reclaim` — the second half, re-entered from the keystroke's background process.
 ///
 /// Touches no tmux (the window went with the keystroke). Unlike the keystroke path it prints: it
 /// runs headless, and stdout is the only place its outcome can be read.
@@ -293,12 +293,12 @@ fn cmd_reclaim(
             match occupant {
                 Some(who) => println!(
                     "{branch}: a live {who} is working here now — left alone; \
-                     `bn wt close --reclaim --confirmed --path {}` to reclaim it anyway",
+                     `workspan wt close --reclaim --confirmed --path {}` to reclaim it anyway",
                     wt_path.display()
                 ),
                 None => println!(
                     "{branch}: {dirty} uncommitted, {unpushed} unpushed since it was closed — \
-                     left alone; `bn wt close --reclaim --confirmed --path {}` to reclaim it anyway",
+                     left alone; `workspan wt close --reclaim --confirmed --path {}` to reclaim it anyway",
                     wt_path.display()
                 ),
             }
@@ -317,7 +317,7 @@ fn cmd_reclaim(
                     true
                 }
                 Err(()) => {
-                    println!("{repo}/{label}: not reclaimable — see `bn wt cleanup` (or `bn doctor`)");
+                    println!("{repo}/{label}: not reclaimable — see `workspan wt cleanup` (or `workspan doctor`)");
                     false
                 }
             }

@@ -6,9 +6,9 @@ keywords: [multi-agent, coordination, agents, workers, parallel, monitor, relay,
 ---
 1. Decide whether independent work warrants multiple agents. Keep short lookups, small
    edits, and one continuous trace local.
-2. Read `bn skills render coordinate-agents-reference` for briefing, monitoring, messaging
+2. Read `workspan skills render coordinate-agents-reference` for briefing, monitoring, messaging
    and cleanup. For implementation phase sequencing, also read
-   `bn skills render subagent-orchestration`; neither is a new public workflow.
+   `workspan skills render subagent-orchestration`; neither is a new public workflow.
 3. Use available agents and the user's requested launch system. Start with the smallest
    useful team; give each worker a bounded scope, evidence contract, permitted writes,
    dependencies and stopping condition.

@@ -2,7 +2,7 @@
 use crate::*;
 
 
-/// `bn q "<text>"` — bank a thought in the global inbox, stamped with the time and a
+/// `workspan q "<text>"` — bank a thought in the global inbox, stamped with the time and a
 /// git-free repo/branch hint. The fast path: one file write, no subprocess, works anywhere.
 pub(crate) fn emit_q_capture(cfg: &Config, text: &str, as_json: bool) {
     let cwd = std::env::current_dir().unwrap_or_default();
@@ -30,7 +30,7 @@ pub(crate) fn emit_q_capture(cfg: &Config, text: &str, as_json: bool) {
     }
 }
 
-/// Bare `bn q` — list the inbox.
+/// Bare `workspan q` — list the inbox.
 pub(crate) fn emit_q_list(cfg: &Config, as_json: bool) {
     let items = bn_core::inbox::read(cfg);
     if as_json {
@@ -48,7 +48,7 @@ pub(crate) fn emit_q_list(cfg: &Config, as_json: bool) {
         println!("{}", q_line(i));
     }
     println!(
-        "({} capture{} — bn q drain to triage)",
+        "({} capture{} — workspan q drain to triage)",
         items.len(),
         plural(items.len())
     );
@@ -69,7 +69,7 @@ pub(crate) fn q_line(i: &bn_core::inbox::InboxItem) -> String {
     format!("{:<4} {}  ({})", i.id, i.text, meta.join(" · "))
 }
 
-/// `bn q drain [--auto]` — triage the inbox. `--auto` routes only the unambiguous captures;
+/// `workspan q drain [--auto]` — triage the inbox. `--auto` routes only the unambiguous captures;
 /// without it each item is walked interactively (needs a tty).
 pub(crate) fn emit_q_drain(cfg: &Config, auto: bool, as_json: bool) {
     use std::io::IsTerminal;
@@ -89,7 +89,7 @@ pub(crate) fn emit_q_drain(cfg: &Config, auto: bool, as_json: bool) {
                 }
                 match out.left {
                     0 => println!("Inbox empty ✓"),
-                    n => println!("({n} capture{} left — bn q drain to triage)", plural(n)),
+                    n => println!("({n} capture{} left — workspan q drain to triage)", plural(n)),
                 }
             }
             Err(e) => emit_err("q_drain", &e, as_json),
@@ -97,10 +97,10 @@ pub(crate) fn emit_q_drain(cfg: &Config, auto: bool, as_json: bool) {
         return;
     }
     if as_json {
-        fail("bn q drain: interactive triage has no --json; use --auto");
+        fail("workspan q drain: interactive triage has no --json; use --auto");
     }
     if !std::io::stdin().is_terminal() {
-        fail("bn q drain: not a tty — use bn q drain --auto");
+        fail("workspan q drain: not a tty — use workspan q drain --auto");
     }
     interactive_drain(cfg);
 }

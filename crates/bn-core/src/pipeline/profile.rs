@@ -34,7 +34,7 @@ pub enum GatePolicy {
     /// Pass straight through — the default for every stage, so nothing changes until asked.
     #[default]
     Auto,
-    /// Refuse the transition, raise an attention item, and wait for `bn pipeline resume`.
+    /// Refuse the transition, raise an attention item, and wait for `workspan pipeline resume`.
     Hold,
 }
 
@@ -98,7 +98,7 @@ impl RefSelection {
     }
 }
 
-/// Which layer supplied a resolved field — what `bn pipeline preview` prints so a surprising
+/// Which layer supplied a resolved field — what `workspan pipeline preview` prints so a surprising
 /// value can be traced to the line that set it.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize)]
 #[serde(rename_all = "kebab-case")]

@@ -9,7 +9,7 @@ use serde_json::Value;
 
 /// In-flight branches at or above this idle threshold are "stale" — old enough that they're
 /// drifting rather than being actively finished. 4 days matches the issue's guidance and the
-/// `bn doctor` staleness feel without firing on a branch you touched yesterday.
+/// `workspan doctor` staleness feel without firing on a branch you touched yesterday.
 const WIP_STALE_DAYS: i64 = 4;
 
 /// More than this many in-flight branches and the WIP guard speaks up; at or below it the guard
@@ -107,7 +107,7 @@ pub fn wip_guard(
 /// Build the WIP guard for the current machine: open branches (active notes, excluded repos
 /// dropped) ranked closest-to-merge, with a clear-by forecast from the window's merge cadence.
 /// The impure convenience over [`wip_guard`] — reads notes + the synced metrics log so both the
-/// scorecard and `bn next` can call it. `now` ages the cadence window; `today` ages each branch.
+/// scorecard and `workspan next` can call it. `now` ages the cadence window; `today` ages each branch.
 pub fn wip_guard_for(cfg: &Config, now: i64, window_days: i64, today: &str) -> WipGuard {
     let evs = visible_events(
         cfg,

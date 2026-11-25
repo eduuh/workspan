@@ -82,8 +82,8 @@ impl Default for LogConfig {
 
 /// A `[repo.<name>]` entry (#454): per-repo overrides keyed by the repo's bn/local name. `verify`
 /// is the repo's NATIVE verify command (e.g. `npm run validate`, `nx affected -t lint test`) that
-/// `bn verify`/`bn gate` run in place of resolving the bn build/test/lint jobs — how a repo-agnostic
-/// orchestrator learns each repo's own gate. Unset ⇒ fall back to the bn job, so the bn repo
+/// `workspan verify`/`workspan gate` run in place of resolving the workspan build/test/lint jobs — how a repo-agnostic
+/// orchestrator learns each repo's own gate. Unset ⇒ fall back to the workspan job, so the workspan repo
 /// itself (which configures no `[repo]` entry) runs its available conventional jobs.
 #[derive(Debug, Clone, Default, PartialEq, Eq, serde::Deserialize)]
 pub struct RepoConfig {
@@ -117,7 +117,7 @@ pub struct StageConfig {
     /// the global/`--agent` default. The value is stored raw here; it's normalized/validated at the
     /// dispatch call site (this resolver is a hot, non-`Result` path).
     pub harness: Option<String>,
-    /// Workflow skill this stage runs, by `bn skills` name. `None` inherits, ultimately falling
+    /// Workflow skill this stage runs, by `workspan skills` name. `None` inherits, ultimately falling
     /// back to the launcher's built-in default for the stage.
     pub skill: Option<String>,
     /// Reference tokens attached to this stage's seed: `["*"]` for every reference in the store,
@@ -170,14 +170,14 @@ pub struct Config {
     /// work on every repository and runs every service. A table only narrows that.
     pub machine_profile: Option<MachineProfile>,
     /// Per-job machine allowlist from `[jobs.only_on]`: job → machines it may run on. A job
-    /// absent from the map runs everywhere. Backs `bn run`'s per-host gating.
+    /// absent from the map runs everywhere. Backs `workspan run`'s per-host gating.
     pub job_only_on: HashMap<String, Vec<String>>,
-    /// Weekday the weekly 1-1 review window anchors to (`0=Sun .. 6=Sat`). `bn weekly`
+    /// Weekday the weekly 1-1 review window anchors to (`0=Sun .. 6=Sat`). `workspan weekly`
     /// reports since the most recent occurrence of this day. From `[review].weekly_anchor`, else
     /// Monday.
     pub weekly_anchor: u32,
     /// Review SLA threshold (hours) for time-to-first-review. A PR awaiting your review
-    /// nears/breaches it as its wait time climbs; `bn next` bumps its priority accordingly. From
+    /// nears/breaches it as its wait time climbs; `workspan next` bumps its priority accordingly. From
     /// `[review].sla_first_review_hours`; default 4h, the healthy-review-latency reference.
     pub sla_first_review_hours: f64,
     /// Harness the auto-review agent launches (`claude` / `copilot`). From `[review].harness`;
@@ -190,16 +190,16 @@ pub struct Config {
     /// switcher (#501) reads to render an unusable harness disabled with a reason rather than
     /// failing a relaunch silently.
     pub disabled_harnesses: Vec<String>,
-    /// `bn next` recency cutoff (hours): time-aged actions older than this drop off the attention
+    /// `workspan next` recency cutoff (hours): time-aged actions older than this drop off the attention
     /// list — it shows only what's recent enough to act on now. The effective window widens to
     /// cover the weekend on Mondays (see [`crate::next`]). From `[attention].max_age_hours`;
     /// default 24h.
     pub attention_max_age_hours: f64,
-    /// Folder the OS / capture tool drops new screenshots into (`bn shot` moves the freshest
+    /// Folder the OS / capture tool drops new screenshots into (`workspan shot` moves the freshest
     /// into the branch note). From `[capture].screenshot_dir`; `None` if unconfigured (no portable
     /// default — the path is machine-specific).
     pub screenshot_dir: Option<PathBuf>,
-    /// Folder the GIF recorder (e.g. ScreenToGif) saves into; backs `bn shot --gif`. From
+    /// Folder the GIF recorder (e.g. ScreenToGif) saves into; backs `workspan shot --gif`. From
     /// `[capture].gif_dir`.
     pub gif_dir: Option<PathBuf>,
     /// Whether this is a work machine: it has the work notes tree and no personal one. Cross-repo
@@ -207,12 +207,12 @@ pub struct Config {
     /// personal work never surfaces on a work screen. Derived, not configured. Backs
     /// [`is_visible_repo`](Config::is_visible_repo).
     pub work_only: bool,
-    /// `[managed_repos].repos`: clone URLs bn keeps checked out under the managed root
+    /// `[managed_repos].repos`: clone URLs workspan keeps checked out under the managed root
     /// ([`managed_repos_dir`]). The refresh-all job clones any missing one and fetches/fast-
     /// forwards the rest. Empty by default. Backs the dotfiles-on-a-new-machine flow.
     pub managed_repos: Vec<String>,
-    /// `[hosts.<alias>]`: per-host enrichment of `~/.ssh/config` for `bn connect` — what ssh config
-    /// can't express (remote worktree root, default agent harness, whether bn is installed there).
+    /// `[hosts.<alias>]`: per-host enrichment of `~/.ssh/config` for `workspan connect` — what ssh config
+    /// can't express (remote worktree root, default agent harness, whether workspan is installed there).
     /// Empty by default.
     pub hosts: HashMap<String, crate::hosts::HostExtra>,
     /// `[repo.<name>]`: per-repo verify, pipeline, and node-capability placement policy. Empty by
@@ -231,7 +231,7 @@ pub struct Config {
     /// behavior).
     pub nodes: Vec<crate::hosts::NodeRecord>,
     /// `[calib] s|m|l`: the coarse t-shirt-size estimate durations (`--est S|M|L`), so sizing —
-    /// and `bn next --fit` — works before you have real per-item duration estimates. Defaults
+    /// and `workspan next --fit` — works before you have real per-item duration estimates. Defaults
     /// `s=30m m=90m l=3h`; see [`crate::calib::CoarseSizes`].
     pub coarse_sizes: crate::calib::CoarseSizes,
     /// `[pool] scheduled`: repos whose worktree pool the `pool-build` cron rebuilds at fixed times
@@ -242,9 +242,9 @@ pub struct Config {
     /// for after-the-fact debugging). The CLI `--verbose/--debug` flag layers on top at init. See
     /// [`LogConfig`] and [`crate::log`].
     pub log: LogConfig,
-    /// `[dispatch].plan_review`: make the plan-review gate (#349) the default for `bn dispatch` — a
+    /// `[dispatch].plan_review`: make the plan-review gate (#349) the default for `workspan dispatch` — a
     /// dispatched ship agent proposes a plan, registers a plan-review, and pauses until reviewer
-    /// consensus or required human approval. `bn dispatch --plan` opts in per-dispatch regardless.
+    /// consensus or required human approval. `workspan dispatch --plan` opts in per-dispatch regardless.
     /// Default false.
     pub dispatch_plan_review: bool,
     /// `[dispatch].plan_reviewers`: fresh independent plan reviewers launched by the plan-gate
@@ -254,7 +254,7 @@ pub struct Config {
     /// `dispatch_plan_reviewers`.
     pub dispatch_plan_review_quorum: usize,
     /// `[review].diff_gate`: enable the adversarial diff-only review gate (#607) on the ship-lane
-    /// land path. When on, a dispatched ship PR is skipped by `bn wt merge --all` until
+    /// land path. When on, a dispatched ship PR is skipped by `workspan wt merge --all` until
     /// [`review_diff_gate_reviews`](Self::review_diff_gate_reviews) independent diff-only reviewers
     /// have approved its current head and every blocking finding is resolved/waived. Default false.
     pub review_diff_gate: bool,
@@ -264,10 +264,10 @@ pub struct Config {
     /// `[proof].freshness`: `exact` (default) | `ancestor` | `any` — how current accepted
     /// evidence must be for a done-when criterion to count as met.
     pub proof_freshness: String,
-    /// `[proof].done_requires`: `off` | `warn` (default) | `refuse` — what `bn done w<N>` does
+    /// `[proof].done_requires`: `off` | `warn` (default) | `refuse` — what `workspan done w<N>` does
     /// when the criterion has no accepted evidence.
     pub proof_done_requires: String,
-    /// `[proof].capture`: keep `bn verify` / `bn gate` runs as proof. Default true.
+    /// `[proof].capture`: keep `workspan verify` / `workspan gate` runs as proof. Default true.
     pub proof_capture: bool,
     /// `[harness].default`: the preferred harness every launcher uses when no `--agent`/`--harness`
     /// is requested — `claude` | `copilot` (aliases normalized at use). `None` ⇒ `copilot`, the
@@ -315,7 +315,7 @@ pub struct Config {
     /// reads it. Default [`File`](crate::task_store::TaskProviderKind::File). An unrecognised word
     /// is reported on stderr and resolves to the default.
     pub tasks_provider: crate::task_store::TaskProviderKind,
-    /// `[tasks].forge_url`: the Forge MCP endpoint the `forge` provider and `bn forge` talk to.
+    /// `[tasks].forge_url`: the Forge MCP endpoint the `forge` provider and `workspan forge` talk to.
     /// Default [`crate::forge_app::DEFAULT_FORGE_URL`]. A blank value is the default.
     pub tasks_forge_url: String,
 }
@@ -570,7 +570,7 @@ impl Config {
         ) {
             Ok(kind) => kind,
             Err(e) => {
-                eprintln!("bn: {e}; using the file provider");
+                eprintln!("workspan: {e}; using the file provider");
                 crate::task_store::TaskProviderKind::File
             }
         };
@@ -644,9 +644,9 @@ impl Config {
     /// The repo's configured NATIVE verify command (`[repo.<name>].verify`, #454), if any. The
     /// resolver lowercases `repo`, so keys are matched case-insensitively — a `[repo.MyRepo]`
     /// heading still resolves — and on the trailing path segment like [`is_work_repo`], so a gh
-    /// `owner/repo` slug and a bare bn repo name resolve the same (a full-slug key wins over the
-    /// base segment). `bn verify`/`bn gate` run this instead of the bn `test`/`build` job; `None`
-    /// (unconfigured, blank, or whitespace-only) ⇒ fall back to the job — the bn repo's behavior.
+    /// `owner/repo` slug and a bare workspan repo name resolve the same (a full-slug key wins over the
+    /// base segment). `workspan verify`/`workspan gate` run this instead of the workspan `test`/`build` job; `None`
+    /// (unconfigured, blank, or whitespace-only) ⇒ fall back to the job — the workspan repo's behavior.
     pub fn repo_verify(&self, repo: &str) -> Option<&str> {
         let base = repo.rsplit('/').next().unwrap_or(repo);
         let by = |want: &str| {

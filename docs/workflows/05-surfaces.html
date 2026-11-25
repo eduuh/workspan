@@ -5,14 +5,14 @@
 <div class="wrap">
 
 <aside class="rail">
-  <a class="rail__brand" href="index.html"><b>bn</b> workflow notes</a>
+  <a class="rail__brand" href="index.html"><b>Workspan</b> workflow notes</a>
   <p class="rail__tag">How the machine actually runs</p>
   <nav>
     <ol>
       <li><a href="index.html">Overview</a></li>
       <li><a href="01-pipeline.html">The pipeline &amp; its gates</a></li>
       <li><a href="02-dispatch.html">Dispatch &amp; isolation</a></li>
-      <li><a href="03-state.html">What bn writes down</a></li>
+      <li><a href="03-state.html">What workspan writes down</a></li>
       <li><a href="04-catalog.html">The prompt catalog</a></li>
       <li><a href="05-surfaces.html" aria-current="page">Surfaces</a></li>
     </ol>
@@ -25,7 +25,7 @@
 <h1>The surfaces a human actually touches</h1>
 
 <p class="standfirst">
-bn is CLI-only. The terminal, stdio MCP tools and scheduler share the core and event log.
+workspan is CLI-only. The terminal, stdio MCP tools and scheduler share the core and event log.
 There is no dashboard, REST API or HTTP MCP server.
 </p>
 
@@ -45,11 +45,11 @@ never appear in help.
 <tbody>
 <tr><td><strong>Intake / dispatch</strong></td><td><code>workspan task add</code>, <code>workspan task q</code>, and <code>workspan dispatch</code> resolve work and launch an isolated workspace with its task packet</td></tr>
 <tr><td><strong>Context / review</strong></td><td><code>workspan task doc</code>, <code>workspan plan status</code>, <code>workspan ref</code>, and Entire's captured session history</td></tr>
-<tr><td><strong>Planning / time</strong></td><td><code>bn list --todos</code>, <code>bn task</code>, <code>bn daily</code>, <code>bn quarter</code>; <code>bn wrap</code>, <code>bn calib</code></td></tr>
-<tr><td><strong>Insight</strong></td><td><code>bn next</code> (the ranked "what now"), <code>bn search</code>, <code>bn stats metrics</code>, <code>bn next --stale</code>, <code>bn today</code></td></tr>
-<tr><td><strong>Automation</strong></td><td><code>bn jump</code>, <code>bn tat</code>, <code>bn attn</code>, <code>bn agent registry</code>, <code>bn agent resume</code></td></tr>
-<tr><td><strong>Staff / ops</strong></td><td><code>bn run &lt;job&gt;</code>, <code>bn cron</code>, <code>bn machine</code>, <code>bn estate</code>, <code>bn agents</code>, <code>bn setup mcp</code></td></tr>
-<tr><td><strong>Misc</strong></td><td><code>bn stats cost</code>, <code>bn build</code>, <code>bn links</code>, <code>bn ref</code>, <code>bn pipeline</code></td></tr>
+<tr><td><strong>Planning / time</strong></td><td><code>workspan list --todos</code>, <code>workspan task</code>, <code>workspan daily</code>, <code>workspan quarter</code>; <code>workspan wrap</code>, <code>workspan calib</code></td></tr>
+<tr><td><strong>Insight</strong></td><td><code>workspan next</code> (the ranked "what now"), <code>workspan search</code>, <code>workspan stats metrics</code>, <code>workspan next --stale</code>, <code>workspan today</code></td></tr>
+<tr><td><strong>Automation</strong></td><td><code>workspan jump</code>, <code>workspan tat</code>, <code>workspan attn</code>, <code>workspan agent registry</code>, <code>workspan agent resume</code></td></tr>
+<tr><td><strong>Staff / ops</strong></td><td><code>workspan run &lt;job&gt;</code>, <code>workspan cron</code>, <code>workspan machine</code>, <code>workspan estate</code>, <code>workspan agents</code>, <code>workspan setup mcp</code></td></tr>
+<tr><td><strong>Misc</strong></td><td><code>workspan stats cost</code>, <code>workspan build</code>, <code>workspan links</code>, <code>workspan ref</code>, <code>workspan pipeline</code></td></tr>
 </tbody>
 </table>
 </div>
@@ -57,7 +57,7 @@ never appear in help.
 <div class="note">
 <span class="note__label">Two commands one letter apart</span>
 <p>
-<code>bn review</code> is the <em>plan-approval gate</em>. <code>bn review queue</code> is the
+<code>workspan review</code> is the <em>plan-approval gate</em>. <code>workspan review queue</code> is the
 <em>PR review queue</em>. They are unrelated.
 <span class="src">cli.rs:433, :684</span>
 </p>
@@ -67,9 +67,9 @@ never appear in help.
 
 <p>
 The native terminal picker and tmux bindings are the interactive UI:
-<code>prefix j</code> = <code>bn jump</code>, <code>prefix Tab</code> = next agent,
-<code>prefix C-o</code> = <code>bn tat</code> (switch project),
-<code>prefix C-a</code> = <code>bn next --stale --pick</code>,
+<code>prefix j</code> = <code>workspan jump</code>, <code>prefix Tab</code> = next agent,
+<code>prefix C-o</code> = <code>workspan tat</code> (switch project),
+<code>prefix C-a</code> = <code>workspan next --stale --pick</code>,
 <code>prefix a</code> / <code>prefix b</code> = add a todo or blocker without leaving the pane.
 <span class="src">config/workflow/tmux.conf &mdash; grep the <code>bind</code> for a key, or run <code>prefix ?</code></span>
 </p>
@@ -77,9 +77,9 @@ The native terminal picker and tmux bindings are the interactive UI:
 <h2>Agent tools over stdio</h2>
 
 <p>
-<code>bn mcp serve</code> starts the sibling <code>bn-mcp</code> in the current worktree.
+<code>workspan mcp serve</code> starts the sibling <code>bn-mcp</code> in the current worktree.
 The server resolves that worktree's branch per call and fails closed when no branch resolves.
-<code>bn mcp serve --orchestrate</code> selects the opt-in cross-worktree tools.
+<code>workspan mcp serve --orchestrate</code> selects the opt-in cross-worktree tools.
 CLI <code>--json</code> output remains the scripting interface; no HTTP listener is needed.
 <span class="src">crates/bn-mcp/src/main.rs &middot; server.rs</span>
 </p>
@@ -97,7 +97,7 @@ CLI <code>--json</code> output remains the scripting interface; no HTTP listener
     <text x="22" y="42" font-size="11.5" fill="var(--teal)">ATTENTION</text>
     <text x="22" y="60" font-size="9.5" fill="var(--ink-muted)">waiting on a decision from you</text>
     <line x1="22" y1="70" x2="272" y2="70" stroke="var(--rule-soft)"/>
-    <text x="22" y="90" fill="var(--ink-mid)">in ← crons, bn attn add/ingest</text>
+    <text x="22" y="90" fill="var(--ink-mid)">in ← crons, workspan attn add/ingest</text>
     <text x="22" y="110" fill="var(--ink-mid)">     dedup on --key</text>
     <text x="22" y="136" font-size="9.5" fill="var(--ink-faint)">three lanes: needs-you /</text>
     <text x="22" y="150" font-size="9.5" fill="var(--ink-faint)">in-progress / to-start</text>
@@ -112,14 +112,14 @@ CLI <code>--json</code> output remains the scripting interface; no HTTP listener
     <text x="316" y="90" fill="var(--ink-mid)">in ← findings store</text>
     <text x="316" y="110" fill="var(--ink-mid)">     (gather-findings cron)</text>
     <text x="316" y="130" fill="var(--ink-mid)">via → an LLM agent that runs</text>
-    <text x="316" y="144" fill="var(--ink-mid)">      on every bn today</text>
+    <text x="316" y="144" fill="var(--ink-mid)">      on every workspan today</text>
     <text x="316" y="170" font-size="9.5" fill="var(--ink-faint)">idempotent merge — a dismissed</text>
     <text x="316" y="184" font-size="9.5" fill="var(--ink-faint)">proposal never returns</text>
     <text x="316" y="208" font-size="10.5" fill="var(--warn)">your verb: accept, dismiss</text>
   </g>
 </svg>
 <figcaption>
-<code>bn next</code> is the thing that ranks across both, with a momentum tiebreak toward
+<code>workspan next</code> is the thing that ranks across both, with a momentum tiebreak toward
 the repo you are punched into.
 <span class="src">cli.rs:745-777, :799-807</span>
 </figcaption>
@@ -143,7 +143,7 @@ its own <code>cron_run</code> event, so per-job rows survive.
 </p>
 
 <p>
-<code>bn run &lt;job&gt;</code> checks the native registry first — roughly 38 jobs are
+<code>workspan run &lt;job&gt;</code> checks the native registry first — roughly 38 jobs are
 compiled-in Rust functions — and only falls back to <code>config/jobs/&lt;job&gt;.sh</code> for
 the seven not yet ported.
 <span class="src">job_registry.rs:16-58</span>
@@ -151,7 +151,7 @@ the seven not yet ported.
 
 <h3>One manifest, three very different installs</h3>
 
-<p>Installation is the same command everywhere — <code>bn cron register</code>, idempotent —
+<p>Installation is the same command everywhere — <code>workspan cron register</code>, idempotent —
 but what it produces diverges sharply:</p>
 
 <div class="scroller">
@@ -160,7 +160,7 @@ but what it produces diverges sharply:</p>
 <tbody>
 <tr><td><strong>systemd</strong></td><td>A <code>.service</code> + <code>.timer</code> pair per job. <code>OnCalendar</code> passes through verbatim; <code>network = true</code> adds <code>After/Wants=network-online.target</code>. <span class="src">cron_gen.rs:28-58</span></td></tr>
 <tr><td><strong>launchd</strong></td><td>A plist per job. launchd has no <code>OnCalendar</code> parser, so the subset the manifests use is <em>translated</em> into <code>StartInterval</code> / <code>StartCalendarInterval</code>. <code>is_loaded</code> asks the supervisor rather than the filesystem, because a crash-looping job leaves its plist behind. <span class="src">cron_gen.rs:1-4, :246 · launchd.rs:67-70</span></td></tr>
-<tr><td><strong>Windows</strong></td><td><strong>Exactly one</strong> scheduled task: a WSL keepalive running <code>bn run ensure-tmux</code> at logon and every 30 minutes. The tmux server it starts keeps WSL alive, and systemd <em>inside</em> WSL runs everything else. <span class="src">config/jobs/windows/install.ps1:3-8</span></td></tr>
+<tr><td><strong>Windows</strong></td><td><strong>Exactly one</strong> scheduled task: a WSL keepalive running <code>workspan run ensure-tmux</code> at logon and every 30 minutes. The tmux server it starts keeps WSL alive, and systemd <em>inside</em> WSL runs everything else. <span class="src">config/jobs/windows/install.ps1:3-8</span></td></tr>
 </tbody>
 </table>
 </div>
@@ -171,7 +171,7 @@ but what it produces diverges sharply:</p>
 The <code>wt-cleanup</code> and <code>fleet-reap</code> crons were removed so that nothing
 automated can ever delete a branch, remove a worktree, or kill a tmux session under active
 work. There is a written "Do NOT re-add these". The jobs still exist for manual
-<code>bn wt cleanup</code> / <code>bn run fleet-reap</code>.
+<code>workspan wt cleanup</code> / <code>workspan run fleet-reap</code>.
 <span class="src">config/crons.toml:17-25</span>
 </p>
 </div>
@@ -211,46 +211,46 @@ double-counts.
 <h2>A day in the life</h2>
 
 <pre><code># Morning: what is waiting, and what to do about it
-bn next                                   # ranked cross-repo actions
-bn attn                                   # three-lane attention board
-bn today list                             # agent-proposed tasks from cron findings
-bn today accept s2
+workspan next                                   # ranked cross-repo actions
+workspan attn                                   # three-lane attention board
+workspan today list                             # agent-proposed tasks from cron findings
+workspan today accept s2
 
 # Ground the work, then cut a worktree for it
-bn task add "fix flaky pool-slot reconcile test" --repo bn
-bn task enhance T14                       # SMART-gate it
-bn dispatch T14 --repo bn --name pool-reconcile-flake
+workspan task add "fix flaky pool-slot reconcile test" --repo workspan
+workspan task enhance T14                       # SMART-gate it
+workspan dispatch T14 --repo workspan --name pool-reconcile-flake
 
 # Read the assigned task and active plan (now inside the new worktree)
-bn in "pool reconcile flake" --tag dev
+workspan in "pool reconcile flake" --tag dev
 workspan task doc T14
 workspan plan status
 
 # Work. Keep actionable context on the task; Entire captures session history.
-bn task q "leases.json holder can outlive every agent that held it"
-bn learned "reconcile the pool-slot ledger before trusting leases.json"
+workspan task q "leases.json holder can outlive every agent that held it"
+workspan learned "reconcile the pool-slot ledger before trusting leases.json"
 
 # Verify, then follow commit privacy and the authorized PR workflow.
 workspan verify
 # Record the authorized PR link on the governing task/provider.
 
 # Close the loop
-bn reflect "should have checked the lease ledger before the test"
-bn out
-bn wrap
-bn stats cost --by category --window 1</code></pre>
+workspan reflect "should have checked the lease ledger before the test"
+workspan out
+workspan wrap
+workspan stats cost --by category --window 1</code></pre>
 
 <h2>Things that will mislead you</h2>
 
 <ul>
-<li><strong><code>bn dispatch</code>'s default lane is <code>ship-solo</code>, not the
+<li><strong><code>workspan dispatch</code>'s default lane is <code>ship-solo</code>, not the
 nine-stage pipeline.</strong> The pipeline is behind <code>$BN_DISPATCH_PIPELINE=1</code>.
 <span class="src">crates/bn-cli/src/cmd/dispatch.rs · docs/config.md</span></li>
 
-<li><strong><code>bn today</code> runs an LLM agent by default.</strong> It is not a static
+<li><strong><code>workspan today</code> runs an LLM agent by default.</strong> It is not a static
 list read, and it costs something each time.</li>
 
-<li><strong><code>bn stats cost</code>'s dollar figure is not a bill.</strong> Only AIC is metered;
+<li><strong><code>workspan stats cost</code>'s dollar figure is not a bill.</strong> Only AIC is metered;
 <code>$</code> is a public-list-price benchmark.</li>
 
 <li><strong>macOS never sees <code>OnCalendar</code>.</strong> It is translated at generation
@@ -259,7 +259,7 @@ time, so a schedule expression that works on Linux may not survive translation.<
 <li><strong>Windows schedules one task, not many.</strong> If that keepalive is not running,
 nothing else runs either.</li>
 
-<li><strong><code>bn cron retire</code> exists for a reason.</strong> The watchdog reads health
+<li><strong><code>workspan cron retire</code> exists for a reason.</strong> The watchdog reads health
 from the event log, so a renamed job's old failures otherwise read as an ongoing outage.
 <span class="src">cli/cron_cmd.rs:24-34</span></li>
 </ul>
@@ -267,18 +267,18 @@ from the event log, so a renamed job's old failures otherwise read as an ongoing
 <h2>Not verified</h2>
 
 <ul>
-<li>No <code>bn</code> command was actually run. Every command name here is verified from clap
+<li>No <code>workspan</code> command was actually run. Every command name here is verified from clap
 declarations, not from live <code>--help</code>.</li>
-<li>The day-in-life block may need id-form correction: <code>bn dispatch</code> documents "a
-todo id (e.g. <code>t3</code>)" while <code>bn task</code> uses its own ids — <code>T14</code>
+<li>The day-in-life block may need id-form correction: <code>workspan dispatch</code> documents "a
+todo id (e.g. <code>t3</code>)" while <code>workspan task</code> uses its own ids — <code>T14</code>
 versus <code>t14</code> was not confirmed at runtime.</li>
 <li>Whether a write path exists elsewhere that registers Windows tasks from Rust.
 <code>winsched.rs</code> is clearly read-only, and <code>install.ps1</code> was the only
 registration found.</li>
-<li><code>config/crons.toml</code> is the shipped default for the <code>bn</code> repo.
+<li><code>config/crons.toml</code> is the shipped default for the <code>workspan</code> repo.
 Per-repo and per-branch tiers exist (<code>crons.rs:118</code>) and would change what a given
 machine actually runs; they were not enumerated.</li>
-<li>The <code>--live</code> flag on <code>bn stats cost</code> is documented in its doc comment but
+<li>The <code>--live</code> flag on <code>workspan stats cost</code> is documented in its doc comment but
 its implementation was not read.</li>
 </ul>
 

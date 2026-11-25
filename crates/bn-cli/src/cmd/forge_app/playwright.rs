@@ -48,7 +48,7 @@ impl PlaywrightCli {
             .output()
             .map_err(|e| {
                 if e.kind() == std::io::ErrorKind::NotFound {
-                    format!("{BIN} is not installed: `npm install -g @playwright/cli` (the package is @playwright/cli, not playwright-cli), or use `bn forge login --paste`")
+                    format!("{BIN} is not installed: `npm install -g @playwright/cli` (the package is @playwright/cli, not playwright-cli), or use `workspan forge login --paste`")
                 } else {
                     format!("could not run {BIN}: {e}")
                 }

@@ -37,7 +37,7 @@ pub enum ItemStatus {
     /// Not yet dispatched — waiting for a concurrency slot.
     #[default]
     Queued,
-    /// `bn dispatch` fired: a worktree + agent exist and are in flight (counts against the cap).
+    /// `workspan dispatch` fired: a worktree + agent exist and are in flight (counts against the cap).
     Dispatched,
     /// The PR landed via the gated merge-queue — terminal success.
     Merged,
@@ -120,7 +120,7 @@ pub struct QueueItem {
     /// `queued`, but is not schedulable and occupies its intended slot until reconciliation.
     #[serde(default, skip_serializing_if = "DispatchPhase::is_pending")]
     pub dispatch_phase: DispatchPhase,
-    /// The dispatched branch, once `bn dispatch` created the worktree.
+    /// The dispatched branch, once `workspan dispatch` created the worktree.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub branch: Option<String>,
     /// The PR url/number, once opened.
@@ -138,21 +138,21 @@ pub struct QueueItem {
     /// Epoch secs of the last status/state change.
     #[serde(default)]
     pub updated_at: i64,
-    /// The last pane state observed for this item, for `bn orchestrate status`.
+    /// The last pane state observed for this item, for `workspan orchestrate status`.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub last_state: Option<PaneState>,
     /// Current controller-actionable stuck state, shared by status and back-channel emission.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub stuck: Option<crate::agent::StuckLane>,
     /// The harness this item was dispatched under (`copilot` / `claude`), set once dispatched — so
-    /// `bn orchestrate status` and the web board can show *what* is running in the window (#372).
+    /// `workspan orchestrate status` and the web board can show *what* is running in the window (#372).
     /// Flipped by the #382 usage-limit auto-fallback when the lane is switched to the other harness.
     #[serde(skip_serializing_if = "Option::is_none", default)]
     pub harness: Option<String>,
     /// Path globs this item is expected to touch — the conflict-aware scheduling hint (#376),
     /// carried over from its durable [`crate::backlog::BacklogEntry::touches`] when the daemon
     /// leases it into the run. Empty = no declared hint, so it's schedulable alongside anything
-    /// ([`conflicts`] treats an absent set as overlapping nothing); land-time `bn wt merge --all`
+    /// ([`conflicts`] treats an absent set as overlapping nothing); land-time `workspan wt merge --all`
     /// remains the safety net. `["**"]` is the `--solo` degenerate case (overlaps everything).
     #[serde(default, skip_serializing_if = "Vec::is_empty")]
     pub touches: Vec<String>,
@@ -161,7 +161,7 @@ pub struct QueueItem {
     pub controller_id: Option<String>,
     /// While this item is queued, the id of the in-flight item whose touch-area it overlaps —
     /// *why* it's held rather than dispatched (#376). Refreshed each dispatch pass by
-    /// `OrchestrateState::refresh_holds` from the live [`conflicts`] policy, so `bn orchestrate
+    /// `OrchestrateState::refresh_holds` from the live [`conflicts`] policy, so `workspan orchestrate
     /// status` and the web board show "held: conflicts with #NNN" without re-deriving, and a hold is
     /// logged once per episode. `None` = not held (or not queued). The authoritative scheduling
     /// decision itself is always live (`next_dispatchable`).
@@ -194,7 +194,7 @@ pub struct QueueItem {
     #[serde(default, skip_serializing_if = "is_false")]
     pub claimed_remote: bool,
     /// **The remote worker placement** for an item dispatched onto an SSH node (#729): the
-    /// `node_id` it was placed on, the `request_id`/`attempt_id` the remote `bn worker start` was
+    /// `node_id` it was placed on, the `request_id`/`attempt_id` the remote `workspan worker start` was
     /// admitted under (idempotent atomic admission, #720), and the last-observed worker attempt
     /// state polled over SSH (`QUEUED`/`RUNNING`/`SUCCEEDED`/`FAILED`, or `UNKNOWN` when the node is
     /// unreachable). Persisted on *both* sides — the control-plane state here mirrors the worker's
@@ -261,7 +261,7 @@ impl QueueItem {
         }
     }
 
-    /// This item's tmux window name — its sanitized branch (`/` → `-`), matching how `bn dispatch`
+    /// This item's tmux window name — its sanitized branch (`/` → `-`), matching how `workspan dispatch`
     /// names the agent's window. `None` until the item is dispatched (no branch, no window yet).
     pub fn tmux_window(&self) -> Option<String> {
         self.branch.as_deref().map(tmux_window_name)
@@ -296,13 +296,13 @@ impl QueueItem {
     }
 }
 
-/// The tmux window name `bn dispatch` opens for a branch: `/` → `-` (the worktree-layout rule), so
+/// The tmux window name `workspan dispatch` opens for a branch: `/` → `-` (the worktree-layout rule), so
 /// a `dispatch/352` branch lives in window `dispatch-352`. Pure — the navigation half of #372.
 pub fn tmux_window_name(branch: &str) -> String {
     branch.replace('/', "-")
 }
 
-/// A recovery / lifecycle event recorded on the state for `bn orchestrate status` — the audit trail
+/// A recovery / lifecycle event recorded on the state for `workspan orchestrate status` — the audit trail
 /// that replaces the hand-typed "report one terse line per agent". Also mirrored to the event log.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct RecoveryEvent {
@@ -327,7 +327,7 @@ pub struct LaneCapacity {
 }
 
 /// The whole orchestration run: a repo-scoped queue plus its concurrency policy and recovery log.
-/// Persisted as one JSON file in the state dir so the daemon (and `bn orchestrate status`) share it.
+/// Persisted as one JSON file in the state dir so the daemon (and `workspan orchestrate status`) share it.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct OrchestrateState {
     /// The single repo this run targets — every queued item dispatches into it (issues live here).
@@ -339,7 +339,7 @@ pub struct OrchestrateState {
     /// scale on this budget independently of the coding lane (`concurrency`), so `--coding 5 --research 2`
     /// runs 5 coding + 2 research agents concurrently. `None` = no separate research lane: research items
     /// share the single `concurrency` pool (the pre-#385 single-knob behavior). Adjustable live via
-    /// `bn orchestrate scale` ([`OrchestrateState::scale`]) — the daemon picks it up on its next tick.
+    /// `workspan orchestrate scale` ([`OrchestrateState::scale`]) — the daemon picks it up on its next tick.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub research: Option<usize>,
     /// Refactor mode (e.g. a main.rs-touching change like #333): one agent at a time, no overlap.
@@ -350,11 +350,11 @@ pub struct OrchestrateState {
     pub recovery: Vec<RecoveryEvent>,
     pub started_at: i64,
     pub updated_at: i64,
-    /// Set by `bn orchestrate stop` — the daemon's next tick sees it and exits cleanly.
+    /// Set by `workspan orchestrate stop` — the daemon's next tick sees it and exits cleanly.
     #[serde(default)]
     pub stopped: bool,
-    /// Set by `bn orchestrate supervise` — this run is a **standing, session-independent supervisor**
-    /// (#426). Each tick it additionally *adopts* live standalone `bn dispatch` lanes for the repo
+    /// Set by `workspan orchestrate supervise` — this run is a **standing, session-independent supervisor**
+    /// (#426). Each tick it additionally *adopts* live standalone `workspan dispatch` lanes for the repo
     /// (see `OrchestrateState::adopt_dispatched_lanes`) so their green PRs land and dead/stalled
     /// lanes recover with nobody at the keyboard, it lands ready PRs every pass (not only when it has
     /// its own in-flight items), and it does **not** exit when the queue drains — it keeps standing to
@@ -364,16 +364,16 @@ pub struct OrchestrateState {
     /// Opt-in policy for automatically replenishing this resident supervisor's durable backlog.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub keep_warm: Option<KeepWarmPolicy>,
-    /// Set by `bn orchestrate add --start` (any backlog-seeded run) — this run is a **resident,
+    /// Set by `workspan orchestrate add --start` (any backlog-seeded run) — this run is a **resident,
     /// self-feeding** loop (#368): on drain it does **not** exit but stays alive pulling the next
     /// batch from the durable backlog (#375) as slots free, so a multi-wave backlog runs to
     /// completion with **zero scheduled prompts** even when waves are appended with gaps between
-    /// them. Unlike `supervise` (#426) it does not adopt external standalone `bn dispatch` lanes —
+    /// them. Unlike `supervise` (#426) it does not adopt external standalone `workspan dispatch` lanes —
     /// it only feeds itself from the backlog. Only `stop` ends it. A bounded `--queue` run leaves
     /// this `false` and exits on drain as before, preserving the one-shot-wave behavior.
     #[serde(default)]
     pub self_feed: bool,
-    /// The harness the daemon dispatches new agents under (`bn orchestrate --agent`, #382), or the
+    /// The harness the daemon dispatches new agents under (`workspan orchestrate --agent`, #382), or the
     /// resolved config default. `None` on a pre-#382 run's state, which `dispatch_harness` reads as
     /// [`DEFAULT_HARNESS`] (`copilot`) — the prior hardcoded behavior. A per-item [`QueueItem::harness`]
     /// still wins for a lane the usage-limit fallback has already switched.
@@ -391,7 +391,7 @@ pub struct OrchestrateState {
     /// Why local dispatch was capped/paused on the last pass (#377) — the label of the binding cap
     /// (`ram` / `load` / `tokens` / `cost` / `local-cap`), or
     /// `None` when nothing bound (slots free, or the queue is empty). Set by the CLI executor after
-    /// the resource-aware scheduler, so `bn orchestrate status` shows *why* pending
+    /// the resource-aware scheduler, so `workspan orchestrate status` shows *why* pending
     /// items aren't dispatching without re-observing the machine. Purely informational — the
     /// authoritative decision is always re-made live each pass.
     #[serde(skip_serializing_if = "Option::is_none", default)]
@@ -413,7 +413,7 @@ pub struct OrchestrateState {
     pub nodes: Vec<NodeRecord>,
 }
 
-/// Rolled-up counts for `bn orchestrate status`.
+/// Rolled-up counts for `workspan orchestrate status`.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, Default)]
 pub struct Counts {
     pub queued: usize,
@@ -705,7 +705,7 @@ impl OrchestrateState {
     }
 
     /// Live-adjust the typed concurrency lanes (#385) — the pure state mutation behind
-    /// `bn orchestrate scale`. Applies each provided cap (a `None` argument leaves that lane
+    /// `workspan orchestrate scale`. Applies each provided cap (a `None` argument leaves that lane
     /// untouched): `coding` sets the coding lane (`concurrency`, min 1); `research` sets/creates the
     /// research lane. Returns the resulting `(coding_cap, research_cap)` so the CLI can echo the new
     /// budgets. A running daemon picks the change up on its next tick — no restart, no re-declare.
@@ -784,7 +784,7 @@ impl OrchestrateState {
     }
 
     /// The tmux `session:window` target to jump to an item's agent (`tmux switch-client -t …`), or
-    /// `None` until the item is dispatched. The session is the **item's** repo — how `bn dispatch`
+    /// `None` until the item is dispatched. The session is the **item's** repo — how `workspan dispatch`
     /// opens the window (`<repo>:<sanitized-branch>`) — so status points straight at the running
     /// agent even in a multi-repo run (#453); a single-repo item's `repo` equals `self.repo`, so the
     /// target is unchanged. Falls back to `self.repo` for a legacy item whose `repo` is unset.
@@ -827,7 +827,7 @@ impl OrchestrateState {
     }
 
     /// Atomically persist to `path` (temp sibling + rename), creating the parent dir on demand — so
-    /// a concurrent `bn orchestrate status` never reads a torn write.
+    /// a concurrent `workspan orchestrate status` never reads a torn write.
     pub fn save(&self, path: &Path) -> std::io::Result<()> {
         crate::fs::save_json_atomic(path, self)
     }

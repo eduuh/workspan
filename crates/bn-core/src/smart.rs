@@ -215,7 +215,7 @@ pub fn check(
             gaps.push(gap(
                 Dim::Specific,
                 "unknown_repo",
-                format!("`repo:{repo}` is not a repo bn knows about"),
+                format!("`repo:{repo}` is not a repo Workspan knows about"),
                 "correct the repo name, or add it to [managed_repos].repos",
             ))
         }
@@ -256,7 +256,7 @@ pub fn check(
             Dim::Measurable,
             "no_done_when",
             "no `## Done When` criteria — nothing states when this is finished",
-            "run `bn task doc <id>` and list at least one checkable acceptance criterion",
+            "run `workspan task doc <id>` and list at least one checkable acceptance criterion",
         ));
     }
 

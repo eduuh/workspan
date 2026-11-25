@@ -29,7 +29,7 @@ pub fn agent_fleet_data(f: &crate::agent::Fleet) -> Value {
 ///
 /// `reviews` are the open plan-reviews (#349), passed in (not read here, keeping this pure) so each
 /// dispatched item is annotated with its `waiting_for_review` state — a dispatched agent paused on
-/// an un-approved plan is surfaced distinctly in `bn orchestrate status`/watch.
+/// an un-approved plan is surfaced distinctly in `workspan orchestrate status`/watch.
 pub fn orchestrate_status_data(
     st: &crate::orchestrate::OrchestrateState,
     reviews: &[crate::plan_review::Review],
@@ -238,7 +238,7 @@ pub fn rollover_text(r: &daily::RolloverOutcome) -> String {
     if r.inbox_left > 0 {
         let s = if r.inbox_left == 1 { "" } else { "s" };
         out.push_str(&format!(
-            "  ({} capture{s} still in inbox — bn q drain)\n",
+            "  ({} capture{s} still in inbox — workspan q drain)\n",
             r.inbox_left
         ));
     }

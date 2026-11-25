@@ -14,10 +14,10 @@ pub(crate) fn unregistered_jobs(
 
 /// The fresh-machine drift: declared jobs that silently have no materialized scheduler.
 ///
-/// "Declared" here has to mean exactly what `bn cron register` would materialize, so this reads
+/// "Declared" here has to mean exactly what `workspan cron register` would materialize, so this reads
 /// `desired_crons` — the same filter register uses — rather than a second, looser one of its own.
-/// When the two disagree the operator gets a loop with no exit: `bn doctor` says "23 cron(s)
-/// declared but not registered — run `bn cron register`", and `bn cron register` answers "0
+/// When the two disagree the operator gets a loop with no exit: `workspan doctor` says "23 cron(s)
+/// declared but not registered — run `workspan cron register`", and `workspan cron register` answers "0
 /// declared (0 add, 0 update, 0 unchanged)". That is precisely what an unregistered machine used
 /// to look like, because drift filtered on `job_allowed_here` alone while register additionally
 /// requires `cron_enabled_here` (plus `repo_available_here` and the entry `only_on`). A machine
@@ -74,26 +74,26 @@ pub(crate) fn cron_disabled_notice(cfg: &Config, ctx: Option<&Resolved>) -> Opti
     let machine = cfg.machine();
     Some(format!(
         "cron is switched off on this machine ('{machine}') — {declared} declared job(s) will \
-         never run. Remove `cron = false` from [machine] in {}, then re-run `bn cron register`.",
+         never run. Remove `cron = false` from [machine] in {}, then re-run `workspan cron register`.",
         bn_core::resolver::machine_config_path().display()
     ))
 }
 
-/// Print the disabled-machine notice, if this host has one — the shared `bn cron status` /
-/// `bn doctor` shape.
+/// Print the disabled-machine notice, if this host has one — the shared `workspan cron status` /
+/// `workspan doctor` shape.
 pub(crate) fn print_cron_disabled_notice(cfg: &Config, ctx: Option<&Resolved>) {
     if let Some(notice) = cron_disabled_notice(cfg, ctx) {
         println!("⚠ {notice}");
     }
 }
 
-/// The `bn cron status` header: what is declared-but-unregistered, and — when the answer is
+/// The `workspan cron status` header: what is declared-but-unregistered, and — when the answer is
 /// "nothing, because this host is switched off" — why. Kept together so the two can never again
 /// be rendered from different notions of "declared".
 pub(crate) fn print_cron_health(cfg: &Config, ctx: Option<&Resolved>, drift: &[String]) {
     if !drift.is_empty() {
         println!(
-            "⚠ {} cron(s) declared but not registered on this machine — run `bn cron register`:",
+            "⚠ {} cron(s) declared but not registered on this machine — run `workspan cron register`:",
             drift.len()
         );
         println!("    {}\n", drift.join(", "));
@@ -101,7 +101,7 @@ pub(crate) fn print_cron_health(cfg: &Config, ctx: Option<&Resolved>, drift: &[S
     print_cron_disabled_notice(cfg, ctx);
 }
 
-/// Record the notice for `bn cron register`, whose human output prints `warnings` and whose JSON
+/// Record the notice for `workspan cron register`, whose human output prints `warnings` and whose JSON
 /// envelope carries them. Returns whether cron is disabled here, which also decides if the
 /// "all timers already match" line would be a lie.
 pub(crate) fn push_cron_disabled_warning(
@@ -138,8 +138,8 @@ mod tests {
         })
     }
 
-    /// A machine whose profile says `cron = false` has cron disabled, so `bn cron register`
-    /// materializes nothing. Drift must agree, or `bn doctor` sends people to a command that
+    /// A machine whose profile says `cron = false` has cron disabled, so `workspan cron register`
+    /// materializes nothing. Drift must agree, or `workspan doctor` sends people to a command that
     /// answers "0 declared" — the loop this pairing exists to close.
     #[test]
     fn drift_is_empty_when_cron_is_disabled_on_this_machine() {
@@ -163,7 +163,7 @@ mod tests {
     }
 
     /// The notice is for the switched-off case only — an enabled machine with unregistered jobs
-    /// must keep getting the ordinary "run `bn cron register`" drift nudge, not this one.
+    /// must keep getting the ordinary "run `workspan cron register`" drift nudge, not this one.
     #[test]
     fn enabled_machine_gets_no_disabled_notice_and_still_drifts() {
         let _lock = bn_core::test_support::env_lock();

@@ -14,12 +14,12 @@ pub(crate) fn apply_folder_trust(path: &str, harness: &str) -> Vec<&'static str>
             Ok(new) => {
                 if new != cur {
                     if let Err(e) = std::fs::write(&p, new) {
-                        eprintln!("bn trust-folder: writing {p}: {e}");
+                        eprintln!("workspan trust-folder: writing {p}: {e}");
                     }
                 }
                 trusted.push("claude");
             }
-            Err(e) => eprintln!("bn trust-folder: {e}"),
+            Err(e) => eprintln!("workspan trust-folder: {e}"),
         }
     }
     if want("copilot") {
@@ -29,12 +29,12 @@ pub(crate) fn apply_folder_trust(path: &str, harness: &str) -> Vec<&'static str>
             Ok((new, changed)) => {
                 if changed {
                     if let Err(e) = std::fs::write(&p, new) {
-                        eprintln!("bn trust-folder: writing {p}: {e}");
+                        eprintln!("workspan trust-folder: writing {p}: {e}");
                     }
                 }
                 trusted.push("copilot");
             }
-            Err(e) => eprintln!("bn trust-folder: {e}"),
+            Err(e) => eprintln!("workspan trust-folder: {e}"),
         }
     }
     trusted
@@ -48,7 +48,7 @@ pub(crate) fn emit_trust_folder(path: Option<String>, harness: &str, as_json: bo
     // Only persist absolute paths: a nonexistent relative path could be a misplaced harness name.
     if !path.is_absolute() {
         let msg = format!(
-            "bn trust-folder: '{}' is not an absolute folder path — pass a real directory (folder trust only accepts absolute paths; the harness goes in --harness)",
+            "workspan trust-folder: '{}' is not an absolute folder path — pass a real directory (folder trust only accepts absolute paths; the harness goes in --harness)",
             path.display()
         );
         if as_json {

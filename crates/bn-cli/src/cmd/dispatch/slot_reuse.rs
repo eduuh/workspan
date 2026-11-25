@@ -29,7 +29,7 @@ pub(super) fn verdict(fresh: bool, launching_agent: bool, slot: &Path, branch: &
     }
     if crate::agent_lease::only_finished_agents_in(slot) {
         eprintln!(
-            "bn dispatch: reusing pooled worktree {} — its previous agent on '{branch}' has finished",
+            "workspan dispatch: reusing pooled worktree {} — its previous agent on '{branch}' has finished",
             slot.display()
         );
         return Some(true);
@@ -40,7 +40,7 @@ pub(super) fn verdict(fresh: bool, launching_agent: bool, slot: &Path, branch: &
 /// The refusal, worded so the person can act on it.
 pub(super) fn refusal(slot: &Path, branch: &str) -> String {
     format!(
-        "bn dispatch: refusing to reuse occupied pooled worktree {} for branch '{branch}' — choose \
+        "workspan dispatch: refusing to reuse occupied pooled worktree {} for branch '{branch}' — choose \
          another --branch or omit --branch to allocate a unique dispatch branch",
         slot.display()
     )

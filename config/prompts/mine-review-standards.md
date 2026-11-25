@@ -1,19 +1,19 @@
 ---
 name: mine-review-standards
-description: "Mine a repo's merged-PR reviewer comments into a bn review-standards reference. Use when setting up PR review for a repo, or when reviews miss that repo's conventions."
-when: Bootstrapping or refreshing a review specialist's standards from what humans actually flag in PRs (via `bn agents bootstrap`).
+description: "Mine a repo's merged-PR reviewer comments into a workspan review-standards reference. Use when setting up PR review for a repo, or when reviews miss that repo's conventions."
+when: Bootstrapping or refreshing a review specialist's standards from what humans actually flag in PRs (via `workspan agents bootstrap`).
 keywords: [review, standards, pull request, ado, azure devops, mining, reviewer comments, specialist, bootstrap]
 arguments:
-  - { name: repo, description: "bn repo the specialist reviews (names the reference: <repo>-review-standards)", required: false }
+  - { name: repo, description: "workspan repo the specialist reviews (names the reference: <repo>-review-standards)", required: false }
   - { name: source_repo, description: "Azure DevOps repo whose merged-PR comments to mine", required: false }
   - { name: ref, description: "Reference doc name to write (default: <repo>-review-standards)", required: false }
 ---
 You are mining **real human reviewer comments** from an Azure DevOps repo's merged pull requests
-and distilling them into a reusable bn *review-standards* reference — the knowledge a review
-specialist loads. This is READ-ONLY against ADO; the only thing you write is one bn reference doc.
+and distilling them into a reusable workspan *review-standards* reference — the knowledge a review
+specialist loads. This is READ-ONLY against ADO; the only thing you write is one workspan reference doc.
 
 ## Parameters
-- Target repo: `{{repo}}` — the bn repo the specialist reviews.
+- Target repo: `{{repo}}` — the workspan repo the specialist reviews.
 - Source repo (ADO): `{{source_repo}}` — where the comments come from.
 - Reference to write: `{{ref}}` (default `{{repo}}-review-standards`).
 
@@ -35,7 +35,7 @@ task goal — it names the target repo, the ADO source repo, and the reference d
    printf 'Private corpus path: %s\n' "$corpus"
    # optional: --org <org|url> --project <project>   # default to your `az devops configure`
    ```
-   The script ships in bn's repo, which `~/.bn/config/repo` links to (`config/scripts/` from a bn
+   The script ships in workspan's repo, which `~/.bn/config/repo` links to (`config/scripts/` from a bn
    checkout). A larger corpus makes a stronger standard. If it exits non-zero (no `az`, not
    logged in, unresolved org/project, unknown repo), **STOP and report exactly what failed and
    how to fix it** — never invent standards from nothing.
@@ -62,10 +62,10 @@ task goal — it names the target repo, the ADO source repo, and the reference d
    paraphrase a representative comment and cite its PR id — so a standard is specific, not generic.
 
 4. **Write the reference, preserving the user's own additions:**
-   - Read the current doc: `bn ref {{ref}}` (may be empty or absent).
+   - Read the current doc: `workspan ref {{ref}}` (may be empty or absent).
    - Everything under a `## My additions` heading is **USER-OWNED** — never edit, reorder, or drop
      it. If the doc has no such section, add an empty one so the user has a home for hand edits.
-   - Scaffold the file if new: `bn ref add {{ref}}` (it prints the file path). Then write the
+   - Scaffold the file if new: `workspan ref add {{ref}}` (it prints the file path). Then write the
      merged content to that file directly with your editor tools — regenerate only the mined
      section, and re-attach the preserved `## My additions` verbatim.
    - Use this structure:
@@ -86,7 +86,7 @@ task goal — it names the target repo, the ADO source repo, and the reference d
      ```
 
 5. **Report** in 2–4 lines: how many PRs/comments you mined, how many themes you distilled, the
-   reference path written, and remind the user to run **`bn agents install`** so the specialist
+   reference path written, and remind the user to run **`workspan agents install`** so the specialist
    recompiles with the fresh standards.
 
 Never post anything back to ADO. If you mined zero usable human comments, say so plainly and leave

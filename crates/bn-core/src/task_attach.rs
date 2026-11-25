@@ -36,7 +36,7 @@ use crate::resolver::Config;
 use crate::todo::Task;
 use std::path::{Path, PathBuf};
 
-/// The largest single attachment bn will store, in bytes.
+/// The largest single attachment workspan will store, in bytes.
 ///
 /// Generous enough for a screenshot, a stack trace or a slide, and far short of the video someone
 /// will eventually try to drop on it. The notes tree is a git repo that syncs to every machine —

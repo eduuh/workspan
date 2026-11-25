@@ -97,7 +97,7 @@ pub struct GoalCompletion {
     pub rate: Option<f64>,
 }
 
-/// The bn-time meta-trap guard (#276): how much tracked time went to the bn repo itself vs
+/// The bn-time meta-trap guard (#276): how much tracked time went to the workspan repo itself vs
 /// everything else, over the window. The failure mode of a powerful personal system is it
 /// quietly becoming the hobby; this number keeps that honest and stays on the scoreboard
 /// permanently. `ratio` is `bn_secs / tracked_secs`, `None` when nothing was tracked.
@@ -110,7 +110,7 @@ pub struct BnTimeGuard {
 }
 
 /// One success metric on the scoreboard, positioned against the fixed pre-staff baseline anchor
-/// (#276). `baseline` is the value recorded when `bn insights --set-baseline` last ran; it is
+/// (#276). `baseline` is the value recorded when `workspan insights --set-baseline` last ran; it is
 /// `None` until an anchor exists. `lower_is_better` drives whether a move reads as an improvement.
 #[derive(Debug, Serialize)]
 pub struct ScoreLine {
@@ -143,7 +143,7 @@ impl ScoreLine {
 
 /// The scoreboard (#276): the success numbers picked before the agent-staff ships, each positioned
 /// against a fixed baseline anchor, plus the permanent bn-time meta-trap guard. Rendered at the
-/// head of `bn insights` so "are we better than the pre-staff baseline?" has one honest answer
+/// head of `workspan insights` so "are we better than the pre-staff baseline?" has one honest answer
 /// instead of vibes.
 #[derive(Debug, Serialize)]
 pub struct Scoreboard {
@@ -159,7 +159,7 @@ pub struct Scoreboard {
 
 /// The fixed baseline anchor persisted at [`Config::scoreboard_baseline_path`] (#276): a
 /// point-in-time snapshot of the scoreboard numbers, recorded once (before the agent-staff ships)
-/// via `bn insights --set-baseline`, then compared against on every run. Distinct from the rolling
+/// via `workspan insights --set-baseline`, then compared against on every run. Distinct from the rolling
 /// weekly [`crate::metrics::Snapshot`] history — this is one durable comparison anchor.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct ScoreboardBaseline {
@@ -196,7 +196,7 @@ pub struct Insights {
 }
 
 /// Build the weekly retro as of `today`. `since` overrides the anchored window with a rolling
-/// N-day window (mirrors `bn weekly`). Pure read: touches no network and writes nothing.
+/// N-day window (mirrors `workspan weekly`). Pure read: touches no network and writes nothing.
 pub fn insights(cfg: &Config, today: &str, since: Option<i64>) -> Insights {
     let start = reports::window_start(cfg, today, since);
     let window_days = util::days_since(&start, today).unwrap_or(7) + 1;
@@ -258,7 +258,7 @@ pub fn insights(cfg: &Config, today: &str, since: Option<i64>) -> Insights {
     ins
 }
 
-/// True when `repo` names the bn repo itself, matched on the trailing path segment so both the
+/// True when `repo` names the workspan repo itself, matched on the trailing path segment so both the
 /// bare `bn` name and an `owner/bn` form resolve the same (mirrors [`metrics::is_excluded_repo`]'s
 /// basename match). Backs the bn-time meta-trap guard.
 fn is_bn_repo(repo: &str) -> bool {
@@ -268,7 +268,7 @@ fn is_bn_repo(repo: &str) -> bool {
         .eq_ignore_ascii_case("bn")
 }
 
-/// The bn-time meta-trap guard over the window: tracked seconds attributed to the bn repo vs
+/// The bn-time meta-trap guard over the window: tracked seconds attributed to the workspan repo vs
 /// everything else. Reads the punch log one day at a time, capping each day's open interval at
 /// [`day_cap`] exactly like [`tracked_secs_in`], so `tracked_secs` here agrees with the deep-work
 /// block's denominator.
@@ -300,7 +300,7 @@ fn compute_bn_time(cfg: &Config, start: &str, end: &str, now: i64) -> BnTimeGuar
 }
 
 /// Assemble the scoreboard: the bn-time guard plus the success metrics positioned against the
-/// fixed baseline anchor (absent until `bn insights --set-baseline` has run).
+/// fixed baseline anchor (absent until `workspan insights --set-baseline` has run).
 fn build_scoreboard(
     cfg: &Config,
     start: &str,
@@ -344,7 +344,7 @@ pub fn read_baseline(cfg: &Config) -> Option<ScoreboardBaseline> {
 
 /// Capture the current scoreboard numbers as the fixed baseline anchor (#276), overwriting any
 /// prior anchor. Snapshots the pre-staff success metrics + bn-time guard so later runs can render
-/// "vs baseline". Returns the path written. Backs `bn insights --set-baseline`.
+/// "vs baseline". Returns the path written. Backs `workspan insights --set-baseline`.
 pub fn set_baseline(cfg: &Config, ins: &Insights) -> std::io::Result<std::path::PathBuf> {
     let baseline = ScoreboardBaseline {
         date: ins.end.clone(),
@@ -684,7 +684,7 @@ fn row(label: &str, value: &str) -> String {
 fn render_scoreboard(sb: &Scoreboard) -> String {
     let title = match &sb.baseline_date {
         Some(d) => format!("Scoreboard — vs baseline {d}\n"),
-        None => "Scoreboard — no baseline yet (`bn insights --set-baseline`)\n".to_string(),
+        None => "Scoreboard — no baseline yet (`workspan insights --set-baseline`)\n".to_string(),
     };
     let mut out = title;
 

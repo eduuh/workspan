@@ -198,7 +198,7 @@ fn pr_key(ev: &Event) -> Option<String> {
 }
 
 /// One PR seen opened with no terminal (merged/closed) event — still open right now. The
-/// per-PR detail behind [`Metrics::in_flight`], so `bn next` can name each stale PR and how
+/// per-PR detail behind [`Metrics::in_flight`], so `workspan next` can name each stale PR and how
 /// long it's been waiting instead of only counting them.
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct InflightPr {
@@ -271,8 +271,8 @@ pub(crate) const FLOW_GAP_SECS: i64 = 30 * 60;
 /// matching `note_closed` (the literal "time to close out work"). Matched on `(owner/repo,
 /// number)` — PR numbers are repo-local, so number alone collides across repos (repo A's #42
 /// wrongly matching repo B's #42). The `owner/repo` join key comes from the gh `repo` field on
-/// `pr_merged` and from the gh URL in `note_closed`'s `pr` field (a bn `note_closed` carries the
-/// bare bn repo name, e.g. `bn`, in its own `repo` field, which needn't match the gh
+/// `pr_merged` and from the gh URL in `note_closed`'s `pr` field (a workspan `note_closed` carries the
+/// bare workspan repo name, e.g. `bn`, in its own `repo` field, which needn't match the gh
 /// `owner/repo`, so it isn't used as the join key). A `note_closed` whose `pr` is a bare number
 /// (no repo) can't be disambiguated and matches no merge.
 #[derive(Debug, Serialize, Deserialize)]
@@ -335,7 +335,7 @@ pub fn close_out_lag(events: &[Event], now: i64, window_days: i64) -> CloseOut {
 /// Uninterrupted focus time, sessionized from the activity event stream over the window. Events
 /// closer than [`FLOW_GAP_SECS`] join one block; a block's duration is the span from its first
 /// to last event. Single-event blocks contribute zero (an isolated action isn't flow). NOTE: v1
-/// sees only bn mutations; git-commit timestamps fold in at Phase 4 for a fuller picture.
+/// sees only workspan mutations; git-commit timestamps fold in at Phase 4 for a fuller picture.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Flow {
     pub total_minutes: i64,

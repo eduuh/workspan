@@ -31,7 +31,7 @@ impl Report {
     /// The full account, for `<config_dir>/config-migration.txt`.
     pub fn render(&self) -> String {
         let mut out = format!(
-            "bn moved {} into the notes tree.\nold file kept at: {}\n",
+            "workspan moved {} into the notes tree.\nold file kept at: {}\n",
             self.legacy.display(),
             self.backup.display()
         );
@@ -52,7 +52,7 @@ impl Report {
 /// what it may run, its capture folders, and which harnesses it can use.
 const MACHINE_SECTIONS: &[&str] = &["machine", "capture", "harness"];
 
-/// Every top-level section bn still reads. Anything else in an old file belonged to a feature that
+/// Every top-level section workspan still reads. Anything else in an old file belonged to a feature that
 /// is gone, and is dropped with a note rather than carried forward to mislead the next reader.
 /// Kept equal to `ConfigFile`'s fields by a test in the resolver.
 pub const KNOWN_SECTIONS: &[&str] = &[
@@ -178,7 +178,7 @@ pub fn migrate_text(text: &str, root: &Path, work_repos_file: &Path) -> Report {
     }
     if !machine_layer.is_empty() {
         let header = format!(
-            "# bn settings for {machine} only. A key here overrides the shared ../config.toml,\n\
+            "# workspan settings for {machine} only. A key here overrides the shared ../config.toml,\n\
              # and bn records this machine's own choices here.\n\n"
         );
         match write_layer(&machine_path, &header, &machine_layer) {
@@ -192,11 +192,12 @@ pub fn migrate_text(text: &str, root: &Path, work_repos_file: &Path) -> Report {
     report
 }
 
-const SHARED_HEADER: &str = "# bn settings shared by every machine that syncs this notes tree.\n\
+const SHARED_HEADER: &str =
+    "# workspan settings shared by every machine that syncs this notes tree.\n\
 # A setting left out uses bn's built-in default, and docs/config.md lists every one. Put what a\n\
 # single machine does differently in <machine>/config.toml beside this file.\n\n";
 
-/// Rewrite the old file's names into the ones bn reads now, moving machine-specific pieces into
+/// Rewrite the old file's names into the ones workspan reads now, moving machine-specific pieces into
 /// `machine_layer` and noting everything that changed shape or went away.
 fn translate(
     table: &mut toml::Table,
@@ -221,14 +222,14 @@ fn translate(
 
     if let Some(value) = table.remove("worktree_dir") {
         notes.push(format!(
-            "worktree_dir = {value} is no longer a setting: bn uses ~/projects/worktree, or \
+            "worktree_dir = {value} is no longer a setting: workspan uses ~/projects/worktree, or \
              $BN_WORKTREE_DIR when set"
         ));
     }
     if let Some(toml::Value::Table(personal)) = table.remove("personal") {
         for (key, value) in personal {
             notes.push(format!(
-                "[personal].{key} = {value} is no longer a setting: bn reads the notes tree at its \
+                "[personal].{key} = {value} is no longer a setting: workspan reads the notes tree at its \
                  default path, or $BN_NOTES_DIR / $BN_OVERLAY_DIR when set"
             ));
         }
@@ -238,7 +239,7 @@ fn translate(
         for key in ["notes_root", "only"] {
             if let Some(value) = work.remove(key) {
                 notes.push(format!(
-                    "[work].{key} = {value} is no longer a setting: bn uses the default work notes \
+                    "[work].{key} = {value} is no longer a setting: workspan uses the default work notes \
                      tree, and treats a machine with no personal notes tree as work-only"
                 ));
             }
@@ -308,7 +309,7 @@ fn translate(
     for key in unknown {
         table.remove(&key);
         notes.push(format!(
-            "[{key}] was dropped: nothing in bn reads it any more"
+            "[{key}] was dropped: nothing in workspan reads it any more"
         ));
     }
 }
@@ -405,7 +406,7 @@ fn claim(legacy: &Path) -> Option<PathBuf> {
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => None,
         Err(error) => {
             eprintln!(
-                "bn: could not move {} aside to migrate it ({error}); it is no longer read",
+                "workspan: could not move {} aside to migrate it ({error}); it is no longer read",
                 legacy.display()
             );
             None

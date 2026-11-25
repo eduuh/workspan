@@ -165,7 +165,7 @@ pub fn route(
     })
 }
 
-/// Non-interactive drain (rollover, `bn q drain --auto`): route only the unambiguous
+/// Non-interactive drain (rollover, `workspan q drain --auto`): route only the unambiguous
 /// captures — one whose repo/branch hint points at a branch note that exists and is still
 /// active becomes that branch's todo — and leave everything else for interactive triage.
 /// Retry-safe: the todo add dedups by text, so a capture delivered but not yet removed

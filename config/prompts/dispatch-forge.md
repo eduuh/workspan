@@ -23,7 +23,7 @@ the research lane and repository edits through the code-change lane of `forge-ta
 Follow the selected lane's authorization and completion contract. Research finishes with an
 evidence-backed report, without repository edits. For an explicitly authorized code-change task,
 reproduce the missing behavior or confirm the work needed, record it on the activity, make the
-smallest bounded change, and verify it with `bn verify`.
+smallest bounded change, and verify it with `workspan verify`.
 
 If you hit a real ambiguity or an irreversible choice, stop and ask (`ask_user` in Copilot CLI,
 `AskUserQuestion` in Claude Code). Completed research is a valid report-only result regardless of
