@@ -1,9 +1,9 @@
 //! Native tmux status-bar segments (Phase 1 of the `.sh`→Rust migration, #). These replace the
 //! pure-logic shell scripts tmux invoked from `workflow/tmux.conf` via `#(...)`/hooks:
-//!   - `bn tmux-git`        ← workflow/bin/bn-git-status.sh   (status-format[0] git segment)
-//!   - `bn tmux-goal`       ← workflow/bin/bn-goal-status.sh  (focus segment; no longer on the bar)
-//!   - `bn tmux-attn-count` ← workflow/bin/bn-attention-count.sh (global waiting/ready tally)
-//!   - `bn tmux-done-badge` ← workflow/bin/tmux-done-badge.sh  (now in `cmd/tmux_done.rs`)
+//!   - `workspan tmux-git`        ← workflow/bin/bn-git-status.sh   (status-format[0] git segment)
+//!   - `workspan tmux-goal`       ← workflow/bin/bn-goal-status.sh  (focus segment; no longer on the bar)
+//!   - `workspan tmux-attn-count` ← workflow/bin/bn-attention-count.sh (global waiting/ready tally)
+//!   - `workspan tmux-done-badge` ← workflow/bin/tmux-done-badge.sh  (now in `cmd/tmux_done.rs`)
 //!
 //! The parsing/formatting is factored into pure functions (unit-tested below) so the migration is
 //! verifiable byte-for-byte against the scripts' output; the `emit_*` wrappers do only the I/O
@@ -11,7 +11,7 @@
 use crate::*;
 use std::path::PathBuf;
 
-// ---- bn tmux-git : themed git segment ----------------------------------------------------------
+// ---- workspan tmux-git : themed git segment ----------------------------------------------------------
 
 /// Parsed `git status --porcelain=v2 --branch` state the segment needs.
 #[derive(Debug, Default, PartialEq, Eq)]
@@ -183,7 +183,7 @@ fn refresh_git_seg(dir: &std::path::Path, cache: &std::path::Path) {
     let _ = std::fs::remove_file(&lock);
 }
 
-/// Re-exec `workspan tmux-git --refresh <dir>` detached. Only when this process really is `bn`: under
+/// Re-exec `workspan tmux-git --refresh <dir>` detached. Only when this process really is `workspan`: under
 /// `cargo test` `current_exe()` is the test harness, which would read the arguments as test
 /// filters (see `winsched::spawn_background_refresh`).
 fn spawn_git_seg_refresh(dir: &std::path::Path) {
@@ -213,7 +213,7 @@ fn age_secs(path: &std::path::Path) -> Option<u64> {
         .map(|e| e.as_secs())
 }
 
-// ---- bn tmux-attn-count : global waiting/ready tally -------------------------------------------
+// ---- workspan tmux-attn-count : global waiting/ready tally -------------------------------------------
 
 /// One `#{@bn_agent}\t#{@bn_done}\t#{@bn_agent_since}` row from `tmux list-windows -a`.
 pub(crate) struct AttnRow<'a> {
@@ -409,9 +409,9 @@ pub(crate) fn emit_tmux_attn_count() {
     print!("{}", render_attn_count(&out, now));
 }
 
-// ---- bn tmux-done-badge : mark a watched window done on silence --------------------------------
+// ---- workspan tmux-done-badge : mark a watched window done on silence --------------------------------
 
-// ---- bn tmux-cockpit : orchestration roll-up popup (prefix S) -----------------------------------
+// ---- workspan tmux-cockpit : orchestration roll-up popup (prefix S) -----------------------------------
 
 /// Human-readable "time in state" for an `@bn_agent_since` epoch string: `Ns` / `Nm` / `Nh`, or
 /// empty when unparseable. Mirrors the cockpit script's `dur()`.
@@ -517,7 +517,7 @@ pub(crate) fn emit_tmux_cockpit(cfg: &Config) {
     let _ = std::io::stdin().read_line(&mut buf);
 }
 
-// ---- bn tmux-help : keybinding cheat-sheet popup (prefix ?) -------------------------------------
+// ---- workspan tmux-help : keybinding cheat-sheet popup (prefix ?) -------------------------------------
 
 /// `workspan tmux-help` — the keybinding cheat-sheet popup (bound to prefix ?).
 ///

@@ -1,4 +1,4 @@
-//! `bn on` — user-scriptable reactions to the event log (see [`bn_core::reactor`]).
+//! `workspan on` — user-scriptable reactions to the event log (see [`bn_core::reactor`]).
 use crate::*;
 
 #[derive(Subcommand, Debug)]

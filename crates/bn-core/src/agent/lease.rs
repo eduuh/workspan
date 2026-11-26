@@ -151,7 +151,7 @@ fn validate_kind_placement(kind: AgentLeaseKind, key: &AgentLeaseKey) -> Result<
         return Err(format!(
             "{} is in the main worktree — it hosts no agents and stays clean on '{}'. Work on main \
              happens in the main slot (_pool/{MAIN_POOL_SLOT}); dispatch work leases a worker \
-             slot: bn dispatch \"<what you're doing>\"",
+             slot: workspan dispatch \"<what you're doing>\"",
             key.worktree, key.branch
         ));
     }

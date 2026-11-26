@@ -4,9 +4,9 @@
 test reports a failed expectation; the workspace-wide deny targets production code paths"
 )]
 
-//! The workflow lane: `bn dispatch` driving a real (sandboxed) tmux server with a fake agent.
+//! The workflow lane: `workspan dispatch` driving a real (sandboxed) tmux server with a fake agent.
 //!
-//! This is the test the harness exists for. `bn dispatch` is the whole tmux workflow in one
+//! This is the test the harness exists for. `workspan dispatch` is the whole tmux workflow in one
 //! command — resolve the item, lease a worktree pool slot, branch off the base, seed the branch
 //! note, render the seed prompt, open a tmux window and start an agent in it — and none of it was
 //! covered, because running it meant creating worktrees and tmux windows on the developer's own
@@ -43,7 +43,7 @@ fn script_both_harnesses(sb: &Sandbox, behavior: &Behavior) -> anyhow::Result<()
 
 /// The happy path: dispatch creates a worktree, a branch, and a tmux window running the agent.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn dispatch_opens_a_tmux_window_running_the_agent() -> anyhow::Result<()> {
     require_tmux!();
     let sb = Sandbox::new()?;
@@ -51,10 +51,10 @@ fn dispatch_opens_a_tmux_window_running_the_agent() -> anyhow::Result<()> {
     // Long-running, so the window is still alive when the assertions run.
     script_both_harnesses(&sb, &Behavior::Hang)?;
 
-    let run = sb.bn(["dispatch", "add a readme", "--agent", "claude", "--yolo"])?;
+    let run = sb.workspan(["dispatch", "add a readme", "--agent", "claude", "--yolo"])?;
     run.expect_success()?;
 
-    // The window bn reports is the window that exists — on the sandbox server.
+    // The window workspan reports is the window that exists — on the sandbox server.
     let window = "repo:dispatch-add-a-readme";
     assert!(
         run.output().contains(window),
@@ -79,7 +79,7 @@ fn dispatch_opens_a_tmux_window_running_the_agent() -> anyhow::Result<()> {
         },
     )?;
 
-    // And bn invoked it with a seeded prompt, in the leased worktree — the part that decides
+    // And workspan invoked it with a seeded prompt, in the leased worktree — the part that decides
     // whether a dispatched agent actually knows what it was dispatched to do.
     let worktree = sb.path("projects/worktree/repo/_pool/2");
     let launched = sb
@@ -114,28 +114,28 @@ fn dispatch_opens_a_tmux_window_running_the_agent() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// A crashing agent leaves a dead pane bn can still inspect.
+/// A crashing agent leaves a dead pane workspan can still inspect.
 ///
 /// The failure path matters more than the happy one: `reap` and the liveness probes decide what to
 /// do with a window from what the pane looks like after the agent is gone, and that state was
 /// previously only reachable by crashing a real agent on the developer's machine. tmux reports the
 /// exit status in a dead pane, so the harness can assert on the agent's exit code end to end.
-/// Every session bn opens is named after a repository — including an orchestrator's.
+/// Every session workspan opens is named after a repository — including an orchestrator's.
 ///
 /// An orchestrator-role agent used to be placed in a shared cockpit session called `cron`, apart
 /// from the repo it works on. Nothing about supervising a wave makes an agent belong somewhere
-/// else, and a session no repo owns is invisible to `tat`, `bn jump` and the status bar, which all
+/// else, and a session no repo owns is invisible to `tat`, `workspan jump` and the status bar, which all
 /// address work as `<repo>:<branch>`. This is the executable form of that rule: drive the one
 /// dispatch path that used to opt out, and assert the namespace still holds.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn an_orchestrator_lands_in_its_repos_session_like_everything_else() -> anyhow::Result<()> {
     require_tmux!();
     let sb = Sandbox::new()?;
     sb.seed_bare_repo("repo")?;
     script_both_harnesses(&sb, &Behavior::Hang)?;
 
-    let run = sb.bn([
+    let run = sb.workspan([
         "dispatch",
         "watch the wave",
         "--agent",
@@ -160,14 +160,14 @@ fn an_orchestrator_lands_in_its_repos_session_like_everything_else() -> anyhow::
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_crashed_agent_leaves_a_dead_pane_carrying_its_exit_status() -> anyhow::Result<()> {
     require_tmux!();
     let sb = Sandbox::new()?;
     sb.seed_bare_repo("repo")?;
     script_both_harnesses(&sb, &Behavior::Fail(42))?;
 
-    sb.bn([
+    sb.workspan([
         "dispatch",
         "handle the error",
         "--agent",
@@ -197,14 +197,14 @@ fn a_crashed_agent_leaves_a_dead_pane_carrying_its_exit_status() -> anyhow::Resu
 /// The default shim exits 97 precisely so a test that launches a harness it never configured is a
 /// visible failure rather than a green run that proved nothing.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn an_unscripted_agent_is_a_loud_failure_not_a_silent_pass() -> anyhow::Result<()> {
     require_tmux!();
     let sb = Sandbox::new()?;
     sb.seed_bare_repo("repo")?;
     // Deliberately no fake_agent call.
 
-    sb.bn(["dispatch", "unscripted", "--agent", "claude", "--yolo"])?
+    sb.workspan(["dispatch", "unscripted", "--agent", "claude", "--yolo"])?
         .expect_success()?;
 
     sb.wait_for(
@@ -223,7 +223,7 @@ fn an_unscripted_agent_is_a_loud_failure_not_a_silent_pass() -> anyhow::Result<(
 /// Two sandboxes run at once without seeing each other — the property that makes the lane
 /// parallelisable, and proof that isolation is per-sandbox rather than merely per-machine.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn concurrent_sandboxes_get_separate_tmux_servers_and_ports() -> anyhow::Result<()> {
     require_tmux!();
     let a = Sandbox::new()?;

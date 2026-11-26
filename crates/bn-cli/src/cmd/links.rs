@@ -1,9 +1,9 @@
-//! `bn links` — pick a stored link and open it, and everything that feeds the store.
+//! `workspan links` — pick a stored link and open it, and everything that feeds the store.
 //!
 //! The decisions (rank, resolve, validate, tag) live in [`bn_core::links`] and are tested there;
 //! this file is the renderer, the fzf call and the browser hand-off. It follows the one-shot
 //! `fzf_select` shape rather than the self-referencing `--pick-stage` shape used by `tat` and
-//! `doctor --pick`: selection comes straight back here, so bn — not an fzf keybinding — is what
+//! `doctor --pick`: selection comes straight back here, so workspan — not an fzf keybinding — is what
 //! records the open and calls the opener. No preview panel; extra keys come through `--expect`:
 //! ctrl-y copies the selection instead of opening it, and ctrl-t/ctrl-e/ctrl-d tag, rename or
 //! delete it and reopen the picker.

@@ -1,6 +1,6 @@
-# bn cron manifest.
-# Active [[cron]] entries are the shipped defaults used by bn cron register.
-# This manifest belongs to the bn repository. Registration and execution skip every entry when bn
+# workspan cron manifest.
+# Active [[cron]] entries are the shipped defaults used by workspan cron register.
+# This manifest belongs to the workspan repository. Registration and execution skip every entry when workspan
 # is not both assigned to this machine and present in its local bare-repository inventory.
 repo = "bn"
 #
@@ -18,11 +18,11 @@ description = "bn — wake reactor and sole owner of attention toasts: ONE batch
 # committing any uncommitted work onto its branch *before* returning it, so the reset has nothing
 # left to destroy. It still never evicts a working agent or a live pane.
 # The rest stays MANUAL — no cron — because it can kill or delete without a merged PR behind it:
-#   bn run fleet-reap — GC orphaned agent process trees + dead tmux windows
-#   bn tmux-prune   — remove tmux sessions that name no repository
+#   workspan run fleet-reap — GC orphaned agent process trees + dead tmux windows
+#   workspan tmux-prune   — remove tmux sessions that name no repository
 # Do NOT add those as [[cron]] entries.
 #
-# `bn tmux-snapshot-filter` is NOT this kind of reclamation, which is why it may run unattended from
+# `workspan tmux-snapshot-filter` is NOT this kind of reclamation, which is why it may run unattended from
 # resurrect's post-save hook: it kills nothing, and only decides which sessions the saved layout
 # records. The worst it can do is fail to restore a session after a reboot.
 #
@@ -30,12 +30,12 @@ description = "bn — wake reactor and sole owner of attention toasts: ONE batch
 # scheduled job: it deletes no branch, removes no worktree and kills no session. It
 # only makes each warm pool's `leases.json` agree with who is actually in its slots — otherwise a
 # lease outlives every agent that ever held it (the recorded holder is a tmux server or login shell
-# that never exits), the pool reads full, and `bn dispatch` silently spills into cold worktrees.
+# that never exits), the pool reads full, and `workspan dispatch` silently spills into cold worktrees.
 
 # --- cadence ticks --------------------------------------------------------------
 # Housekeeping jobs share cadence timers where that reduces timer churn. Each tick runs its
-# cluster in order via the normal `bn run` path, so every child still records its own
-# `cron_run` event: `bn cron` and `bn doctor` show the same per-job rows, per-job health, and
+# cluster in order via the normal `workspan run` path, so every child still records its own
+# `cron_run` event: `workspan cron` and `workspan doctor` show the same per-job rows, per-job health, and
 # per-job host gating as before. A failing child never blocks its siblings, and the tick stays
 # green so the child's own row is the single place a failure is reported.
 #
@@ -121,7 +121,7 @@ job = "weekly-insights"
 on_calendar = "Mon *-*-* 06:30:00"
 persistent = true
 randomized_delay = "10m"
-description = "bn — weekly auto-retro: snapshot bn insights into <notes>/<machine>/insights/<YYYY-Www>.md"
+description = "bn — weekly auto-retro: snapshot workspan insights into <notes>/<machine>/insights/<YYYY-Www>.md"
 
 [[cron]]
 job = "agent-observe"
@@ -152,7 +152,7 @@ on_calendar = "*-*-* 0/2:40:00"
 persistent = false
 randomized_delay = "5m"
 network = true
-description = "bn — refresh warm worktree pools for every pooled repo while the device is idle (off-peak, idle-gated + per-repo staleness); records pool_warm so bn metrics shows pool freshness"
+description = "bn — refresh warm worktree pools for every pooled repo while the device is idle (off-peak, idle-gated + per-repo staleness); records pool_warm so workspan metrics shows pool freshness"
 
 # Repos in `[pool] scheduled` are rebuilt here at fixed times instead of by the idle sweep above:
 # a full rebuild overnight, then a top-up before the workday. Not persistent: a missed 02:00 run
@@ -173,8 +173,8 @@ persistent = true
 randomized_delay = "2m"
 description = "bn — gather findings (#897): snapshot the local morning-planning caches (PR review queue, your open PRs, inbound feed, stale/blocked branches, night-shift reviewables, failing crons, sentinel, quarter goals, dojo cards) into the append-only findings store, one durable run per non-empty source. Offline/additive: reuses the warm caches (no network, no re-fetch) and touches no feed/attention/daily side effect; feeds today-agent (#577)."
 
-# Machine-global (`repo = ""`): every machine that has hosted or connected a bn tunnel, including
-# build machines that do not list the bn repo. Brings Dev Tunnels and a tmux server back after a
+# Machine-global (`repo = ""`): every machine that has hosted or connected a workspan tunnel, including
+# build machines that do not list the workspan repo. Brings Dev Tunnels and a tmux server back after a
 # reboot or WSL restart with nobody signed in (linger), and keeps the one-minute watchdog alive.
 # A machine with no tunnels and no signed-in devtunnel CLI exits at once; a signed-in one enrols
 # itself (tunnel-auto.sh, auto-enrolment).

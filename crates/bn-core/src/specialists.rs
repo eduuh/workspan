@@ -1,4 +1,4 @@
-//! **Native agents** — Markdown agents that bn *compiles and installs* as native Copilot CLI /
+//! **Native agents** — Markdown agents that workspan *compiles and installs* as native Copilot CLI /
 //! Claude Code custom agents, so a running Copilot/Claude session discovers them (via `/agent`)
 //! and can delegate to them.
 //!
@@ -261,7 +261,7 @@ fn render_body(spec: &AgentDef, refs: &[ResolvedRef], inline: bool) -> String {
             .join(", ");
         out.push_str(&list);
         out.push_str(
-            ". In Copilot CLI invoke a workflow as `/<name>`; in Claude Code as `/bn:<name>`.\n",
+            ". In Copilot CLI invoke a workflow as `/<name>`; in Claude Code as `/workspan:<name>`.\n",
         );
     }
 
@@ -292,7 +292,7 @@ pub fn render_native_agent(
     }
     front.push_str("---\n");
 
-    // Inline the mined standards when they fit; otherwise point at `bn ref` to respect the limit.
+    // Inline the mined standards when they fit; otherwise point at `workspan ref` to respect the limit.
     let inline_body = render_body(spec, refs, true);
     let body = if front.len() + inline_body.len() <= MAX_AGENT_CHARS {
         inline_body
@@ -668,7 +668,8 @@ mod tests {
     fn a_repo_less_agent_is_global_only() {
         // The regression the `repo.is_some()` guard exists for: without it this agent's
         // `None == None` would match a repo install whose context failed to resolve.
-        let published = agent("name: demo\nkind: command\nrequires_repo: bn\nworlds: [claude]");
+        let published =
+            agent("name: demo\nkind: command\nrequires_repo: workspan\nworlds: [claude]");
         assert!(in_scope(&published, NativeScope::Global, Some("bn")));
         assert!(!in_scope(&published, NativeScope::Repo, None));
         assert!(!in_scope(&published, NativeScope::Repo, Some("bn")));

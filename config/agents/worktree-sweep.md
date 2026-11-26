@@ -1,6 +1,6 @@
 ---
 name: worktree-sweep
-requires_repo: bn
+requires_repo: workspan
 kind: command
 on_calendar: "*-*-01/2 09:00:00"
 opt_in: true

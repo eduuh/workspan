@@ -1,4 +1,4 @@
-//! `bn task add --body/--link/--attach` and `bn task attach` — the CLI half of rich capture
+//! `workspan task add --body/--link/--attach` and `workspan task attach` — the CLI half of rich capture
 //! (#1006, EPIC #993).
 //!
 //! Split from `cmd/task.rs`, which is at the file-size ratchet's door.
@@ -6,11 +6,11 @@
 //! # Why the CLI captures at all
 //!
 //! Context arrives as a failing command's output in a terminal that is already open, or a screenshot in
-//! `~/Desktop`. `bn task add "fix the flaky reconnect" --body - --attach ~/Desktop/shot.png`, with
+//! `~/Desktop`. `workspan task add "fix the flaky reconnect" --body - --attach ~/Desktop/shot.png`, with
 //! the failure piped into stdin, is the shortest path from "this is broken" to a durable task an
 //! agent can act on — and no shorter path means no context lost to the friction of switching.
 //!
-//! # `bn task attach` is the agent's accessor
+//! # `workspan task attach` is the agent's accessor
 //!
 //! The doc's `## Attachments` manifest deliberately lists names, not paths (see
 //! [`bn_core::task_attach`]). This command is the other half of that decision: it resolves those

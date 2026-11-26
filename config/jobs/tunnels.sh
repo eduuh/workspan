@@ -1,7 +1,7 @@
 #!/bin/sh
 # tunnels -- how the tunnel mesh looks from this machine, and why a machine is missing or down.
 #
-#   bn tunnels        (or: bn run tunnels, sh tunnels.sh)
+#   workspan tunnels        (or: workspan run tunnels, sh tunnels.sh)
 #
 # The status bar only shows hosts whose latest connection check passed. This asks the
 # Dev Tunnels account, so it also lists a host this machine has not picked up yet, and for each one
@@ -9,7 +9,7 @@
 # wrong when ssh does not answer. It checks every host at once, live, so it takes a few seconds.
 # Each host's own report (published by its tunnel-auto to the notes repo, lib/tunnel.sh) says why
 # it is down in its own words, or since when it has been silent. Codespaces connected with
-# `bn cs connect` are listed too, with their gh state; only running ones are checked over ssh,
+# `workspan cs connect` are listed too, with their gh state; only running ones are checked over ssh,
 # because an ssh to a stopped codespace starts it. Reads only; changes nothing.
 set -u
 
@@ -36,11 +36,11 @@ DT=$(command -v devtunnel 2>/dev/null || true)
 # The other machines' reports come from the notes repo, fetched alongside.
 bn_tunnel_reports_fetch > "$tmp/notes" 2>/dev/null &
 if [ -z "$DT" ]; then
-  account="no devtunnel CLI (bn run tunnel-setup)"
+  account="no devtunnel CLI (workspan run tunnel-setup)"
 elif who=$("$DT" user show 2>/dev/null | grep -i 'logged in as'); then
   account=$(printf '%s\n' "$who" | head -n 1 | sed 's/^Logged in as //; s/\.$//')
 else
-  account="signed out (bn run tunnel-setup, or: $DT user login -g -d)"
+  account="signed out (workspan run tunnel-setup, or: $DT user login -g -d)"
 fi
 
 port=$(awk '$1 == "Port" {print $2; exit}' "$HOME/.ssh/bn-sshd/sshd_config" 2>/dev/null)
@@ -48,7 +48,7 @@ case "$(bn_tunnel_flag tunnelHost)" in off|false|no|0) host_off=1 ;; *) host_off
 if [ "$host_off" = 1 ]; then
   hosting="not hosting (bn.tunnelHost off)"
 elif ! bn_tunnel_sshd >/dev/null; then
-  hosting="not hosting: no sshd (bn run tunnel-setup)"
+  hosting="not hosting: no sshd (workspan run tunnel-setup)"
 elif [ -z "$port" ]; then
   hosting="not hosting yet"
 elif ! bn_tunnel_listening "$port"; then
@@ -137,14 +137,14 @@ check() {
   fi
   seen=$(grep -a 'tunnel-auto repair' "$cache/tunnel-auto.log" 2>/dev/null | grep -aE "[ (]$name ok" | tail -n 1 | awk '{print $2, substr($3, 1, 5)}')
   if [ "$id" = - ]; then
-    note="its tunnel is gone from the account; run bn run tunnel-host there"
+    note="its tunnel is gone from the account; run workspan run tunnel-host there"
   elif [ "$hostup" = no ]; then
     note="nothing is hosting its tunnel: the machine is off or asleep, its WSL stopped, or devtunnel is signed out there"
   elif [ "$target" = 127.0.0.1 ] && ! bn_tunnel_listening "$p" 127.0.0.1; then
     note="the local forward is not listening (tmux window bn-tunnels:tunnel-$name)"
   else
     note="ssh: $(printf '%s\n' "$err" | tail -n 1)"
-    case "$err" in *"Permission denied"*) note="$note (this machine's key is not on the GitHub account $name trusts, or $name has not re-read the keys: bn run tunnel-host there)" ;; esac
+    case "$err" in *"Permission denied"*) note="$note (this machine's key is not on the GitHub account $name trusts, or $name has not re-read the keys: workspan run tunnel-host there)" ;; esac
   fi
   # Its own report, when there is one, beats a guess from this side.
   r=$(report "$name")
@@ -156,7 +156,7 @@ check() {
   echo "DOWN|$route|$hostup|$note"
 }
 
-# --- codespaces (bn cs connect) ------------------------------------------------------
+# --- codespaces (workspan cs connect) ------------------------------------------------------
 # "<alias> <codespace>" for every managed block; their states come from one `gh cs list`, started
 # now so it overlaps the checks below.
 cs_blocks=$(awk '/^# >>> bn codespace /{a=$5} /^# bn: codespace /{if (a != "") print a, $4; a = ""}' "$HOME/.ssh/config" 2>/dev/null)

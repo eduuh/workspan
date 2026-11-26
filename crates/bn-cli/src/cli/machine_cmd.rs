@@ -1,4 +1,4 @@
-//! `bn machine` — the hosts this notes tree holds state for, and repairing a split between two.
+//! `workspan machine` — the hosts this notes tree holds state for, and repairing a split between two.
 //!
 //! Machine-scoped state (the event log, metrics, dojo decks) lives under
 //! `<personal_root>/<machine>/`. That name is pinned now, but a host whose identity drifted before

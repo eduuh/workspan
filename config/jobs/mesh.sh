@@ -1,10 +1,10 @@
 #!/bin/sh
-# mesh -- put a machine on the bn mesh with plain ssh, and keep both directions working.
+# mesh -- put a machine on the workspan mesh with plain ssh, and keep both directions working.
 #
-#   bn machine join <name> <user@host[:port]>    once, from the machine you are on
-#   bn machine leave <name>
-#   bn machine mesh                              how every node looks from here (reads only)
-#   bn run mesh                                  the keeper (tunnel-auto runs it every pass)
+#   workspan machine join <name> <user@host[:port]>    once, from the machine you are on
+#   workspan machine leave <name>
+#   workspan machine mesh                              how every node looks from here (reads only)
+#   workspan run mesh                                  the keeper (tunnel-auto runs it every pass)
 #
 # A node is any machine this one reaches with plain ssh: a VPS, a box on the LAN, a Cloud PC with
 # its own sshd. No Dev Tunnels account. Joining:
@@ -13,7 +13,7 @@
 #   3. holds `ssh -R` open from the node's loopback to this machine's sshd (tmux window
 #      bn-tunnels:mesh-<name>), so the node can reach back even when this machine is behind NAT;
 #   4. writes a block for this machine into the node's ~/.ssh/config pointing at that forward.
-# After that `bn agent msg` reaches agents on either side, and replies come back the same way.
+# After that `workspan agent msg` reaches agents on either side, and replies come back the same way.
 #
 # --back <user@host[:port]>: this machine is reachable directly at that address, so no reverse
 # forward; the node's block for this machine points there instead. --no-back: one way only.
@@ -35,7 +35,7 @@ die() { echo "mesh: $*" >&2; exit 1; }
 RPATH='export PATH="$HOME/.bn/bin:$HOME/.bin:$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH";'
 
 # remote_set_block <node> <name> <block> -- replace a managed block in the node's ~/.ssh/config. The
-# block travels on stdin and the edit is plain awk, so it works whatever bn the node has.
+# block travels on stdin and the edit is plain awk, so it works whatever workspan the node has.
 remote_set_block() {
   printf '%s\n' "$3" | bn_tunnel_timeout 20 ssh -o BatchMode=yes "$1" "
     set -e; mkdir -p ~/.ssh; chmod 700 ~/.ssh; touch ~/.ssh/config; chmod 600 ~/.ssh/config
@@ -46,7 +46,7 @@ remote_set_block() {
 window_of() { tmux list-windows -a -F '#{session_name}:#{window_name}' 2>/dev/null | grep ":mesh-$1\$" | head -n 1; }
 
 # start_window <node> -- the reverse forward's tmux window, unless one is up.
-# A running window keeps the code it started with, so after a bn update it is restarted once: each
+# A running window keeps the code it started with, so after a workspan update it is restarted once: each
 # window is tagged with the version of this script and its library it runs.
 code_ver() { cat "$SELF_SCRIPT" "$(dirname "$SELF_SCRIPT")/lib/mesh.sh" 2>/dev/null | cksum | cut -d' ' -f1; }
 
@@ -103,8 +103,8 @@ cmd_join() {
   bn_mesh_put "$name" target "$target"
   bn_mesh_put "$name" back "$back"
 
-  ver=$(bn_mesh_ssh "$name" "$RPATH bn --version 2>/dev/null" || true)
-  if [ -n "$ver" ]; then say "$name: $ver"; else say "$name: bn is not installed there, so agents there cannot be messaged yet (install bn on $name)"; fi
+  ver=$(bn_mesh_ssh "$name" "$RPATH workspan --version 2>/dev/null" || true)
+  if [ -n "$ver" ]; then say "$name: $ver"; else say "$name: workspan is not installed there, so agents there cannot be messaged yet (install workspan on $name)"; fi
 
   [ "$back" != none ] || { say "$name: joined one way (--no-back); $name cannot reach this machine"; return 0; }
 
@@ -136,7 +136,7 @@ cmd_join() {
     back_ok "$name" || die "$name cannot ssh to this machine at $back"
   fi
   say "$name: ssh $ME from $name works"
-  say "joined: agents on $ME and $name can now message each other (bn agent msg <repo:branch> \"...\")"
+  say "joined: agents on $ME and $name can now message each other (workspan agent msg <repo:branch> \"...\")"
 }
 
 cmd_leave() {
@@ -225,15 +225,15 @@ cmd_keep() {
 
 cmd_status() {
   nodes=$(bn_mesh_nodes)
-  [ -n "$nodes" ] || { say "no mesh nodes yet. Join one: bn machine join <name> <user@host[:port]>"; return 0; }
+  [ -n "$nodes" ] || { say "no mesh nodes yet. Join one: workspan machine join <name> <user@host[:port]>"; return 0; }
   echo "mesh: $ME"
   for name in $nodes; do
     target=$(bn_mesh_get "$name" target); back=$(bn_mesh_get "$name" back)
     fwd=down; bk=-; ver=""; agents=""
     if fwd_ok "$name"; then
       fwd=ok
-      ver=$(bn_mesh_ssh "$name" "$RPATH bn --version 2>/dev/null | awk '{print \$2}'" 2>/dev/null || true)
-      agents=$(bn_mesh_ssh "$name" "$RPATH bn agent live --json 2>/dev/null" 2>/dev/null \
+      ver=$(bn_mesh_ssh "$name" "$RPATH workspan --version 2>/dev/null | awk '{print \$2}'" 2>/dev/null || true)
+      agents=$(bn_mesh_ssh "$name" "$RPATH workspan agent live --json 2>/dev/null" 2>/dev/null \
         | grep -o '"has_window": *true' | wc -l | tr -d ' ' || true)
     fi
     case "$back" in

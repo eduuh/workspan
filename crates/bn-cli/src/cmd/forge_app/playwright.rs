@@ -1,4 +1,4 @@
-//! The browser driver for `bn forge login`: `@playwright/cli` as a shell-out.
+//! The browser driver for `workspan forge login`: `@playwright/cli` as a shell-out.
 //!
 //! Deliberately thin. [`super::login`] decides what to do; this only opens a headed browser on a
 //! persistent profile and evaluates functions in the page. Swapping the driver (a CDP relay for

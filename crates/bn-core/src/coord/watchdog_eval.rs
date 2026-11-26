@@ -1,7 +1,7 @@
 //! Evaluating due watchdogs: claiming a due slot, and recording what happened.
 //!
 //! The claim is a compare-and-set on `next_due_at`: only the caller whose `UPDATE` changes the row
-//! gets to evaluate it, so the tick, a precise timer (`bn watchdog fire`) and a second machine's
+//! gets to evaluate it, so the tick, a precise timer (`workspan watchdog fire`) and a second machine's
 //! tick can all race and a watchdog still fires at most once per due slot.
 
 use super::watchdog::{load_wd, wd_from_row, Watchdog, WD_COLUMNS};

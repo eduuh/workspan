@@ -1,11 +1,11 @@
 //! Morning-planning findings gatherers (#897) — wire the existing gather surfaces into the
-//! append-only [`crate::findings`] store so `bn today` / the later planner (#898–#899) have a
+//! append-only [`crate::findings`] store so `workspan today` / the later planner (#898–#899) have a
 //! durable, queryable morning-planning packet.
 //!
 //! # Why an adapter layer
 //!
-//! `bn findings` (#576) is a real store but was unwired: nothing recorded into it, so
-//! `bn findings sources` was empty. Rather than change the existing write paths (feed / attention
+//! `workspan findings` (#576) is a real store but was unwired: nothing recorded into it, so
+//! `workspan findings sources` was empty. Rather than change the existing write paths (feed / attention
 //! / daily) or edit the meetings/m365 shell gatherers, this module adds a thin **Rust adapter
 //! layer** that *snapshots already-local caches* into the findings store. Each adapter is a pure,
 //! offline read of a store some other job already populated — so wiring findings here is:

@@ -526,7 +526,7 @@ mod layer_tests {
         assert_eq!(parsed_sections(), known);
     }
 
-    /// With no template to read, docs/config.md is where a setting is found, so every section bn
+    /// With no template to read, docs/config.md is where a setting is found, so every section workspan
     /// parses needs an entry there: a new section added without one fails here.
     #[test]
     fn docs_config_documents_every_section_bn_parses() {

@@ -1,4 +1,4 @@
-//! A cheap, offline token estimate for text bn is about to hand an agent — a seed prompt, a
+//! A cheap, offline token estimate for text workspan is about to hand an agent — a seed prompt, a
 //! reference section, a context profile. It is a budget signal, not a meter: the harness's own
 //! usage figures stay the truth for what a turn actually cost.
 

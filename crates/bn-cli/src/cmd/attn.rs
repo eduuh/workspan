@@ -1,4 +1,4 @@
-//! `bn attn` — the attention board: queue, triage, start, notify, metrics.
+//! `workspan attn` — the attention board: queue, triage, start, notify, metrics.
 use crate::*;
 
 pub(crate) fn emit_attn_list(type_filter: &[String], as_json: bool) {
@@ -179,7 +179,7 @@ pub(crate) fn emit_attn_board(cfg: &Config, type_filter: &[String], as_json: boo
     use bn_core::attention::Lane;
     let (classified, open) = attn_lanes();
     let open = filter_by_type(open, type_filter);
-    // One ranking brain: TO START follows `bn next`'s order (warm cache — same feed as the
+    // One ranking brain: TO START follows `workspan next`'s order (warm cache — same feed as the
     // picker), including the read-time momentum re-rank (#246).
     let ranked_ids: Vec<String> = {
         use bn_core::clock::Clock;
@@ -289,7 +289,7 @@ pub(crate) fn emit_attn_board(cfg: &Config, type_filter: &[String], as_json: boo
         }
         for i in &open {
             // A pending plan-review is a "plan to review" — call it out explicitly and point at the
-            // one-keystroke nvim popup (`bn jump` / `bn doctor --pick`) rather than the generic
+            // one-keystroke nvim popup (`workspan jump` / `workspan doctor --pick`) rather than the generic
             // to-start line (#651).
             if crate::cmd::plan_review::is_plan_review_attn(i) {
                 println!(

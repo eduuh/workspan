@@ -339,12 +339,12 @@ pub(crate) fn cmd_go(cfg: &Config, worktree: Option<String>) -> bool {
                     let rn = repo.file_name().to_string_lossy().to_string();
                     if let Ok(branches) = std::fs::read_dir(repo.path()) {
                         for br in branches.flatten().filter(|e| e.path().is_dir()) {
-                            let bn = br.file_name().to_string_lossy().to_string();
+                            let workspan = br.file_name().to_string_lossy().to_string();
                             // `_pool` holds warm pool slots, not branch worktrees — skip it.
-                            if bn == "_pool" {
+                            if workspan == "_pool" {
                                 continue;
                             }
-                            items.push(format!("{rn}/{bn}"));
+                            items.push(format!("{rn}/{workspan}"));
                         }
                     }
                 }

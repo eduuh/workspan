@@ -1,4 +1,4 @@
-//! `bn doctor`/`bn next`/`bn gap`/`workspan wrap`/`bn rate` — health, next-action, day close.
+//! `workspan doctor`/`workspan next`/`workspan gap`/`workspan wrap`/`workspan rate` — health, next-action, day close.
 use crate::*;
 
 /// Is `workspan shell-init`'s `claude`/`copilot` wrapper actually driving launches in this shell?
@@ -94,7 +94,7 @@ pub(crate) fn emit_doctor(cfg: &Config, stale_days: i64, brief: bool, as_json: b
     bn_core::doctor::sort_findings(&mut findings);
     let findings = findings;
     // Machine-level cron drift (global tier): declared-but-unregistered jobs. A fresh box has the
-    // manifest and zero timers — surface it here so SessionStart/`bn doctor` flags it unprompted.
+    // manifest and zero timers — surface it here so SessionStart/`workspan doctor` flags it unprompted.
     let drift = cron_drift(cfg, None);
     if as_json {
         let mut data = payload::doctor_data(&findings);
@@ -157,7 +157,7 @@ pub(crate) fn emit_doctor(cfg: &Config, stale_days: i64, brief: bool, as_json: b
         );
         println!("  {}", drift.join(", "));
     }
-    // Pointing at `bn cron register` is only useful advice when register would do something. On a
+    // Pointing at `workspan cron register` is only useful advice when register would do something. On a
     // machine whose `[machine]` table says `cron = false` it would not, so name that instead.
     print_cron_disabled_notice(cfg, None);
     if !lease_violations.is_empty() {
@@ -360,7 +360,7 @@ pub(crate) fn emit_next(
             eprintln!("workspan: could not refresh attention cache: {e}");
         }
         // Warm the doctor picker's snapshot on the same `attention-sync` tick, so prefix-J
-        // (`bn doctor --pick`) opens instantly too instead of re-walking every branch note.
+        // (`workspan doctor --pick`) opens instantly too instead of re-walking every branch note.
         if let Err(e) =
             bn_core::doctor::refresh_cache(cfg, &today, bn_core::doctor::DEFAULT_STALE_DAYS, now)
         {

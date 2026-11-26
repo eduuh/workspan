@@ -65,7 +65,7 @@ pub(crate) fn plan(exists: bool, head: Option<&str>, dirty: usize, default: &str
             }
         }
         Some(branch) => MainSync::Skip(branch.to_string()),
-        // Detached: not the branch the rest of bn expects to find here, and not ours to reattach.
+        // Detached: not the branch the rest of workspan expects to find here, and not ours to reattach.
         None => MainSync::Skip("a detached HEAD".to_string()),
     }
 }
@@ -143,7 +143,7 @@ pub(crate) fn sync_repo(bare: &Path, worktree_dir: &Path, repo: &str) -> bool {
                 // destroyed uncommitted work in every repo on this machine for two days, because
                 // the snapshot had been failing since #1262 and nothing said so. A main worktree
                 // left un-advanced is visible and recoverable; work reset without a snapshot is
-                // neither. Loud (stderr → `bn cron failures`) and retried next tick.
+                // neither. Loud (stderr → `workspan cron failures`) and retried next tick.
                 native_job_line(
                     &format!(
                         "main-sync: {repo}: REFUSING to discard {n} change(s) — could not snapshot them to {RESCUE_REF}. \
@@ -363,7 +363,7 @@ fn prefetch_blobs(dir_s: &str, target: &str, repo: &str, what: &str) -> bool {
 ///
 /// The slot is a *detached* checkout — git will not check `main` out twice, and the main worktree
 /// holds the branch — so it is moved with a detaching reset rather than a merge. Skipped whenever
-/// somebody could lose something by it: uncommitted work in the slot, or a live agent (`bn
+/// somebody could lose something by it: uncommitted work in the slot, or a live agent (`workspan
 /// control` lives here) working in it.
 fn sync_main_slot(bare: &Path, worktree_dir: &Path, repo: &str, target: &str) -> bool {
     let Some(slot) = crate::main_slot::ensure(bare, worktree_dir, repo) else {

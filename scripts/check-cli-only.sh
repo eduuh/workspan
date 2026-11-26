@@ -6,7 +6,7 @@ repo=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
 cd "$repo"
 
 if git grep -nE \
-  'bn-web|bn[[:space:]]+serve|tmux-mcp|BN_SKIP_UI|BN_REBUILD_UI|BN_WEB_' \
+  'bn-web|workspan[[:space:]]+serve|tmux-mcp|BN_SKIP_UI|BN_REBUILD_UI|BN_WEB_' \
   -- '*.sh' '*.yml' '*.toml' \
   ':!scripts/install-retire-web.sh' ':!scripts/check-install-retire-web.sh' \
   ':!scripts/check-cli-only.sh'; then

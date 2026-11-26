@@ -16,14 +16,14 @@ set -eu
 
 MODE="${1:-}"
 DIR="${2:-}"
-BN="${3:-target/release/bn}"
+BN="${3:-target/release/workspan}"
 
 case "$MODE" in
   capture|compare) ;;
   *) echo "usage: $0 capture|compare <dir> [bn-binary]" >&2; exit 2 ;;
 esac
 [ -n "$DIR" ] || { echo "usage: $0 $MODE <dir> [bn-binary]" >&2; exit 2; }
-[ -x "$BN" ] || { echo "no bn binary at $BN (build it, or pass the path)" >&2; exit 2; }
+[ -x "$BN" ] || { echo "no workspan binary at $BN (build it, or pass the path)" >&2; exit 2; }
 
 # Read-only, offline, deterministic. Anything that fetches, spawns an agent, or writes state stays
 # out — a golden file that depends on the network is a flake, not a gate.

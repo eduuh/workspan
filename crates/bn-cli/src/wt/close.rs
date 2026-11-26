@@ -1,4 +1,4 @@
-//! `bn wt close` — the `prefix x` action: close **this worktree**.
+//! `workspan wt close` — the `prefix x` action: close **this worktree**.
 //!
 //! The keystroke does two things, in order:
 //!
@@ -6,7 +6,7 @@
 //! * reclaim the worktree: hand a pool slot's lease back, or run the normal `wt cleanup` gates for
 //!   a conventional one. That half is not keystroke-sized — a warm reset re-checks-out the tree,
 //!   and the cleanup gates make a `gh pr view` round-trip — so the tmux bind runs the whole command
-//!   with `run-shell -b`, and the reclaim happens in that background process by re-entering `bn wt
+//!   with `run-shell -b`, and the reclaim happens in that background process by re-entering `workspan wt
 //!   close --reclaim`; see [`reclaim`] for why the keystroke does the work itself.
 //!
 //! Slot occupancy is derived from live tmux windows, so releasing a lease before the window is

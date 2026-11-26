@@ -8,7 +8,7 @@ cd "$repo"
 # shellcheck source=scripts/install-toolchain.sh
 . "$repo/scripts/install-toolchain.sh"
 bn_install_activate_cargo "$repo" || {
-  echo "bn run: no usable Cargo toolchain found" >&2
+  echo "workspan run: no usable Cargo toolchain found" >&2
   exit 1
 }
 
@@ -17,4 +17,4 @@ head_sha=$(git -C "$repo" rev-parse HEAD 2>/dev/null || true)
 
 mkdir -p "$target_dir"
 GITHUB_SHA="${GITHUB_SHA:-$head_sha}" CARGO_TARGET_DIR="$target_dir" cargo build -p bn-cli -p bn-mcp
-exec "$target_dir/debug/bn" "$@"
+exec "$target_dir/debug/workspan" "$@"

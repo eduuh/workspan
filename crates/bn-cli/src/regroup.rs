@@ -1,8 +1,8 @@
 //! Command grouping: the top-level surface agents and people read, kept small without touching
-//! a single handler. A grouped name (`bn note close`, `bn tmux status`, `bn cat --brief`) is
-//! rewritten to the command that already implements it (`bn close`, `bn tmux-status`,
-//! `bn brief`) before clap parses argv, so both spellings run the same code. The old names stay
-//! callable but hidden from `bn --help`; tmux bindings, cron jobs and older prompts keep working.
+//! a single handler. A grouped name (`workspan note close`, `workspan tmux status`, `workspan cat --brief`) is
+//! rewritten to the command that already implements it (`workspan close`, `workspan tmux-status`,
+//! `workspan brief`) before clap parses argv, so both spellings run the same code. The old names stay
+//! callable but hidden from `workspan --help`; tmux bindings, cron jobs and older prompts keep working.
 //! The same pre-parse seam also handles small argv repairs where clap's built-in help/version
 //! interception would otherwise block a legitimate forwarded child argv.
 //!
@@ -232,7 +232,7 @@ pub(crate) fn plan(args: Vec<OsString>) -> Plan {
         } else {
             2
         };
-        let executable = crate::identity::name_from_arg(args.first().map(|a| a.as_os_str()));
+        let executable = crate::identity::name();
         let mut text =
             format!("{about}\n\nUsage: {executable} {name} <COMMAND> [ARGS]...\n\nCommands:\n");
         text.push_str(&route_list(name));
@@ -332,14 +332,12 @@ mod tests {
         let help = cmd.render_help().to_string();
         assert!(help.contains("Usage: workspan"));
         assert!(!help.contains("Mark a todo done"));
-        for name in ["workspan", "bn"] {
-            for retired in [
-                "note", "goal", "cat", "done", "handoff", "compact", "capture",
-            ] {
-                assert!(command_named(name)
-                    .try_get_matches_from([name, retired])
-                    .is_err());
-            }
+        for retired in [
+            "note", "goal", "cat", "done", "handoff", "compact", "capture",
+        ] {
+            assert!(command_named("workspan")
+                .try_get_matches_from(["workspan", retired])
+                .is_err());
         }
     }
 
@@ -379,7 +377,7 @@ mod tests {
         }
 
         check(command_named("workspan"));
-        for executable in ["workspan", "ws", "bn"] {
+        for executable in ["workspan", "ws"] {
             let Plan::Parse(argv) = plan([executable, "task", "list"].map(OsString::from).to_vec())
             else {
                 panic!("expected task command");

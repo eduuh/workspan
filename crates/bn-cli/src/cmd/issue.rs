@@ -1,4 +1,4 @@
-//! `bn issue` — auto-file deduped, labeled bn issues on identified problems (#345 proposal 4).
+//! `workspan issue` — auto-file deduped, labeled workspan issues on identified problems (#345 proposal 4).
 //!
 //! The orchestrator (or an agent) that trips over a bug / friction / blocker files it as a
 //! labeled GitHub issue instead of leaning on a human to do it by hand — the way #340 and #343

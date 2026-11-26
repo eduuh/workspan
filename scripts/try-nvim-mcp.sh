@@ -6,7 +6,7 @@
 #   ./scripts/try-nvim-mcp.sh                 # run the checks
 #   NVIM_MCP_PLUGIN=<dir> ./scripts/try-nvim-mcp.sh   # plugin checkout to load (default: find it)
 #
-# Why a script and not a Rust test: what can break here is the wiring between three programs bn
+# Why a script and not a Rust test: what can break here is the wiring between three programs workspan
 # does not own — nvim, the nvim-mcp plugin, and the nvim-mcp binary — and the failure this catches
 # is exactly the one that unit tests cannot see. The released 0.7.2 binary globs /tmp for the
 # plugin's sockets while the plugin on main registers them under $XDG_RUNTIME_DIR, so a mismatched

@@ -435,7 +435,7 @@ pub(super) fn issue_decompose(
         );
     }
 
-    // Start the children, never the parent. Each goes through `bn dispatch`, whose branch guard
+    // Start the children, never the parent. Each goes through `workspan dispatch`, whose branch guard
     // refuses a child already running, so re-running a decomposition does not start a second lane.
     let source = format!("decomposed:{slug}#{}", parent.number);
     let mut started = Vec::new();

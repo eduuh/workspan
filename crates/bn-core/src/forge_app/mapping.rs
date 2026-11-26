@@ -1,4 +1,4 @@
-//! Pure translation between a Forge activity row and a bn [`Task`], and the per-field view of a
+//! Pure translation between a Forge activity row and a workspan [`Task`], and the per-field view of a
 //! task that [`super::store::ForgeTaskStore::save`] diffs.
 //!
 //! Nothing here does I/O, so every rule is unit-tested directly.

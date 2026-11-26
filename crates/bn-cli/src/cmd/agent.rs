@@ -269,7 +269,7 @@ pub(crate) fn emit_agent_done(
     };
     let key = format!("{outcome}:{}/{}", ctx.repo, ctx.branch);
     // A completion is an outcome, not an actionable item: raise it at DONE_SEVERITY so it lands in
-    // the review inbox (`bn feed`), never the actionable attention list (doctor / `bn next`).
+    // the review inbox (`workspan feed`), never the actionable attention list (doctor / `workspan next`).
     let out = bn_core::attention::add(
         "agent",
         &title,
@@ -304,7 +304,7 @@ pub(crate) fn emit_agent_done(
     }
 
     // Fill the structured `front.pr` field on the path everyone runs (mirror `agent_recover`):
-    // otherwise the PR only lands in the Progress prose + attention item and `bn pr` never gets
+    // otherwise the PR only lands in the Progress prose + attention item and `workspan pr` never gets
     // called, leaving `front.pr` empty ~half the time (issue #648, root cause 2).
     if let Some(p) = &pr {
         let _ = commands::set_pr(cfg, &ctx, p, &today());
@@ -980,7 +980,7 @@ fn enforce_launch_placement(
                      or free it: workspan agent kill {repo}:{branch}"
                 ),
                 _ => format!(
-                    "  it never registered with bn, so it has no repo:branch to steer — \
+                    "  it never registered with workspan, so it has no repo:branch to steer — \
                      stop it in its window: {}",
                     owner.tmux_target
                 ),
@@ -996,8 +996,8 @@ fn enforce_launch_placement(
         agent_lease::WorktreeHolder::Free => {}
     }
     // 3. **Agents live in tmux windows.** Typed on a bare terminal there is no window to steer, kill
-    //    or even name, so the agent would run outside the control plane bn exists to provide. Open
-    //    the window bn would have opened and attach to it — the same shape `workspan dispatch` produces.
+    //    or even name, so the agent would run outside the control plane workspan exists to provide. Open
+    //    the window workspan would have opened and attach to it — the same shape `workspan dispatch` produces.
     if redirect_into_window_wanted() {
         redirect_into_window(cfg, &ctx, &canonical, harness, pinned_session);
     }
@@ -1133,7 +1133,7 @@ fn redirect_into_window(
 
     // Re-run *this* invocation inside the window, with the session pinned so the window's agent and
     // the record we are about to write name the same session.
-    let exe = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("bn"));
+    let exe = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("workspan"));
     let mut argv: Vec<String> = std::env::args().skip(1).collect();
     if !argv.iter().any(|a| a == "--session") {
         // Before any `--`, so it lands on the launcher rather than the harness passthrough.
@@ -1214,7 +1214,7 @@ fn redirect_from_main(worktree: &std::path::Path, harness: Harness) -> ! {
         std::process::exit(1);
     }
     let goal = goal.trim().to_string();
-    let exe = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("bn"));
+    let exe = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("workspan"));
     eprintln!("  Leasing a pool slot for: {goal}");
     exec_harness(
         &exe.to_string_lossy(),
@@ -1238,8 +1238,8 @@ fn redirect_from_main(worktree: &std::path::Path, harness: Harness) -> ! {
 /// it exits 2; on exec failure it prints the error and exits 127, mirroring a failed `exec` in the
 /// shell launcher.
 ///
-/// This is the single chokepoint every entry point funnels through — the tmux keybinds, `bn
-/// dispatch`, `workspan control start`, the `claude`/`copilot` shell wrappers, and a plain `cd <wt> && bn
+/// This is the single chokepoint every entry point funnels through — the tmux keybinds, `workspan
+/// dispatch`, `workspan control start`, the `claude`/`copilot` shell wrappers, and a plain `cd <wt> && workspan
 /// agent launch` — so the placement rule in [`enforce_launch_placement`] lives here rather than
 /// being restated by each caller.
 ///
@@ -1283,7 +1283,7 @@ pub(crate) fn emit_agent_launch(
     });
 
     if let Some(host) = host {
-        // The agent runs on `host`, and its own bn decides resume-or-fresh and placement there, so
+        // The agent runs on `host`, and its own workspan decides resume-or-fresh and placement there, so
         // only what the caller asked for travels. It is started in a tmux window on that machine,
         // then attached from here, and survives the connection (remote.rs).
         let sid = session.clone().unwrap_or_else(gen_uuid);
@@ -1302,8 +1302,8 @@ pub(crate) fn emit_agent_launch(
     }
 
     // Pin a session id when the caller didn't give one, exactly as `workspan dispatch` does. Without it a
-    // fresh hand-typed launch takes whatever id the harness invents, which bn never learns — and an
-    // id bn doesn't know is an agent bn cannot resume. Skipped when the user drove the session
+    // fresh hand-typed launch takes whatever id the harness invents, which workspan never learns — and an
+    // id workspan doesn't know is an agent workspan cannot resume. Skipped when the user drove the session
     // themselves (`claude --continue`, `claude --resume <id>`): pinning on top of their flag is at
     // best redundant and at worst an argument conflict.
     let user_owns_session = passthrough_controls_session(&passthrough);
@@ -1370,12 +1370,12 @@ pub(crate) fn emit_agent_launch(
             }
             // The window badge follows the agent's turns with no hooks wired by hand. Copilot reads
             // user hooks from one global directory, so this file also fires outside tmux, where
-            // `bn tmux-agent` is a no-op.
+            // `workspan tmux-agent` is a no-op.
             if std::env::var_os("TMUX").is_some() {
                 let _ = install_copilot_tmux_agent_hook();
             }
             // Never block a fresh launch on the folder-trust dialog — pre-trust this worktree
-            // (#658). Best-effort; reuses `bn trust-folder`'s config writer. Ensure copilot's
+            // (#658). Best-effort; reuses `workspan trust-folder`'s config writer. Ensure copilot's
             // config dir exists first so the trust write lands even on a first-ever launch (the
             // zsh launcher silenced any failure here; we make it succeed instead).
             if let Ok(home) = std::env::var("HOME") {

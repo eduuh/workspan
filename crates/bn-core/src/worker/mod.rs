@@ -1,4 +1,4 @@
-//! `bn worker` (#719, epic #707 M1) — a durable, worker-local record of dispatch attempts,
+//! `workspan worker` (#719, epic #707 M1) — a durable, worker-local record of dispatch attempts,
 //! queryable over SSH. This module owns the two pieces of the registry slice:
 //!
 //! - [`registry`] — the SQLite (WAL) attempt registry: the 4-state machine
@@ -7,7 +7,7 @@
 //! - [`capacity`] — the `/proc`-based capacity snapshot (RAM/swap/load/disk) + the READY/PRESSURE
 //!   admission verdict a scheduler (#720) consumes.
 //!
-//! [`status`] assembles the versioned `bn worker status --json` payload from both. The registry is
+//! [`status`] assembles the versioned `workspan worker status --json` payload from both. The registry is
 //! deliberately worker-LOCAL and non-synced (git stays audit-only), so its DB lives under the
 //! machine-local `~/.bn` tooling root, not the synced notes repo — see [`registry_path`].
 

@@ -1,7 +1,7 @@
 //! Prompt (and reference-skill) discovery + creation across the personal / global / per-repo
-//! tiers — the same tiers `bn mcp serve` exposes through [`skill_dirs`].
+//! tiers — the same tiers `workspan mcp serve` exposes through [`skill_dirs`].
 //! Invocable prompts live in `config/prompts/`. One engine, two faces:
-//! `bn skills` (CLI) and the nvim picker call in here. Mirrors how cron jobs resolve through
+//! `workspan skills` (CLI) and the nvim picker call in here. Mirrors how cron jobs resolve through
 //! [`crate::resolver::job_dirs`] / [`list_jobs`].
 
 use crate::resolver::{self, Config};
@@ -69,7 +69,7 @@ pub struct NativeSkillsReport {
     pub changes: Vec<NativeSkillChange>,
 }
 
-/// Where a skill file lives, lowest → highest precedence. When bn-mcp merges the tiers into
+/// Where a skill file lives, lowest → highest precedence. When workspan-mcp merges the tiers into
 /// the served prompt set a higher tier overrides an earlier same-named skill.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SkillScope {
@@ -131,7 +131,7 @@ impl Serialize for SkillScope {
 }
 
 /// One discovered skill file, tagged with its tier and whether it is the *effective*
-/// (highest-precedence) definition for its name — i.e. the one bn-mcp actually serves.
+/// (highest-precedence) definition for its name — i.e. the one workspan-mcp actually serves.
 #[derive(Debug, Clone, Serialize)]
 pub struct SkillInfo {
     pub name: String,
@@ -183,7 +183,7 @@ fn shared_skills_dir(base_dir: &Path) -> PathBuf {
 }
 
 /// Skill source directories in precedence order (low → high), each tagged with its scope.
-/// The single source of truth for the tier layout: bn-mcp loads MCP prompts from the paths,
+/// The single source of truth for the tier layout: workspan-mcp loads MCP prompts from the paths,
 /// while [`discover`] / [`create_skill`] also use the scopes. Per-repo tiers appear only when
 /// `base_dir` is inside a git repo; otherwise just the two global tiers.
 /// Repository filesystem tiers also work in detached checkouts without branch-note context.
@@ -236,7 +236,7 @@ pub fn global_skill_dirs() -> Vec<PathBuf> {
 }
 
 /// Every skill across all tiers for `base_dir`, sorted by name then ascending scope rank.
-/// `effective` marks the highest-precedence definition per name (what bn-mcp serves); the
+/// `effective` marks the highest-precedence definition per name (what workspan-mcp serves); the
 /// others are shadowed.
 pub fn discover(cfg: &Config, base_dir: &Path) -> Result<Vec<SkillInfo>, SkillCatalogError> {
     discover_in(&skill_dirs(cfg, base_dir))
@@ -672,7 +672,7 @@ pub fn sync_native_skills(cfg: &Config, base_dir: &Path, home: &Path) -> NativeS
 /// Delete the skill source file at `path` — the create/read/update/**delete** counterpart of
 /// [`save_skill`]. Like `save_skill`, `path` is expected to come from [`effective_info`] (never raw
 /// caller input), so the file is known to be a real skill in a known tier. Deleting the effective
-/// definition unshadows any lower-tier skill of the same name, which then becomes what bn-mcp
+/// definition unshadows any lower-tier skill of the same name, which then becomes what workspan-mcp
 /// serves — deliberate: a delete removes one definition, not the name.
 pub fn delete_skill(path: &Path) -> Result<(), String> {
     std::fs::remove_file(path).map_err(|e| format!("{}: {e}", path.display()))
@@ -750,7 +750,7 @@ fn remove_native_skill_file(path: &Path) -> Result<(), String> {
 }
 
 /// The effective [`SkillInfo`] named `name` for `base_dir` — the metadata row (tier, path,
-/// `effective`) bn-mcp actually serves, so a caller can locate the on-disk file to view or edit it.
+/// `effective`) workspan-mcp actually serves, so a caller can locate the on-disk file to view or edit it.
 /// `None` if no tier defines `name`.
 pub fn effective_info(
     cfg: &Config,
@@ -764,7 +764,7 @@ pub fn effective_info(
 
 /// Overwrite the skill file at `path` with `content`, but only after `content` parses as a valid
 /// skill (frontmatter with a `description`) — so a dashboard edit can never corrupt a skill into
-/// one bn-mcp silently drops. `Err(reason)` on unparseable content or an I/O failure; the write is
+/// one workspan-mcp silently drops. `Err(reason)` on unparseable content or an I/O failure; the write is
 /// never attempted when validation fails. `path` is expected to be a real skill file located via
 /// [`effective_info`] (never raw caller input), so this validates the *body*, not the location.
 pub fn save_skill(path: &Path, content: &str) -> Result<(), String> {
@@ -776,7 +776,7 @@ pub fn save_skill(path: &Path, content: &str) -> Result<(), String> {
 /// Create `<scope dir>/<name>.md` with YAML frontmatter and a markdown body, returning the
 /// written path. Refuses to overwrite an existing file unless `overwrite`. `base_dir`
 /// resolves the per-repo tiers exactly as [`skill_dirs`] does, so a repo-scoped create lands
-/// beside what bn-mcp serves. A repo scope outside a git repo is an error.
+/// beside what workspan-mcp serves. A repo scope outside a git repo is an error.
 #[allow(clippy::too_many_arguments)]
 pub fn create_skill(
     cfg: &Config,

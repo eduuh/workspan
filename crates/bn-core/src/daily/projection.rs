@@ -2,8 +2,8 @@
 //! a day's goals, extracted from `daily.rs` so the owner filter below has a testable home.
 //!
 //! **Machine work is not your work.** #1151 established `task_owner::is_machine` and taught
-//! `bn task` and the SMART gate to respect it, but it never reached this
-//! projection — so `bn task` hid the cron chores while `bn daily`, `bn next` and the
+//! `workspan task` and the SMART gate to respect it, but it never reached this
+//! projection — so `workspan task` hid the cron chores while `workspan daily`, `workspan next` and the
 //! standup packet went on listing "run tools-reconcile" and "run wt-cleanup" as the day's focus.
 //! Filtering here fixes every one of those readers at once, because they all come through
 //! [`task_goals`].
@@ -26,7 +26,7 @@ pub(super) fn task_as_goal(task: &crate::todo::Task, today: &str) -> Item {
         created: task.created.clone().unwrap_or_else(|| today.to_string()),
         done: Some(done),
         done_at: task.completion.clone(),
-        // The issue a pulled task came from is the goal's link — the same field `bn daily add
+        // The issue a pulled task came from is the goal's link — the same field `workspan daily add
         // --link` fills, so the rendering needs no special case.
         link: task.meta("src").map(str::to_string),
         pct: None,

@@ -1,9 +1,9 @@
-//! Native `bn tat` — the project + worktree picker (prefix `C-o`). Phase 3 of the picker migration:
+//! Native `workspan tat` — the project + worktree picker (prefix `C-o`). Phase 3 of the picker migration:
 //! ports `workflow/bin/tat` (and its `worktree.sh` primitives) into the binary, dispatching into
 //! the native worktree engine (`wt.rs`) that already owns clone / worktree-add / session-per-repo.
 //!
 //! Like the `doctor`/`jump` pickers it is self-referencing — fzf's `start` reload, `--preview`, and
-//! `ctrl-x` re-invoke `bn tat --pick-stage <list|preview|kill>`. The list rows are
+//! `ctrl-x` re-invoke `workspan tat --pick-stage <list|preview|kill>`. The list rows are
 //! `display \t ref`: fzf shows `display` (`--with-nth=1`) and the hidden `ref` rides along as the
 //! last field (`{-1}`) for preview/kill/selection.
 //!
@@ -402,7 +402,7 @@ fn list_worktrees(roots: &Roots, r: &str) -> Vec<String> {
     let mut is_bare = false;
     let flush = |wt_path: &mut Option<String>, is_bare: &mut bool, res: &mut Vec<String>| {
         if let Some(p) = wt_path.take() {
-            // Skip the pool slots (`<repo>/_pool/<n>`): they're leased/warmed via `bn wt pool` and
+            // Skip the pool slots (`<repo>/_pool/<n>`): they're leased/warmed via `workspan wt pool` and
             // surfaced as dedicated pool rows in the sub-picker, never as bare numbered worktrees.
             let pooled = Path::new(&p).components().any(|c| c.as_os_str() == "_pool");
             if !*is_bare && !pooled {
@@ -870,7 +870,7 @@ fn resolve_and_open(cfg: &Config, roots: &Roots, sel: String, typed: bool) {
         goto_session(&ref_session(&sel));
         return;
     }
-    // Neither a bare repo nor a flat clone: nothing to open. A direct `bn tat <typo>` used to fall
+    // Neither a bare repo nor a flat clone: nothing to open. A direct `workspan tat <typo>` used to fall
     // through to `open_project`, which created a tmux session named after the typo, rooted in a
     // directory that does not exist, and recorded that path in zoxide. Say so instead; `hold()` so
     // a typed query's message is read before the popup closes.
@@ -972,7 +972,7 @@ fn pool_eligible(roots: &Roots, r: &str) -> bool {
 /// `--root win` the clone is steered to the Windows root (`WT_ROOT`); otherwise `workspan wt clone` uses
 /// its configured default, preserving the single-root behaviour exactly.
 fn clone_and_open(cfg: &Config, roots: &Roots, url: &str) {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     let mut cmd = Command::new(&exe);
     if roots.win_scoped {
         cmd.env("WT_ROOT", &roots.primary);

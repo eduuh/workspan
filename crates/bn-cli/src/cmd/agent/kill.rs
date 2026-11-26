@@ -1,4 +1,4 @@
-//! `bn agent kill` / `bn agent kill-repo` — the destructive stop, for one agent and for a repo's
+//! `workspan agent kill` / `workspan agent kill-repo` — the destructive stop, for one agent and for a repo's
 //! whole tmux session.
 //!
 //! Split out of `cmd::agent` because it is one self-contained concern: what it means to take an

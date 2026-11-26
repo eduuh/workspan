@@ -1,4 +1,4 @@
-//! The `bn tat` status header.
+//! The `workspan tat` status header.
 //!
 //! These badges — attention and cron health — used to be `#()` segments in
 //! tmux's `status-format[0]`. They were quiet on almost every 5s repaint, which is the worst thing

@@ -1,4 +1,4 @@
-//! `bn ref ...` clap surface, split from the top-level command catalog.
+//! `workspan ref ...` clap surface, split from the top-level command catalog.
 
 use crate::*;
 

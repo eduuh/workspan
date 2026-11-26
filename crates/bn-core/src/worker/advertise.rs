@@ -1,7 +1,7 @@
 //! What this machine advertises it can do.
 //!
 //! The single source of truth for a node's capabilities: what a remote node reports through
-//! `bn worker status --json`, **and** what the local box's synthesized registry record carries. One
+//! `workspan worker status --json`, **and** what the local box's synthesized registry record carries. One
 //! function for both sides, so the two can never disagree about the same machine — the failure mode
 //! where a box is passed over for work it could have run, and nothing says why.
 //!
@@ -58,5 +58,5 @@ pub fn advertised_labels(cfg: &Config, base_dir: &std::path::Path) -> Vec<String
 /// advertising them here would claim a capability that varies per checkout — and placement would
 /// then send work to a box where the requirement happens not to hold.
 fn mcp_names(_cfg: &Config) -> Vec<String> {
-    vec!["bn".to_string()]
+    vec!["workspan".to_string()]
 }

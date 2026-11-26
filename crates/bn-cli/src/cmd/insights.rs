@@ -1,4 +1,4 @@
-//! `bn insights`/`bn metrics`/`bn ingest`/`bn event` — analytics + ingestion.
+//! `workspan insights`/`workspan metrics`/`workspan ingest`/`workspan event` — analytics + ingestion.
 use crate::*;
 
 pub(crate) fn emit_insights(

@@ -1,6 +1,6 @@
 ---
 name: pr-queue
-requires_repo: bn
+requires_repo: workspan
 kind: command
 on_calendar: "*:0/15"
 network: true

@@ -1,4 +1,4 @@
-//! `bn machine list` / `bn machine merge` — see [`crate::cli::machine_cmd`].
+//! `workspan machine list` / `workspan machine merge` — see [`crate::cli::machine_cmd`].
 use crate::*;
 use bn_core::machine_state::{
     machine_dirs, merge_machine, resolve_machine_dir, same_machine, LogMerge, MachineDir,

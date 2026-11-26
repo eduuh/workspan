@@ -2,7 +2,7 @@
 # tunnel-forward -- keep ports on a tunnel host forwarded to this machine, without a session open.
 #
 # Run on the machine you connect FROM:
-#   BN_TUNNEL_TO=<machine> BN_TUNNEL_PORTS=3000,3001 bn run tunnel-forward
+#   BN_TUNNEL_TO=<machine> BN_TUNNEL_PORTS=3000,3001 workspan run tunnel-forward
 #   (or: sh tunnel-forward.sh <machine> 3000,3001)
 # e.g. a dev server running on a Cloud PC shows up at https://localhost:3000 here.
 #

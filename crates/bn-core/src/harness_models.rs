@@ -2,7 +2,7 @@
 //!
 //! An operator configuring a pipeline stage cannot be expected to know that Copilot serves
 //! `claude-opus-4.8` while Claude Code needs `claude-opus-4-8`, or which of two dozen ids exist at
-//! all. A hardcoded list in bn would answer that question wrongly within a month, and the failure is
+//! all. A hardcoded list in workspan would answer that question wrongly within a month, and the failure is
 //! silent: [`crate::mcp::Harness::model_arg`] drops the bad id and the agent runs on the harness's
 //! own default, so the stage looks configured and isn't.
 //!
@@ -25,7 +25,7 @@
 //! # Pure by construction
 //!
 //! Parsing lives here and is unit-tested against a fixture; *running* `copilot completion zsh` lives
-//! in the CLI, which is where every other subprocess in bn lives. The interesting half — a brittle
+//! in the CLI, which is where every other subprocess in workspan lives. The interesting half — a brittle
 //! text scrape — is therefore testable without the harness installed.
 
 /// The tier aliases Claude Code accepts, strongest first.

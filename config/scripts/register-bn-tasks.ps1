@@ -12,7 +12,7 @@
 # run this on such a host and need minute-exact target times year-round, gate inside the job
 # instead (wake often; act only when `TZ=<your-tz> date +%H:%M` is in a target slot).
 #
-# The WSL side — the `bn run <job>` scripts under jobs/ — is installed by install.sh; this
+# The WSL side — the `workspan run <job>` scripts under jobs/ — is installed by install.sh; this
 # script only wires the Windows scheduler to them. Distro and WSL user auto-detect; override
 # with -Distro / -WslUser or $env:BN_WSL_DISTRO / $env:BN_WSL_USER.
 [CmdletBinding()]
@@ -37,8 +37,8 @@ if (-not $Distro) { throw "Could not detect a WSL distro; pass -Distro." }
 if (-not $WslUser) { $WslUser = Clean (wsl.exe -d $Distro -- whoami) }
 if (-not $WslUser) { throw "Could not detect the WSL user; pass -WslUser." }
 
-$bn = "/home/$WslUser/.bin/bn"
-Write-Host "Distro=$Distro  WslUser=$WslUser  bn=$bn"
+$bn = "/home/$WslUser/.bin/workspan"
+Write-Host "Distro=$Distro  WslUser=$WslUser  workspan=$bn"
 
 # A target-timezone "HH:mm" -> a UTC StartBoundary string (trailing 'Z' = UTC; the date part
 # is just "not before" and is irrelevant to a daily recurrence).
@@ -90,7 +90,7 @@ $triggers
 }
 
 Register-BnTask -Name 'BN Daily tmux' `
-  -Desc 'Wake WSL and ensure a repository tmux session is up (bn run ensure-tmux).' `
+  -Desc 'Wake WSL and ensure a repository tmux session is up (workspan run ensure-tmux).' `
   -Job  'ensure-tmux' -LocalTimes @('07:00')
 
 # Keep the scheduled-task identity so rerunning registration updates existing machines in place.

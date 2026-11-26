@@ -28,7 +28,7 @@ slot). They are committed project-tier jobs in `.bn/jobs/`, so they need no bn-n
 3. Run `./build.sh`: `cargo build --profile local -p bn-cli -p bn-mcp`, then
    `./install.sh --from-build`, which copies both binaries into `BN_BIN_DIR` and:
    - points the `~/.bn/config/bn` anchor at `<build dir>/bn` (cron units and the tmux bar call it);
-   - repoints existing `bn`/`bn-mcp` in home PATH dirs, refreshes owned `workspan` aliases,
+   - repoints existing `workspan`/`bn-mcp` in home PATH dirs, refreshes owned `workspan` aliases,
      and installs `ws` without replacing an unrelated command;
    - anchors `~/.bn/config/{repo,jobs,agents,crons.toml}` and `~/.tmux.conf` at the repo's **main
      worktree**, not this checkout. A branch build changes the binaries only; prompts, agents and

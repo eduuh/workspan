@@ -1,5 +1,5 @@
-//! Leaked agent-scratch worktree policy — the pure decision behind `bn wt reap`'s sweep of the
-//! `.agent-<branch>-<token>` checkouts `bn pipeline investigate` cuts for its sub-agents.
+//! Leaked agent-scratch worktree policy — the pure decision behind `workspan wt reap`'s sweep of the
+//! `.agent-<branch>-<token>` checkouts `workspan pipeline investigate` cuts for its sub-agents.
 //!
 //! A scratch worktree is created detached and removed by a shell command appended to the
 //! sub-agent's own invocation (`…; git worktree remove --force <path>`). That works right up until

@@ -1,4 +1,4 @@
-//! `bn links new`: review the links the session hook saved without asking. Each one is kept,
+//! `workspan links new`: review the links the session hook saved without asking. Each one is kept,
 //! tagged or dropped; the list reopens until nothing is left to look at.
 
 use super::*;

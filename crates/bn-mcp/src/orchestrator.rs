@@ -1,11 +1,11 @@
-//! The **opt-in** orchestrator MCP server (`bn-mcp --orchestrate`) — the cross-worktree surface the
+//! The **opt-in** orchestrator MCP server (`workspan-mcp --orchestrate`) — the cross-worktree surface the
 //! "friend" drives. It is deliberately SEPARATE from the scoped [`crate::server::BnServer`]: that
 //! server is locked to one worktree so an agent can't touch unrelated repos, and this one is its
 //! escape hatch, registered only in the orchestrator's own environment.
 //!
-//! Every tool composes the real `bn` CLI (resolved binary path, never a bare PATH guess) rather than
+//! Every tool composes the real `workspan` CLI (resolved binary path, never a bare PATH guess) rather than
 //! re-implementing dispatch/fleet/attention logic — so there is one source of truth (the CLI) and
-//! bn-core stays tmux-free. The tools are thin: resolve `bn`, run a subcommand with `--json`, hand
+//! bn-core stays tmux-free. The tools are thin: resolve `workspan`, run a subcommand with `--json`, hand
 //! the envelope back.
 
 use rmcp::handler::server::wrapper::Parameters;
@@ -309,12 +309,12 @@ impl ServerHandler for BnOrchestratorServer {
             ))
             .with_instructions(
                 "Workspan orchestrator — the opt-in CROSS-WORKTREE surface (separate from the scoped \
-                 per-worktree bn server). Manage the whole desk from anywhere: plan_day for the \
+                 per-worktree workspan server). Manage the whole desk from anywhere: plan_day for the \
                  ranked next-action queue; list_attention for the attention list (each item tagged \
                  auto vs confirm — spin up the auto ones unattended, ask about the confirm ones); \
                  spin_up_work to create an isolated worktree+tmux window+seeded agent on any repo; \
                  list_agents for the live fleet (both harnesses) and send_to_agent to steer one. \
-                 Every spun-up agent is fully isolated and keeps its own bn note."
+                 Every spun-up agent is fully isolated and keeps its own workspan note."
                     .to_string(),
             )
     }

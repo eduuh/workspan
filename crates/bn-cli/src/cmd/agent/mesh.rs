@@ -1,12 +1,12 @@
 //! Reaching an agent on another machine of the mesh.
 //!
-//! `bn agent msg repo:branch` used to reach only a pane on this machine, or on the machine an
+//! `workspan agent msg repo:branch` used to reach only a pane on this machine, or on the machine an
 //! agent was launched to from here (`agent-host:` in the note). An agent on machine B could
 //! therefore never answer the coordinator on machine A. When the target has no live window here,
 //! this asks every mesh host (the `# >>> bn tunnel <machine> >>>` blocks tunnel-connect writes into
-//! `~/.ssh/config`, and the `# >>> bn mesh <machine> >>>` blocks `bn machine join` writes for a
+//! `~/.ssh/config`, and the `# >>> bn mesh <machine> >>>` blocks `workspan machine join` writes for a
 //! plain-ssh node) for its live agents, and hands the message to the one machine that has the
-//! target, where that machine's own `bn agent msg` finds the pane and confirms the submit.
+//! target, where that machine's own `workspan agent msg` finds the pane and confirms the submit.
 //!
 //! The relayed call carries `BN_MSG_NO_MESH=1`, so a target that has gone by then is refused there
 //! instead of being bounced on to a third machine or back here.
@@ -127,7 +127,7 @@ pub(crate) fn live_envelopes(hosts: &[String]) -> Vec<(String, Option<String>)> 
     let children: Vec<(String, Option<Child>)> = hosts
         .iter()
         .map(|h| {
-            let child = ssh(h, &format!("{REMOTE_PATH} bn agent live --json"))
+            let child = ssh(h, &format!("{REMOTE_PATH} workspan agent live --json"))
                 .stdin(Stdio::null())
                 .stdout(Stdio::piped())
                 .stderr(Stdio::null())
@@ -163,7 +163,7 @@ fn hosts_with(hosts: &[String], target: &str) -> (Vec<String>, Vec<String>) {
 pub(crate) fn remote_msg_command(target: &str, text: &str, sender: &str, as_json: bool) -> String {
     let q = crate::wt::shq;
     format!(
-        "{REMOTE_PATH} {NO_MESH_ENV}=1 bn agent msg {}{} --from {} {}",
+        "{REMOTE_PATH} {NO_MESH_ENV}=1 workspan agent msg {}{} --from {} {}",
         q(target),
         if as_json { " --json" } else { "" },
         q(sender),
@@ -252,7 +252,7 @@ mod tests {
     #[test]
     fn the_relayed_command_quotes_everything_and_stops_further_relays() {
         let cmd = remote_msg_command("bn:feat-a", "it's done; see $PR", "bn:coord", true);
-        assert!(cmd.contains("BN_MSG_NO_MESH=1 bn agent msg 'bn:feat-a' --json --from 'bn:coord' "));
+        assert!(cmd.contains("BN_MSG_NO_MESH=1 workspan agent msg 'bn:feat-a' --json --from 'bn:coord' "));
         assert!(cmd.ends_with(&crate::wt::shq("it's done; see $PR")));
     }
 }

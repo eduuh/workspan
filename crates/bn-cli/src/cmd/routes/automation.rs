@@ -376,7 +376,7 @@ pub(super) fn route(cfg: &Config, action: CmdAutomation, json: bool) {
             name_or_id,
         } => {
             if all {
-                // Crash recovery. Bare `bn resume` and `bn resume <id>` fall through unchanged —
+                // Crash recovery. Bare `workspan resume` and `workspan resume <id>` fall through unchanged —
                 // the same keystroke must not print a table one day and launch an agent the next.
                 return crate::cmd::resume_fleet::emit_resume_fleet(
                     cfg,

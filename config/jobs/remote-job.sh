@@ -11,10 +11,10 @@
 #   sh remote-job.sh <machine> follow <name>                 stream the log until it exits; returns
 #                                                            the job's exit code
 #   sh remote-job.sh <machine> status <name>                 running / exited N / unknown
-# or via bn run: BN_TUNNEL_TO=<machine> BN_JOB=start|follow|status BN_JOB_NAME=<name>
-#                BN_JOB_CMD='<command>' bn run remote-job
+# or via workspan run: BN_TUNNEL_TO=<machine> BN_JOB=start|follow|status BN_JOB_NAME=<name>
+#                BN_JOB_CMD='<command>' workspan run remote-job
 #
-# The command runs in the host's login shell (bn, nvm, yarn on PATH), from the host's $HOME unless
+# The command runs in the host's login shell (workspan, nvm, yarn on PATH), from the host's $HOME unless
 # it cd's. Logs: ~/.bn-remote-jobs/<name>.log on the host; a local copy under
 # ~/.cache/bn-remote-jobs/ lets `follow` resume after a drop without repeating lines.
 set -u

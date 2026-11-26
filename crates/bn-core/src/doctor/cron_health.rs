@@ -1,4 +1,4 @@
-//! The cron lane of `bn doctor` — which failing cron jobs still count as broken.
+//! The cron lane of `workspan doctor` — which failing cron jobs still count as broken.
 //!
 //! Split out of `doctor.rs` under the 1000-line ratchet, and it is the natural seam: every other
 //! finding asks "is this note/item stale?", while this one has to answer a question none of them

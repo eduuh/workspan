@@ -149,7 +149,7 @@ pub(super) fn warm_pool(roots: &Roots, project: &str) {
         crate::picker::hold();
         return;
     }
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     let ok = Command::new(&exe)
         .args(["wt", "pool", "warm", "--repo", repo])
         .status()
@@ -188,7 +188,7 @@ pub(super) fn release_pool(cfg: &Config, roots: &Roots, project: &str, arg: &str
         .join(repo)
         .join("_pool")
         .join(slot.n.to_string());
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     let ok = Command::new(&exe)
         .args(["wt", "pool", "return", &slot_path.to_string_lossy()])
         .status()

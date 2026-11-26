@@ -1,8 +1,8 @@
-//! The browser half of `bn forge login`, as decisions over a [`Page`].
+//! The browser half of `workspan forge login`, as decisions over a [`Page`].
 //!
 //! Everything the page does is one GraphQL request made from inside it with `fetch`, so the
 //! signed-in session's cookie (plus the `forge-csrf` double-submit header forge-web itself sends)
-//! authorises it and bn never sees a password or a session token. What to ask for, and what to
+//! authorises it and workspan never sees a password or a session token. What to ask for, and what to
 //! make of the answers, is decided here in Rust against the [`Page`] trait, so the flow is tested
 //! with a scripted fake and the browser driver ([`super::playwright`]) stays a thin, swappable
 //! shell-out.

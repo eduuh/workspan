@@ -1,11 +1,11 @@
 //! Opt-in structured **action log** (verbose/debug mode) — a debugging substrate distinct from
-//! the cron/metrics [`crate::events`] log. When enabled, bn appends one JSONL record per
+//! the cron/metrics [`crate::events`] log. When enabled, workspan appends one JSONL record per
 //! high-value action (command dispatch, external `git`/`gh`/`ssh` calls, orchestrate/dispatch
 //! decisions, review gates) to a rotating daily file under the resolved state dir, so a whole
 //! session can be inspected after the fact.
 //!
 //! Design (issue: verbose/debug action logging):
-//! * **Not the `tracing` crate.** bn has no `tracing`/`log` facade wired; this reuses the proven
+//! * **Not the `tracing` crate.** workspan has no `tracing`/`log` facade wired; this reuses the proven
 //!   JSONL-append style of [`crate::events`] with a tiny process-global logger and zero new deps.
 //! * **Separate file.** Never writes to `events.jsonl` (the cron/metrics substrate) — it writes to
 //!   `<log_dir>/bn-YYYY-MM-DD.jsonl` so metrics/cron reads stay clean.

@@ -1,4 +1,4 @@
-//! `bn briefing`/`week`/`quarter`/`staff`/`dojo`/… — the staff-agent command group.
+//! `workspan briefing`/`week`/`quarter`/`staff`/`dojo`/… — the staff-agent command group.
 //!
 //! Split out of [`super`] under the never-grow ratchet: `cli.rs` is the clap declaration for
 //! every command, so a whole flattened group is the largest thing that can move without
@@ -67,7 +67,7 @@ pub(crate) enum CmdStaff {
         if_stale: bool,
     },
     /// Your own commands: the thing you do over and over, written once as `cmds/<name>.sh` and
-    /// run with arguments — by you, or by an agent through the `bn_cmd` MCP tool. Bare `workspan cmd`
+    /// run with arguments — by you, or by an agent through the `workspan_cmd` MCP tool. Bare `workspan cmd`
     /// lists them with their `# description:` line; `workspan cmd <name> [args...]` runs one in the
     /// current directory; `workspan cmd --pick` chooses one in fzf (tmux `prefix c`);
     /// `workspan cmd --new <name>` scaffolds one (`--scope` global, repo, project or
@@ -108,7 +108,7 @@ pub(crate) enum CmdStaff {
         branch: Option<String>,
     },
     /// Workflow prompts and reusable automation snippets. Served to Claude Code as MCP prompts
-    /// (`/bn:<name>`) and installed for Copilot CLI as native skills referred to by name.
+    /// (`/workspan:<name>`) and installed for Copilot CLI as native skills referred to by name.
     /// Bare `workspan skills` lists them across every tier (global shared/personal, per-repo
     /// shared/personal); `workspan skills find <task...>` ranks likely matches, `workspan skills render`
     /// prints one headlessly for scripts, and `workspan skills new <name>` scaffolds one.

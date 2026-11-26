@@ -3,7 +3,7 @@
 #
 # Reads the hook payload on stdin. Copilot sends {toolName, toolArgs}; Claude sends
 # {tool_name, tool_input}. Denies force-push, reset --hard, branch -D, clean -f and bare stash.
-# Escape hatch: BN_GUARD_OFF=1 (bn pool cleanup legitimately resets worktrees).
+# Escape hatch: BN_GUARD_OFF=1 (workspan pool cleanup legitimately resets worktrees).
 set -u
 
 [ "${BN_GUARD_OFF:-}" = 1 ] && exit 0
@@ -84,7 +84,7 @@ elif unnamed_tmux_session; then
 fi
 [ -n "$reason" ] || exit 0
 
-msg="Blocked by bn guard: $reason. Ask the user, or set BN_GUARD_OFF=1 for an approved run."
+msg="Blocked by workspan guard: $reason. Ask the user, or set BN_GUARD_OFF=1 for an approved run."
 if printf '%s' "$payload" | jq -e 'has("toolName")' >/dev/null 2>&1; then
   jq -n --arg r "$msg" '{permissionDecision: "deny", permissionDecisionReason: $r}'
 else

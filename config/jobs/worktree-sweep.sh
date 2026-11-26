@@ -6,7 +6,7 @@
 # so the script is the one place its settings are always set and reviewable in git.
 #
 # Blast radius: this lane deletes no branch, removes no dirty worktree and kills no tmux session.
-# It reclaims only through `bn wt reap` and `bn wt pool prune`, both of which refuse a dirty tree on
+# It reclaims only through `workspan wt reap` and `workspan wt pool prune`, both of which refuse a dirty tree on
 # their own. `--force` and `--include-dirty` are off the table by design, not by omission — see
 # config/agents/worktree-sweep.md for why this is allowed to run unattended at all.
 set -u
@@ -36,15 +36,15 @@ Order is load-bearing and is the reason this lane may run unattended at all:
    'git clean -df' inside every reclaim path is what destroys them. A commit on a branch outlives
    the worktree that made it because worktrees share one object store. Push where a remote exists.
    Report the commit SHA per branch so a human can reset or rebase it.
-3. RECLAIM only through 'bn wt reap' and 'bn wt pool prune', whose gates refuse a dirty tree. Never
+3. RECLAIM only through 'workspan wt reap' and 'workspan wt pool prune', whose gates refuse a dirty tree. Never
    pass --force or --include-dirty, never run 'git worktree remove --force', and never invoke
-   'bn wt cleanup' or 'bn run fleet-reap' from this lane: the first deletes branches, the second
+   'workspan wt cleanup' or 'workspan run fleet-reap' from this lane: the first deletes branches, the second
    kills sessions, and config/crons.toml bans both from running unattended.
 4. KEEP everything the skill's protected set covers, and say why for each one. Kept is a result.
 
 Then report: what was rescued (branch and SHA), what was reclaimed and the evidence that made it
 safe, how many pool slots went back to warm, and what is left for a human to decide. If a leak
-class keeps recurring, file it with 'bn task add' instead of sweeping it by hand every other day."
+class keeps recurring, file it with 'workspan task add' instead of sweeping it by hand every other day."
 
 set -- --repo bn --skill worktree-sweep --branch "$branch" \
        --name "worktree sweep" --fresh --agent

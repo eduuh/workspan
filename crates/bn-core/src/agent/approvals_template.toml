@@ -1,7 +1,7 @@
-# bn — agent auto-approval policy.
+# workspan — agent auto-approval policy.
 #
-# Which permission dialogs bn may answer on your behalf while you are away, and which it must
-# escalate to you. Read `bn agent prompt <target>` to see exactly what a dialog offers; every
+# Which permission dialogs workspan may answer on your behalf while you are away, and which it must
+# escalate to you. Read `workspan agent prompt <target>` to see exactly what a dialog offers; every
 # decision made from this file is recorded in `<state_dir>/approvals.jsonl`.
 #
 # The rules this file plays by, none of which it can override:
@@ -16,12 +16,12 @@
 enabled = false
 
 # Which lanes the policy may act on:
-#   "orchestrated" — only lanes of a running `bn orchestrate` wave  (default, narrowest)
-#   "dispatched"   — those plus agents started by `bn dispatch`
-#   "all"          — every supervised agent, including ones bn never launched
+#   "orchestrated" — only lanes of a running `workspan orchestrate` wave  (default, narrowest)
+#   "dispatched"   — those plus agents started by `workspan dispatch`
+#   "all"          — every supervised agent, including ones workspan never launched
 scope = "orchestrated"
 
-# Clear folder / MCP trust menus automatically. Usually unnecessary: `bn dispatch --yolo`
+# Clear folder / MCP trust menus automatically. Usually unnecessary: `workspan dispatch --yolo`
 # pre-trusts the folder, so the prompt rarely appears.
 trust_menu = false
 

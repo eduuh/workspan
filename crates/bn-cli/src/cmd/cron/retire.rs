@@ -1,6 +1,6 @@
 //! Taking a cron out of service — the two different things that can mean.
 //!
-//! `unregister` stops the *timer*: the job still exists and `bn run <job>` still works, it just no
+//! `unregister` stops the *timer*: the job still exists and `workspan run <job>` still works, it just no
 //! longer fires on its own. `retire` tombstones the *name*: the job is gone for good and its old
 //! failures are history, not an outage. Split out of `cron.rs` so both live next to each other,
 //! since picking the wrong one is the easy mistake.

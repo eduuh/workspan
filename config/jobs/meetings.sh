@@ -1,11 +1,11 @@
 #!/bin/sh
 # meetings.sh — surface today's meetings that actually matter. Microsoft 365 Copilot (the
-# `workiq` CLI) holds the calendar and judges importance; bn renders. Two surfaces, mirroring the
+# `workiq` CLI) holds the calendar and judges importance; workspan renders. Two surfaces, mirroring the
 # README's feed/attention split:
 #
-#   - the FEED gets every important meeting (`bn feed ingest meetings`). Each run *replaces* the
+#   - the FEED gets every important meeting (`workspan feed ingest meetings`). Each run *replaces* the
 #     source, so finished meetings fall off on their own — no expiry logic here.
-#   - the GAP CACHE gets the day's events, so `bn gap` / `bn next --fit` see the calendar.
+#   - the GAP CACHE gets the day's events, so `workspan gap` / `workspan next --fit` see the calendar.
 #   - the FEED source `meeting-prep` gets a short brief for the next important meeting (agenda,
 #     your role, the latest thread, a doc to skim) — one extra workIQ call, only when one's
 #     upcoming. Attention items are NOT raised here: the consolidated attention-sweep owns the
@@ -17,12 +17,12 @@
 # Best-effort and non-destructive: if workiq is absent/unauthenticated or yields nothing, the
 # feed and attention list are left as-is rather than cleared. workiq lives only on the work
 # laptop, so this is a clean no-op elsewhere — pair with `[jobs.only_on] meetings = ["<laptop>"]`
-# to keep the timer off other machines too. Triggered by `bn run meetings`; scheduled by the
+# to keep the timer off other machines too. Triggered by `workspan run meetings`; scheduled by the
 # meetings agent manifest (config/agents/meetings.md, weekdays 14:50, `catch_up: true` — so it
-# also re-fires on the day's first bn event via `bn run meetings --if-stale`).
+# also re-fires on the day's first workspan event via `workspan run meetings --if-stale`).
 set -eu
 
-bn="${BN:-$HOME/.config/bn/bn}"
+workspan="${BN:-$HOME/.config/bn/workspan}"
 . "$(dirname "$0")/lib/m365-json.sh"   # m365_query_json — WorkIQ + local Copilot JSON normalizer
 
 command -v workiq >/dev/null 2>&1 || { echo "meetings: workiq not found — skipping" >&2; exit 0; }
@@ -77,9 +77,9 @@ printf '%s' "$meetings" \
               url: (.joinUrl // "")}' \
   | "$bn" feed ingest meetings
 
-# 3b) GAP CACHE — pipe the same day's events into `bn gap ingest`, which stamps them into the one
-#     documented cache (`<state>/meetings.json`) that `bn gap` and `bn next --fit` read (#247). The
-#     script fetches, bn renders — no calendar parsing lives in bn. A run REPLACES the cache, so
+# 3b) GAP CACHE — pipe the same day's events into `workspan gap ingest`, which stamps them into the one
+#     documented cache (`<state>/meetings.json`) that `workspan gap` and `workspan next --fit` read (#247). The
+#     script fetches, workspan renders — no calendar parsing lives in bn. A run REPLACES the cache, so
 #     finished meetings and prior days drop off on their own. Best-effort: never abort the sweep.
 printf '%s' "$meetings" \
   | jq -c '.[] | {start: (.start // ""), title: .subject, url: (.joinUrl // "")}' \

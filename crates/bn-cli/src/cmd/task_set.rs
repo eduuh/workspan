@@ -1,4 +1,4 @@
-//! `bn task set <id> key:value…` — edit an existing task's scheduling metadata.
+//! `workspan task set <id> key:value…` — edit an existing task's scheduling metadata.
 //!
 //! The dashboard's task PATCH route was the only writer of `day:`, `est:`, `priority` and `repo:`
 //! on an existing task; #1479 removed it with the web server, which left the task-enhance and
@@ -44,7 +44,7 @@ fn parse_edit(pair: &str) -> Result<Edit, String> {
         "day" | "due" => bn_core::util::epoch_day(value).is_some(),
         "est" => bn_core::smart::parse_est_minutes(value).is_some(),
         "priority" => matches!(value, "A" | "B" | "C" | "a" | "b" | "c"),
-        // `q:` is a quarter goal key (`bn quarter`); same charset as a repo name.
+        // `q:` is a quarter goal key (`workspan quarter`); same charset as a repo name.
         "repo" | "q" => valid_repo(value),
         _ => unreachable!("checked against SETTABLE"),
     };

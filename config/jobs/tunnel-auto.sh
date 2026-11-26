@@ -5,9 +5,9 @@
 # `tmux kill-server` puts things back as they were:
 #   - a machine that has hosted before (tunnel-host left ~/.ssh/bn-sshd/sshd_config) hosts again;
 #   - a machine that has connected before (a managed `# >>> bn tunnel` block in ~/.ssh/config)
-#     reconnects to every bn host on the account;
+#     reconnects to every workspan host on the account;
 #   - a machine whose devtunnel CLI is signed in does both without being asked (auto-enrolment,
-#     below; `bn run tunnel-setup with BN_TUNNEL_AUTO=0` turns that off).
+#     below; `workspan run tunnel-setup with BN_TUNNEL_AUTO=0` turns that off).
 # A machine that has done none of these is left alone.
 #
 # bn's own cron (config/crons.toml, machine-global) also runs it every 5 minutes, so after a
@@ -73,7 +73,7 @@ signed_in() {
 # that is signed in, does both: it hosts when the sshd binary is installed and connects to every
 # other host, so a new machine shows up on the others without anyone running tunnel-host on it
 # (2026-09-30: two new machines were signed in and never appeared). Off per machine with
-# `bn run tunnel-setup with BN_TUNNEL_AUTO=0`, which goes back to repeating only what was run by hand.
+# `workspan run tunnel-setup with BN_TUNNEL_AUTO=0`, which goes back to repeating only what was run by hand.
 auto=1
 case "$(bn_tunnel_flag tunnelAuto)" in off|false|no|0) auto=0 ;; esac
 if [ "$auto" = 1 ] && { [ "$is_host" = 0 ] || [ "$connects" = 0 ]; } \
@@ -83,7 +83,7 @@ if [ "$auto" = 1 ] && { [ "$is_host" = 0 ] || [ "$connects" = 0 ]; } \
   fi
   connects=1
 fi
-# A connect-only machine (`BN_TUNNEL_HOST=0 bn run tunnel-setup`) never hosts. One that hosted
+# A connect-only machine (`BN_TUNNEL_HOST=0 workspan run tunnel-setup`) never hosts. One that hosted
 # before gets tunnel-host run once more, which stops it and deletes its tunnel.
 host_off=0; host_stop=0
 case "$(bn_tunnel_flag tunnelHost)" in off|false|no|0) host_off=1 ;; esac
@@ -93,13 +93,13 @@ if [ "$host_off" = 1 ]; then
 fi
 # Without sshd this machine reaches the others but none can reach it back; said once a day.
 no_sshd=0; [ "$auto" = 1 ] && [ "$host_off" = 0 ] && [ "$is_host" = 0 ] && [ "$connects" = 1 ] && no_sshd=1
-# Agent messages that could not be delivered yet (bn agent outbox) are retried every pass, on any
+# Agent messages that could not be delivered yet (workspan agent outbox) are retried every pass, on any
 # machine, before anything else: lossless delivery must not depend on this machine having tunnels.
 # In the background, so a slow retry never delays a tunnel repair; the outbox's own lock stops two
 # flushes overlapping.
-command -v bn >/dev/null 2>&1 && { bn agent outbox --flush >/dev/null 2>&1 & }
+command -v workspan >/dev/null 2>&1 && { workspan agent outbox --flush >/dev/null 2>&1 & }
 
-# Plain-ssh mesh nodes (bn machine join, mesh.sh) are kept by the same watchdog, so a machine on
+# Plain-ssh mesh nodes (workspan machine join, mesh.sh) are kept by the same watchdog, so a machine on
 # the mesh without any Dev Tunnel still gets its reverse forwards back after a sleep or reboot.
 meshed=0
 git config --file "$HOME/.config/bn/mesh.conf" --get-regexp '^mesh\..*\.target$' >/dev/null 2>&1 && meshed=1
@@ -268,7 +268,7 @@ if [ "$have_lock" = 1 ] && { [ "$is_host" = 1 ] || [ "$connects" = 1 ] || [ "$ho
   elif [ "$role" = host ] && [ -s "$cache/tunnel-host.failed" ]; then
     why="tunnel-host failed: $(cat "$cache/tunnel-host.failed")"
   elif [ "$role" = client ] && [ "$no_sshd" = 1 ]; then
-    why="not hosting: no sshd (bn run tunnel-setup)"
+    why="not hosting: no sshd (workspan run tunnel-setup)"
   fi
   body="role=$role
 host=$(awk '$1 == "host" {print $2}' "$status" 2>/dev/null)

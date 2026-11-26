@@ -454,7 +454,7 @@ fn evict_occupant(
         occupant.branch.as_deref().unwrap_or_default(),
         &occupant.tmux_target,
     );
-    // The controller slot is `bn control`'s, and the orchestrator guard is the one gate
+    // The controller slot is `workspan control`'s, and the orchestrator guard is the one gate
     // `fleet_gc` never lets anything override.
     observation.is_orchestrator = n == bn_core::agent::MAIN_POOL_SLOT;
 

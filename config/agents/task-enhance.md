@@ -1,6 +1,6 @@
 ---
 name: task-enhance
-requires_repo: bn
+requires_repo: workspan
 kind: command
 on_calendar: "*-*-* 0/1:00:00"
 run: "workspan task enhance --due --agent task-enhance"
@@ -30,7 +30,7 @@ a repository. `captured` reports what exists without inlining its contents: use
 
 You may inspect a linked issue for context.
 
-## Your job: ground the task in bn
+## Your job: ground the task in workspan
 
 "Grounded" means the task is connected to the things workspan already knows, so every later stage — the
 gate, dispatch, the fleet board, the quarter review — can find it and place it. Answer these, in

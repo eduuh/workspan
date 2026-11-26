@@ -4,7 +4,7 @@
 //! wrote. This module is the **leak-proof** heart of the critic stage: the seed builder
 //! takes only `(diff, done_when, pr_url)` — it has *no parameter through which the approved
 //! plan could leak* (r17 §1.3 guard) — and the verdict → next-stage decision that bounds the
-//! execute↔critique loop. Everything here is pure and unit-tested; the CLI (`bn critic`)
+//! execute↔critique loop. Everything here is pure and unit-tested; the CLI (`workspan critic`)
 //! cuts the fresh worktree, dispatches the `--fresh` lane, and wires the side effects.
 
 /// Default bound on the execute↔critique loop before escalating to a human (r17 §1.4).

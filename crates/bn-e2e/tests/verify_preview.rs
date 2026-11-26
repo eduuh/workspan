@@ -46,17 +46,17 @@ fn files(root: &Path) -> anyhow::Result<BTreeMap<PathBuf, Vec<u8>>> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn configured_command_preview_does_not_execute_or_write_verification_state() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     let command = "printf 'must not run' > executed; exit 7";
     configure_command(&sb, command)?;
     // Any first command writes the daily catch-up marker; let it land before the snapshot.
-    sb.bn(["version", "--json"])?.expect_success()?;
+    sb.workspan(["version", "--json"])?.expect_success()?;
     let notes = files(&sb.path("notes"))?;
     let state = files(&sb.path("state"))?;
 
-    let run = sb.bn(["verify", "--dry-run", "--json"])?;
+    let run = sb.workspan(["verify", "--dry-run", "--json"])?;
     run.expect_success()?;
     let value: Value = serde_json::from_str(&run.stdout)?;
     let cwd = value["data"]["cwd"].as_str().expect("preview cwd");
@@ -80,14 +80,14 @@ fn configured_command_preview_does_not_execute_or_write_verification_state() -> 
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn conventional_jobs_are_previewed_in_execution_order() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     let lint = job(&sb, "lint", "touch lint-ran")?;
     let build = job(&sb, "build", "touch build-ran")?;
     let test = job(&sb, "test", "touch test-ran")?;
 
-    let run = sb.bn(["verify", "--dry-run", "--json"])?;
+    let run = sb.workspan(["verify", "--dry-run", "--json"])?;
     run.expect_success()?;
     let value: Value = serde_json::from_str(&run.stdout)?;
 
@@ -107,14 +107,14 @@ fn conventional_jobs_are_previewed_in_execution_order() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn configured_command_takes_precedence_over_conventional_jobs() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     configure_command(&sb, "native-check --all")?;
     job(&sb, "build", "exit 1")?;
     job(&sb, "test", "exit 1")?;
 
-    let run = sb.bn(["verify", "--dry-run", "--json"])?;
+    let run = sb.workspan(["verify", "--dry-run", "--json"])?;
     run.expect_success()?;
     let value: Value = serde_json::from_str(&run.stdout)?;
 
@@ -126,13 +126,13 @@ fn configured_command_takes_precedence_over_conventional_jobs() -> anyhow::Resul
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn explicit_job_takes_precedence_over_configured_command() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     configure_command(&sb, "touch native-ran")?;
     let path = job(&sb, "lint", "touch lint-ran")?;
 
-    let run = sb.bn(["verify", "--dry-run", "--job", "lint", "--json"])?;
+    let run = sb.workspan(["verify", "--dry-run", "--job", "lint", "--json"])?;
     run.expect_success()?;
     let value: Value = serde_json::from_str(&run.stdout)?;
 
@@ -147,12 +147,12 @@ fn explicit_job_takes_precedence_over_configured_command() -> anyhow::Result<()>
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn plain_preview_names_the_directory_and_script_without_claiming_a_pass() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     let path = job(&sb, "test", "touch test-ran")?;
 
-    let run = sb.bn(["verify", "--dry-run"])?;
+    let run = sb.workspan(["verify", "--dry-run"])?;
     run.expect_success()?;
 
     assert!(run.stdout.contains("DRY RUN"));
@@ -164,12 +164,12 @@ fn plain_preview_names_the_directory_and_script_without_claiming_a_pass() -> any
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn missing_explicit_job_fails_instead_of_previewing_the_configured_command() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     configure_command(&sb, "touch native-ran")?;
 
-    let run = sb.bn(["verify", "--dry-run", "--job", "missing"])?;
+    let run = sb.workspan(["verify", "--dry-run", "--job", "missing"])?;
 
     assert_eq!(run.code, Some(1));
     assert!(run.output().contains("no 'missing' job"));
@@ -178,11 +178,11 @@ fn missing_explicit_job_fails_instead_of_previewing_the_configured_command() -> 
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn an_unconfigured_gate_is_not_a_successful_preview() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
 
-    let run = sb.bn(["verify", "--dry-run"])?;
+    let run = sb.workspan(["verify", "--dry-run"])?;
 
     assert_eq!(run.code, Some(1));
     assert!(run.output().contains("no build, test, or lint job"));
@@ -190,12 +190,12 @@ fn an_unconfigured_gate_is_not_a_successful_preview() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn preview_cannot_be_used_to_capture_proof_or_preview_the_pre_land_gate() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
 
-    let proof = sb.bn(["verify", "--dry-run", "--for", "w1"])?;
-    let gate = sb.bn(["gate", "--dry-run"])?;
+    let proof = sb.workspan(["verify", "--dry-run", "--for", "w1"])?;
+    let gate = sb.workspan(["gate", "--dry-run"])?;
 
     assert_eq!(proof.code, Some(2));
     assert!(proof.output().contains("cannot be used with"));
@@ -205,12 +205,12 @@ fn preview_cannot_be_used_to_capture_proof_or_preview_the_pre_land_gate() -> any
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn ordinary_verification_still_runs_and_returns_its_existing_result_shape() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     configure_command(&sb, "touch executed; exit 7")?;
 
-    let run = sb.bn(["verify", "--json"])?;
+    let run = sb.workspan(["verify", "--json"])?;
     let value: Value = serde_json::from_str(&run.stdout)?;
 
     assert_eq!(run.code, Some(7));

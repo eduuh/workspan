@@ -1,6 +1,6 @@
 //! The auto-review ledger: which PRs the idle-triggered review loop is tracking, their
 //! lifecycle stage, and the one-at-a-time lock. Pure state — no network, no git (the north
-//! star: scripts fetch, bn renders). The cron picks the next PR, bn-cli does the worktree/az
+//! star: scripts fetch, workspan renders). The cron picks the next PR, bn-cli does the worktree/az
 //! work, and the verdict + lifecycle are recorded back here.
 //!
 //! Lifecycle: `pick_next` chooses an unreviewed (or force-pushed) PR → `begin` takes the lock

@@ -1,4 +1,4 @@
-//! `bn issue` subcommands. Split out of [`super`] under the never-grow ratchet.
+//! `workspan issue` subcommands. Split out of [`super`] under the never-grow ratchet.
 
 use super::IssueKindArg;
 use clap::Subcommand;

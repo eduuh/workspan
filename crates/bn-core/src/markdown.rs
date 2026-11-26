@@ -5,7 +5,7 @@
 //! directly, which is right until a section *contains a code block* — a plan quoting a note
 //! template, a debug log pasting a shell session, a skill showing its own markdown. Then the
 //! `## Todos` inside the fence reads as a real heading and the section splits in the wrong place:
-//! `bn notes` appends a bullet into the middle of a code block, `set_section` swallows the rest of
+//! `workspan notes` appends a bullet into the middle of a code block, `set_section` swallows the rest of
 //! the plan, `section_content` truncates.
 //!
 //! [`FenceScanner`] is the shared fix. Drive it one line at a time over a body and ask

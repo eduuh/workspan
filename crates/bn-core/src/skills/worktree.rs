@@ -3,7 +3,7 @@
 //! [`super::sync_native_skills`] deliberately refuses to touch a repo's native skill roots unless
 //! one already holds a bn-managed skill: a dashboard edit must not start writing generated files
 //! into a project that never opted in. That rule is right, and it leaves a hole — a brand-new
-//! `bn dispatch` worktree has no `.claude/skills` at all, so it can never satisfy the
+//! `workspan dispatch` worktree has no `.claude/skills` at all, so it can never satisfy the
 //! already-installed test, and the agent dispatched into it silently runs without the repo's own
 //! skills. Only the global tiers (`~/.claude/skills`) reach it.
 //!

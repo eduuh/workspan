@@ -1,16 +1,16 @@
-//! `bn forge-agent` and the `forge-agent` job: work Forge activities assigned to an agent member.
+//! `workspan forge-agent` and the `forge-agent` job: work Forge activities assigned to an agent member.
 //!
 //! One tick, under a machine-wide lock so two overlapping ticks never both claim:
-//! 1. **Reconcile** every run this node holds against `bn agent live`: heartbeat a running agent;
-//!    report `completed` once it ran `bn agent done`; report `blocked` when its window is gone or it
-//!    overran `max_runtime_mins`. A finished or dead run's window is killed with `bn agent kill`.
+//! 1. **Reconcile** every run this node holds against `workspan agent live`: heartbeat a running agent;
+//!    report `completed` once it ran `workspan agent done`; report `blocked` when its window is gone or it
+//!    overran `max_runtime_mins`. A finished or dead run's window is killed with `workspan agent kill`.
 //!    A heartbeat that comes back `lost` means another node owns the task now, so ours is killed.
 //! 2. **Claim** one task if there is capacity: ask Forge for claimable tasks, pick the first whose
 //!    repo is cloned here, claim it (Forge's conditional update makes exactly one node win), and
-//!    `bn dispatch` an agent onto it. A dispatch that fails releases the claim straight away.
+//!    `workspan dispatch` an agent onto it. A dispatch that fails releases the claim straight away.
 //!
 //! The rules live in [`bn_core::forge_agent`]; this file is the IO around them. Forge is reached
-//! through `bn-mcp --forge-call`, so this binary needs no HTTP client.
+//! through `workspan-mcp --forge-call`, so this binary needs no HTTP client.
 
 use crate::*;
 use bn_core::forge_agent::{self as fa, Endpoint, LiveView, Run, RunAction, Runs};
@@ -90,12 +90,12 @@ fn endpoint(cfg: &Config) -> Option<Endpoint> {
     fa::discover_endpoint(&text, &cfg.forge_agent)
 }
 
-/// Who this node is to Forge: `bn@<machine>`.
+/// Who this node is to Forge: `workspan@<machine>`.
 fn claimer() -> String {
     format!("bn@{}", bn_core::worker::node_id())
 }
 
-/// One Forge tool call through `bn-mcp --forge-call`. `Err` carries a readable reason.
+/// One Forge tool call through `workspan-mcp --forge-call`. `Err` carries a readable reason.
 fn call(ep: &Endpoint, tool: &str, arguments: Value) -> Result<Value, String> {
     let req = json!({ "url": ep.url, "token": ep.token, "tool": tool, "arguments": arguments });
     let mut child = Command::new(crate::mcp::resolve_bn_mcp())
@@ -104,20 +104,20 @@ fn call(ep: &Endpoint, tool: &str, arguments: Value) -> Result<Value, String> {
         .stdout(Stdio::piped())
         .stderr(Stdio::null())
         .spawn()
-        .map_err(|e| format!("could not run bn-mcp: {e}"))?;
+        .map_err(|e| format!("could not run workspan-mcp: {e}"))?;
     if let Some(mut stdin) = child.stdin.take() {
         stdin
             .write_all(req.to_string().as_bytes())
-            .map_err(|e| format!("writing to bn-mcp: {e}"))?;
+            .map_err(|e| format!("writing to workspan-mcp: {e}"))?;
     }
     let out = child
         .wait_with_output()
-        .map_err(|e| format!("waiting for bn-mcp: {e}"))?;
+        .map_err(|e| format!("waiting for workspan-mcp: {e}"))?;
     let reply: Value = String::from_utf8_lossy(&out.stdout)
         .lines()
         .rev()
         .find_map(|l| serde_json::from_str(l).ok())
-        .ok_or_else(|| format!("{tool}: bn-mcp gave no reply"))?;
+        .ok_or_else(|| format!("{tool}: workspan-mcp gave no reply"))?;
     if reply["ok"].as_bool() == Some(true) {
         Ok(reply["result"].clone())
     } else {

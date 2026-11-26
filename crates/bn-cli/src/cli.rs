@@ -47,7 +47,7 @@ pub(crate) use issue_cmd::IssueCmd;
 // (debug/test) builds: one frame for the ~100-variant enum crept past libtest's 2 MiB
 // thread stack (issue #359). `#[command(flatten)]` merges the groups back into one flat
 // namespace IN ORDER, and the groups are contiguous slices of the original declaration
-// order, so the CLI surface is byte-identical: every command stays top-level `bn <cmd>`,
+// order, so the CLI surface is byte-identical: every command stays top-level `workspan <cmd>`,
 // the group names never appear, and help/completions list commands in the same order.
 // The split is mechanical (by position, no semantic meaning); to keep ordering stable,
 // append a new command to the LAST group (or start a new one) rather than inserting mid-list.
@@ -963,7 +963,7 @@ pub(crate) enum McpCmd {
     },
     /// Serve command, reference and link tools over **stdio**, pinned to the current worktree. This is the
     /// per-worktree launcher an MCP client (`{command:"workspan", args:["mcp","serve"]}`) spawns: it
-    /// execs the sibling `bn-mcp` binary, which derives its `(repo, branch)` from the launch cwd —
+    /// execs the sibling `workspan-mcp` binary, which derives its `(repo, branch)` from the launch cwd —
     /// so no per-call scope headers are needed. `--orchestrate` serves the cross-worktree
     /// "friend" toolset instead of the scoped tools.
     Serve {

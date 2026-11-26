@@ -1,4 +1,4 @@
-//! `bn links check`: run each link's probe ([`check::probe_for`]) and report what it found.
+//! `workspan links check`: run each link's probe ([`check::probe_for`]) and report what it found.
 //! Read-only — it never writes the store; deleting stays a deliberate `rm` or picker `ctrl-d`.
 
 use super::*;

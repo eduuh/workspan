@@ -1,10 +1,10 @@
-//! `bn repos` — the repo fleet as one addressable thing.
+//! `workspan repos` — the repo fleet as one addressable thing.
 //!
-//! Every other bn command is scoped to the repo you are standing in, and the note layer is
-//! already global (`bn list` spans every repo). What was missing is the *git* side: a way to ask
-//! all twelve clones a question at once. `bn repos list` is the inventory; `bn repos foreach` is
+//! Every other workspan command is scoped to the repo you are standing in, and the note layer is
+//! already global (`workspan list` spans every repo). What was missing is the *git* side: a way to ask
+//! all twelve clones a question at once. `workspan repos list` is the inventory; `workspan repos foreach` is
 //! the fan-out, and its `--json` array (one row per repo, each with its own exit code) is the
-//! scripting surface — a shell loop over `bn repos list` cannot report per-repo failure without
+//! scripting surface — a shell loop over `workspan repos list` cannot report per-repo failure without
 //! reinventing it.
 use crate::*;
 

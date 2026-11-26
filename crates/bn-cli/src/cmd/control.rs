@@ -136,7 +136,7 @@ fn nudge_controller_with_message(
     controller: &ControllerRecord,
     message: &str,
 ) -> std::io::Result<()> {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     std::process::Command::new(exe)
         .args(["agent", "send", &controller.target, message, "--detach"])
         .spawn()
@@ -368,7 +368,7 @@ fn start_controller(
         .unwrap_or_else(|e| fail(&format!("workspan control start: recover leased requests: {e}")));
     let queued = enqueue_request(&id, &request);
     let exe = std::env::current_exe()
-        .unwrap_or_else(|_| std::path::PathBuf::from("bn"))
+        .unwrap_or_else(|_| std::path::PathBuf::from("workspan"))
         .to_string_lossy()
         .into_owned();
     let seed = controller_seed(cfg, resolved.as_ref(), agent, &id)

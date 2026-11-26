@@ -1,4 +1,4 @@
-//! The agent-pane state machine (#340) — the pure classifier half of `bn orchestrate`.
+//! The agent-pane state machine (#340) — the pure classifier half of `workspan orchestrate`.
 //!
 //! Split out of `orchestrate.rs` so both halves stay under the 1000-line ratchet and so the
 //! pane vocabulary (states, marker tables, the numbered-menu reader) has one home. The persisted

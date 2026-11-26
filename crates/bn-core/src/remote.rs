@@ -39,7 +39,7 @@ pub enum ScaffoldOutcome {
 //
 // Older builds recorded triggered GitHub Actions runs in the branch note. This half tracks those
 // legacy records: classify the run's outcome onto the #271 run-status taxonomy and reconcile a
-// recorded run against live `gh` (its state + the draft PR it opened) so `bn status` / `bn agent live`
+// recorded run against live `gh` (its state + the draft PR it opened) so `workspan status` / `workspan agent live`
 // surface a historical remote run alongside local tmux agents. The failure→taxonomy table is the #279 spike's
 // (branch note `remote-gh-spike.md`); all `gh` access routes through the [`CommandRunner`] seam.
 

@@ -1,4 +1,4 @@
-//! bn CLI — clap dispatch → bn-core → render (text or JSON envelope).
+//! workspan CLI — clap dispatch → bn-core → render (text or JSON envelope).
 
 pub(crate) use bn_core::commands::{self, CmdError};
 pub(crate) use bn_core::payload;
@@ -153,7 +153,7 @@ fn log_provenance(cfg: &Config) -> bn_core::daily::LogProvenance {
 /// Workspaces, agents, machines, and supervised execution.
 #[derive(Parser, Debug)]
 #[command(
-    name = "bn",
+    name = "workspan",
     version = version::VERSION,
     disable_help_subcommand = true
 )]
@@ -180,7 +180,7 @@ struct Cli {
     command: Option<Command>,
 }
 
-// Bare `bn cron` (no subcommand) emits the unified dashboard: see `emit_cron_dashboard`.
+// Bare `workspan cron` (no subcommand) emits the unified dashboard: see `emit_cron_dashboard`.
 
 /// The one line a migrated machine sees: where its settings went, and where the full account is.
 fn migration_notice(report: &bn_core::config_migrate::Report) -> String {
@@ -205,7 +205,7 @@ fn migration_notice(report: &bn_core::config_migrate::Report) -> String {
     )
 }
 
-/// Give bn, and every tmux it runs, a UTF-8 character type when the caller's locale is not one.
+/// Give workspan, and every tmux it runs, a UTF-8 character type when the caller's locale is not one.
 ///
 /// tmux prints a tab inside a `-F` format as `_` unless the locale is UTF-8, and workspan's tmux formats
 /// are tab-separated. An ssh session on a machine with no `LANG` (every workspan call a remote machine
@@ -263,14 +263,14 @@ fn main() {
         cmd::discover::emit_discover(&Config::load(), task, cli.json);
         return;
     }
-    // The first bn after the upgrade moves an old `config.toml` into the notes tree, before
+    // The first workspan after the upgrade moves an old `config.toml` into the notes tree, before
     // anything reads config. Every later run costs one failed stat.
     if let Some(report) = bn_core::config_migrate::run() {
         eprintln!("{}", migration_notice(&report));
     }
     let cfg = Config::load();
 
-    // fzf re-execs `bn` for every picker callback — one process per cursor move for `--preview`,
+    // fzf re-execs `workspan` for every picker callback — one process per cursor move for `--preview`,
     // one per `reload()` bind. Machine housekeeping (reconciling managed services, firing cron
     // catch-up) is never the right thing to do on a keystroke, and
     // any one of those growing a subprocess again would land straight back on the interactive
@@ -282,15 +282,15 @@ fn main() {
     // dispatch below are captured. A strict no-op when none of the three knobs is set.
     init_action_log(&cfg, cli.verbose);
 
-    // First-bn-event catch-up: the day's first bn invocation kicks off jobs marked `catch_up` in
+    // First-bn-event catch-up: the day's first workspan invocation kicks off jobs marked `catch_up` in
     // the manifest (meetings, standup) whenever you actually start work — the answer to a variable
-    // start time a fixed timer can't match. Skipped for `bn run` itself (the spawned children are
-    // `bn run`), so it never recurses.
+    // start time a fixed timer can't match. Skipped for `workspan run` itself (the spawned children are
+    // `workspan run`), so it never recurses.
     if !internal && !matches!(&cli.command, Some(Command::Staff(CmdStaff::Run { .. }))) {
         maybe_fire_catchup(&cfg);
-        // Timers follow the declared crons without anyone running `bn cron register`: a cheap,
+        // Timers follow the declared crons without anyone running `workspan cron register`: a cheap,
         // rate-limited check that registers in the background when the manifest moved. Never from
-        // `bn cron register` itself, which records what it registered.
+        // `workspan cron register` itself, which records what it registered.
         if !matches!(
             &cli.command,
             Some(Command::Staff(CmdStaff::Cron {
@@ -410,19 +410,19 @@ pub(crate) fn json_ok(tag: &str, data: serde_json::Value) -> bool {
     true
 }
 
-// --- bn task: the strong per-repo TODO.txt --------------------------------------------------
+// --- workspan task: the strong per-repo TODO.txt --------------------------------------------------
 
-// ---- bn q — global capture inbox ----
+// ---- workspan q — global capture inbox ----
 
 // --- native job registry ----------------------------------------------------
-// Jobs ported off their `jobs/<job>.sh` shims into the binary. Each thin shim was just a `bn`
+// Jobs ported off their `jobs/<job>.sh` shims into the binary. Each thin shim was just a `workspan`
 // subcommand; running it in-process deletes the script, works cross-platform, and avoids a
 // re-exec. `run_job` checks `native_job` first and falls back to `<job>.sh` for un-ported jobs,
 // so migration is incremental and zero-risk.
 
-// --- agent staff framework (`bn staff` / `bn feed`, issue #256) ---------------------------------
+// --- agent staff framework (`workspan staff` / `workspan feed`, issue #256) ---------------------------------
 
-// --- bn night — the nightly fleet planner ---------------------------------------------------
+// --- workspan night — the nightly fleet planner ---------------------------------------------------
 
 // ---- the Chief of Staff (#257) -------------------------------------------------------------
 
@@ -563,7 +563,7 @@ mod prompt_command_tests {
                     let Some(first) = rest.split_whitespace().next() else {
                         continue;
                     };
-                    // Flags (`bn --cat`) and placeholders (`bn <command>`) aren't subcommands.
+                    // Flags (`workspan --cat`) and placeholders (`workspan <command>`) aren't subcommands.
                     if first.starts_with('-') || first.starts_with('<') || first.starts_with('{') {
                         continue;
                     }
@@ -610,7 +610,7 @@ mod prompt_command_tests {
                     .iter()
                     .find_map(|prefix| command.strip_prefix(prefix))
                 else {
-                    // A manifest may shell out to something that is not bn (a user script); this
+                    // A manifest may shell out to something that is not workspan (a user script); this
                     // test only speaks for bn's own surface.
                     continue;
                 };

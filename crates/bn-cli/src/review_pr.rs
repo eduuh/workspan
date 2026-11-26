@@ -1,4 +1,4 @@
-//! `bn review-pr` — the mechanical surface of the idle-triggered auto-review loop. The cron
+//! `workspan review-pr` — the mechanical surface of the idle-triggered auto-review loop. The cron
 //! orchestrates; this command owns the ledger and the worktree/favourite actions, so the script
 //! layer stays thin:
 //!
@@ -375,7 +375,7 @@ fn cmd_setup(
         let title = format!("PR {repo}#{number} ready to review");
         let detail = format!(
             "Worktree prepared at {}. Attach to the {repo} tmux session ({}) and review, then run: \
-             bn review-pr record {repo} {number} <approve|reject> --notes \"...\"",
+             workspan review-pr record {repo} {number} <approve|reject> --notes \"...\"",
             setup.worktree.display(),
             setup.branch,
         );
@@ -470,7 +470,7 @@ fn cmd_record(
         return false;
     }
 
-    // Surface the recommendation in the attention queue (so it shows in `bn next` / notify).
+    // Surface the recommendation in the attention queue (so it shows in `workspan next` / notify).
     // Idempotent per PR, and a "reject" recommendation warrants a louder severity than "approve".
     let verdict_norm = verdict.trim().to_lowercase();
     let severity = if verdict_norm.starts_with("approve") {

@@ -1,4 +1,4 @@
-//! Stable, dependency-free fingerprint hashing for anything bn persists or derives a path from.
+//! Stable, dependency-free fingerprint hashing for anything workspan persists or derives a path from.
 
 /// FNV-1a 64-bit — deterministic and stable across processes, platforms, and compiler versions,
 /// unlike `std`'s `DefaultHasher` (SipHash), which carries **no** cross-version stability guarantee

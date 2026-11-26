@@ -9,7 +9,7 @@ arguments by you or by an agent.
     workspan cmd --pick                # fzf picker with a preview of each script (tmux prefix c)
     workspan cmd --new <name>          # scaffold one (--scope global|repo|project|branch)
 
-Agents get the same thing as one MCP tool, `bn_cmd`: no name lists, a name runs it and returns
+Agents get the same thing as one MCP tool, `workspan_cmd`: no name lists, a name runs it and returns
 the exit code, stdout and stderr (120s timeout by default).
 
 ## Where a command lives

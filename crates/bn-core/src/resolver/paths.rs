@@ -269,7 +269,7 @@ impl Config {
     /// `<notes_dir_for(repo)>/<machine>/<repo>/skills` — per-repo **personal** skills:
     /// private, synced with your notes, a sibling of the branch note dirs (so they aren't
     /// tied to one branch). `repo` should be lowercased (as [`resolve`] returns it). Served
-    /// by bn-mcp as MCP prompts alongside the global and repo-shared skills.
+    /// by workspan-mcp as MCP prompts alongside the global and repo-shared skills.
     pub fn repo_skills_dir(&self, repo: &str) -> PathBuf {
         self.notes_dir_for(repo)
             .join(self.machine())

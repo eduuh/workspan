@@ -1,5 +1,5 @@
 //! Worktree teardown for `wt`: `cleanup` (worktree+note+tmux), `reap`, and the
-//! top-level `bn reset` / `bn rename` flows. Moved verbatim from the former
+//! top-level `workspan reset` / `workspan rename` flows. Moved verbatim from the former
 //! wt.rs god file (issue #351).
 
 use super::*;
@@ -14,7 +14,7 @@ fn announce_reap(name: &str, reason: &str) {
         _ => "Worktree reclaimed by the cleanup sweep.",
     };
     // Lifecycle: the sweep already did the work and nothing was lost, so under the default bar
-    // this explains a vanished tmux window in `bn notify status` rather than interrupting.
+    // this explains a vanished tmux window in `workspan notify status` rather than interrupting.
     crate::toast::toast(
         crate::toast::Class::Lifecycle,
         &format!("wt:{name}:reclaimed"),
@@ -485,7 +485,7 @@ fn cleanup_one_with_policy(
     }
 
     // Merged but dirty: `git worktree remove` would refuse. Don't thrash on it every poll — leave
-    // it, say why once, and raise a keyed (idempotent) attention item so `bn doctor` surfaces it
+    // it, say why once, and raise a keyed (idempotent) attention item so `workspan doctor` surfaces it
     // without re-notifying. The item is resolved below once the worktree is actually removed.
     if !force {
         let wt_str = wt_path.to_string_lossy();
@@ -632,7 +632,7 @@ pub(crate) fn reconcile_stuck(cfg: &Config) {
     }
 }
 
-// --- reset (top-level `bn reset`) ------------------------------------------
+// --- reset (top-level `workspan reset`) ------------------------------------------
 
 pub(crate) fn wt_branch_name(wt: &str) -> String {
     Path::new(wt)

@@ -11,12 +11,12 @@ already wrote it down. That is what the **reference notes** are: durable facts a
 repository* — how it builds, where the seams are, which failures mislead. They are independent of
 task state and Entire's session history.
 
-1. **Read the index first.** Call `bn_ref` with `scope: "repo"` and no name (CLI: `workspan ref --repo`). You get every
+1. **Read the index first.** Call `workspan_ref` with `scope: "repo"` and no name (CLI: `workspan ref --repo`). You get every
    note's name and one-line summary and nothing else — a handful of tokens. Do this before
    assuming the notes are empty; "there's probably nothing" is how knowledge gets re-derived for
    the fourth time.
 
-2. **Open at most what you need.** Call `bn_ref` with the one name that bears on {{question}}
+2. **Open at most what you need.** Call `workspan_ref` with the one name that bears on {{question}}
    (CLI: `workspan ref <name> --repo`). Two notes is usually one too many — the index summaries exist so
    you can choose. Global coding standards come through the same tool: `scope: "global"`.
 
@@ -52,11 +52,11 @@ Record {{question}} where the next session will find it. The reference notes are
 
 **How to write one:**
 
-1. **Pick the note the fact belongs to.** Read the index first (`bn_ref` with no name) — a fact
+1. **Pick the note the fact belongs to.** Read the index first (`workspan_ref` with no name) — a fact
    filed under a new name nobody looks at is a fact lost. Create a new note only when no existing
    one is a home for it.
 
-2. **One fact per bullet, with its provenance.** Append with `bn_ref_append`
+2. **One fact per bullet, with its provenance.** Append with `workspan_ref_append`
    (CLI: `workspan ref append <name> --repo --section gotchas "<fact>"`), section `facts` or `gotchas`.
    Every bullet ends with where it came from and when you checked it:
    `(src: .nvmrc, 2026-09-03)` for something read in the source, `(observed, 2026-09-03)`
@@ -69,7 +69,7 @@ Record {{question}} where the next session will find it. The reference notes are
 
 4. **Correct, don't accumulate.** If the note already says something that this session proved
    wrong, **edit that bullet** (`workspan ref edit <name> --repo`). Appending a contradiction leaves the
-   next reader to guess which line is current. `bn_ref_append` returns `appended: false` when the
+   next reader to guess which line is current. `workspan_ref_append` returns `appended: false` when the
    exact fact is already recorded — that is a clean no-op, not a failure.
 
 5. **Never record:** credentials, tokens, cookies, session or conversation IDs, tenant or account

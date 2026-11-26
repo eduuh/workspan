@@ -58,7 +58,7 @@ pub struct LogEntry {
     pub text: String,
     #[serde(alias = "added")]
     pub created: String,
-    /// Repo the entry was recorded in (basename, e.g. `bn`), when `workspan learned`/`workspan reflect` ran
+    /// Repo the entry was recorded in (basename, e.g. `workspan`), when `workspan learned`/`workspan reflect` ran
     /// inside a resolvable worktree. Absent for the daily/global axis.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub repo: Option<String>,
@@ -440,7 +440,7 @@ pub fn rollover(cfg: &Config, today: &str) -> Result<RolloverOutcome, StoreError
         .collect();
     ensure_today(cfg, today)?;
     // Drain the capture inbox's unambiguous items (hinted at a still-active branch note) so
-    // the inbox empties even on days bn is never opened interactively. Only Store errors can
+    // the inbox empties even on days workspan is never opened interactively. Only Store errors can
     // surface here — the drain adds non-empty text to the literal "todo" section — but the
     // CmdError wrapper still has to be unwrapped for this fn's StoreError signature.
     let inbox = crate::inbox::drain_auto(cfg, today).map_err(|e| match e {
@@ -449,7 +449,7 @@ pub fn rollover(cfg: &Config, today: &str) -> Result<RolloverOutcome, StoreError
     })?;
     // Retire goals whose PR has merged or closed *after* the carry: a stale "ping reviewers on
     // #923" that was carried a moment ago is exactly what this sweep exists to catch, and it has
-    // to run on today's whole list (not just the carried slice) because any `bn` command could
+    // to run on today's whole list (not just the carried slice) because any `workspan` command could
     // have created the day before the morning job got here.
     let retired = prune_dead_pr_goals(cfg, today, &dead_prs(cfg))?;
     // Re-read: the prune rewrote today's file and renumbered nothing, but the returned day must
@@ -712,8 +712,8 @@ pub fn done(
     query: &str,
     pct: Option<u8>,
 ) -> Result<DoneOutcome, CmdError> {
-    // A task-backed goal is finished with `bn task do <id>`; this path owns the day file's own
-    // goals. Both show up in `view`, so `bn daily` lists them as one set either way.
+    // A task-backed goal is finished with `workspan task do <id>`; this path owns the day file's own
+    // goals. Both show up in `view`, so `workspan daily` lists them as one set either way.
     let mut daily = ensure_today(cfg, today)?;
     let q = query.trim();
 

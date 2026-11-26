@@ -1,6 +1,6 @@
 //! Asking a harness what it serves — the subprocess half of [`bn_core::harness_models`].
 //!
-//! `bn harness models` is the one source both the CLI and the Planning UI read, so a stage can never
+//! `workspan harness models` is the one source both the CLI and the Planning UI read, so a stage can never
 //! be configured with a model the harness would refuse. The parsing is pure and lives in bn-core;
 //! this runs the command and caches the answer.
 //!
@@ -26,7 +26,7 @@ pub(crate) struct HarnessRoster {
     /// Reasoning-effort levels this harness accepts.
     pub(crate) efforts: Vec<String>,
     /// True when the list came from the harness itself rather than workspan's built-in fallback. Surfaced
-    /// so a picker can say "these are the ids Copilot reported" versus "these are the aliases bn
+    /// so a picker can say "these are the ids Copilot reported" versus "these are the aliases workspan
     /// knows" — the difference between an exhaustive list and a safe one.
     pub(crate) discovered: bool,
     pub(crate) fetched_at: i64,

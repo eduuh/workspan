@@ -14,7 +14,7 @@
 //! same discipline `orchestrate` uses for its per-run state).
 //!
 //! A plan-review is *also* an attention item (`mode = "review"`), mirrored on submit so a pending
-//! plan surfaces in `bn attn` and the dashboard, and acked when the review leaves `pending`. The
+//! plan surfaces in `workspan attn` and the dashboard, and acked when the review leaves `pending`. The
 //! record is the store; the attention item is a view onto it.
 
 use crate::resolver::state_dir;

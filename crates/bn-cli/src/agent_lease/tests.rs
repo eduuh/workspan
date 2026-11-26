@@ -21,7 +21,7 @@ fn a_real_stamp_is_kept() {
 
 #[test]
 fn an_observed_window_keeps_its_grace_when_unstamped() {
-    // Nine tab-separated fields then the stamp and pane_dead: an agent window bn marked before
+    // Nine tab-separated fields then the stamp and pane_dead: an agent window workspan marked before
     // `@bn_agent_since` was written carries no stamp at all.
     let row = "@7\tbn:feat\tbn\tfeat\t/wt/bn/feat\t/wt/bn/feat\tworking\ts-1\tdispatch\t\t0";
     let observed = parse_observed_agent_windows(row, NOW);

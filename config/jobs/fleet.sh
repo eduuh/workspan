@@ -1,8 +1,8 @@
 #!/bin/sh
-# fleet -- one view of every machine this one works with: tunnel, bn version, warm pool slots,
+# fleet -- one view of every machine this one works with: tunnel, workspan version, warm pool slots,
 # the last pool build, and the remote apps and agents running there.
 #
-#   bn run fleet        (or: sh fleet.sh [repo])   repo defaults to $BN_FLEET_REPO
+#   workspan run fleet        (or: sh fleet.sh [repo])   repo defaults to $BN_FLEET_REPO
 #
 # Asks every machine at once: this one locally, and each tunnel host (the managed `Host` blocks
 # tunnel-connect writes) over its shared ssh connection, so the whole view takes a few seconds.
@@ -17,10 +17,10 @@ case "$REPO" in *[!A-Za-z0-9_.-]*) echo "fleet: bad repo name '$REPO'" >&2; exit
 # The probe, run on each machine. One line out: version|pool|build|windows.
 PROBE='export PATH=$HOME/.local/bin:$PATH XDG_RUNTIME_DIR=/run/user/$(id -u)
 REPO=__REPO__
-v=$(bn --version 2>/dev/null | sed -n "s/.*git \([0-9a-f]\{7\}\).*/\1/p")
+v=$(workspan --version 2>/dev/null | sed -n "s/.*git \([0-9a-f]\{7\}\).*/\1/p")
 pool="no pool"
 if [ -d "$HOME/projects/worktree/$REPO/_pool" ]; then
-  st=$(bn wt pool status --repo "$REPO" 2>/dev/null)
+  st=$(workspan wt pool status --repo "$REPO" 2>/dev/null)
   total=$(printf "%s\n" "$st" | grep -cE "^ +\[[0-9]+\]")
   warm=$(printf "%s\n" "$st" | grep -c "idle (warm)")
   dirty=$(printf "%s\n" "$st" | grep -c "dirty")
@@ -29,7 +29,7 @@ if [ -d "$HOME/projects/worktree/$REPO/_pool" ]; then
 fi
 build=""
 for j in pool-build-remote pool-build; do
-  s=$(bn cron show "$j" 2>/dev/null | head -n 1)
+  s=$(workspan cron show "$j" 2>/dev/null | head -n 1)
   case "$s" in "$j: "*) build="${s#"$j: "}"; break ;; esac
 done
 run=$(systemctl --user is-active bn-pool-build-remote.service 2>/dev/null)

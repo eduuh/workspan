@@ -3,7 +3,7 @@
 //! Job *scripts* already resolve PATH-style across branch → repo → global tiers
 //! ([`crate::resolver::job_script`]); this is the matching data-driven layer for *schedules*. A
 //! `crons.toml` in any job tier declares `[[cron]]` entries; [`discover`] folds them (first tier
-//! wins, like scripts) and `bn cron register` turns them into systemd timers.
+//! wins, like scripts) and `workspan cron register` turns them into systemd timers.
 
 use crate::events::{cron_status, CronJobStatus};
 use crate::resolver::{config_dir, job_dirs, list_jobs, Config, JobRef, JobScope, Resolved};
@@ -72,7 +72,7 @@ pub struct CronEntry {
     /// Repository required by this cron. Entry-level values override the manifest's top-level
     /// `repo`; absent means the cron is genuinely machine-global. `repo = ""` on an entry opts it
     /// out of the manifest's repo: machine-global even in a repo-owned manifest (workspan's own tunnel
-    /// keepalive must run on build machines that do not list the `bn` repo).
+    /// keepalive must run on build machines that do not list the `workspan` repo).
     #[serde(default)]
     pub repo: Option<String>,
 }
@@ -167,7 +167,7 @@ pub fn parse_manifest(path: &Path) -> Result<Vec<CronEntry>, String> {
 /// a malformed one is skipped with a stderr warning rather than aborting discovery.
 pub fn discover(cfg: &Config, ctx: Option<&Resolved>) -> Vec<ResolvedCron> {
     let mut out: Vec<ResolvedCron> = Vec::new();
-    // The shipped manifest: `config/crons.toml` in the checkout bn ships from
+    // The shipped manifest: `config/crons.toml` in the checkout workspan ships from
     // (`resolver::shipped_root`), else `<config_dir>/crons.toml`. Appended as the lowest-precedence
     // Global tier so a private note tier (`<note>/jobs/crons.toml`) still shadows it,
     // first-tier-wins as before.
@@ -214,7 +214,7 @@ pub fn declares_job(declared: &[ResolvedCron], job: &str) -> bool {
     declared.iter().any(|cron| cron.entry.job == job)
 }
 
-/// The job names marked `catch_up = true` in the resolved manifest — the jobs the day's first bn
+/// The job names marked `catch_up = true` in the resolved manifest — the jobs the day's first workspan
 /// event should kick off (see [`CronEntry::catch_up`]). Deduped, in discovery order.
 pub fn catch_up_jobs(cfg: &Config, ctx: Option<&Resolved>) -> Vec<String> {
     discover(cfg, ctx)

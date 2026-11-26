@@ -2,12 +2,12 @@
 //!
 //! git has no timeout of its own. A `fetch` whose TCP connection dies without a FIN sits in `read`
 //! forever: the remote is gone, the socket is not, and nothing above notices. That is not a
-//! hypothetical failure mode — it is the one that took the dispatcher down. `bn dispatch` ran
+//! hypothetical failure mode — it is the one that took the dispatcher down. `workspan dispatch` ran
 //! `git fetch origin`, its `ssh git@github.com git-upload-pack` hung on a dead connection, and the
 //! resident dispatcher — which waits on that child synchronously — stopped heartbeating and read as
 //! offline for twenty-five minutes while the process was, technically, perfectly healthy.
 //!
-//! So every `git` bn spawns gets three bounds, applied here rather than at each of the dozen call
+//! So every `git` workspan spawns gets three bounds, applied here rather than at each of the dozen call
 //! sites that would otherwise have to remember:
 //!
 //!   * **ssh** — `ConnectTimeout` caps the handshake; `ServerAlive*` turn a dead peer into an error
@@ -17,7 +17,7 @@
 //!     not a slow transfer, it is a dead one.
 //!   * **prompts** — a credential prompt with no terminal to type into is an infinite wait dressed
 //!     up as a question. Suppressed *only* when stdin is not a TTY, so an interactive
-//!     `bn wt clone` of a private HTTPS repo can still ask.
+//!     `workspan wt clone` of a private HTTPS repo can still ask.
 //!
 //! Every value is a floor, not an override: an operator who exports `GIT_SSH_COMMAND` or sets the
 //! low-speed knobs keeps theirs. The point is that the unconfigured default stops being "wait

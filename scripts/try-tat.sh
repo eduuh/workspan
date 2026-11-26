@@ -1,24 +1,24 @@
 #!/bin/bash
-# Drive the real `bn tat` picker — fzf and all — inside a tmux window with send-keys, and assert on
-# the screen plus real state (dirs, `bn wt pool status`, tmux windows, the event log). This is the
+# Drive the real `workspan tat` picker — fzf and all — inside a tmux window with send-keys, and assert on
+# the screen plus real state (dirs, `workspan wt pool status`, tmux windows, the event log). This is the
 # only way to reach the keypress → `execute`/`reload` path and the parent's `--expect` handling
 # (the ctrl-o menu), which no unit test and no `--pick-stage` call can.
 #
 # Every case creates and removes its own fixtures (`tat-zz-*` branches, leases, sessions, a
 # repo-tier script), and no key is sent unless the picker is confirmed open — a stray ctrl-d in a
-# shell is a logout. Selecting a place row switches the bn session's active window, which is what
+# shell is a logout. Selecting a place row switches the workspan session's active window, which is what
 # the picker is for; the harness switches back to the window it was started from after each case.
 #
-# Needs: tmux (run me inside it), fzf, the bn repo in the bare+worktree layout with a warm pool,
+# Needs: tmux (run me inside it), fzf, the workspan repo in the bare+worktree layout with a warm pool,
 # and at least two idle slots. Leaves nothing behind on success; on a failure, read the residue
-# sweep at the end and `bn wt pool status --repo bn`.
+# sweep at the end and `workspan wt pool status --repo bn`.
 #
-#   scripts/try-tat.sh                     # every case, against target/release/bn
+#   scripts/try-tat.sh                     # every case, against target/release/workspan
 #   scripts/try-tat.sh menu-worktree script-row   # just these
 #   B=/path/to/bn scripts/try-tat.sh       # another binary
 set -u
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-B="${B:-$REPO_DIR/target/release/bn}"; B=$(realpath "$B") || exit 2
+B="${B:-$REPO_DIR/target/release/workspan}"; B=$(realpath "$B") || exit 2
 REPO=bn
 BARE=$(git -C "$REPO_DIR" rev-parse --path-format=absolute --git-common-dir)
 WT="$(dirname "$(dirname "$BARE")")/worktree/$REPO"
@@ -42,10 +42,10 @@ wait_until(){ local t=$1 i=0; shift; until "$@"; do i=$((i+1)); [ $i -ge $((t*5)
 wins(){ tmux list-windows -t "=$REPO" -F '#{window_id} #{window_name}'; }
 kill_new_wins(){ comm -13 <(echo "$1" | sort) <(wins | sort) | while read -r id name; do [ "$id" = "$W" ] && continue; tmux kill-window -t "$id" && echo "   closed window $name ($id)"; done; }
 restore_user(){ tmux select-window -t "$USER_WIN" 2>/dev/null; }
-slot_of(){ bn wt pool status --repo $REPO 2>/dev/null | grep -E "\] leased  $1( |\$)" | sed -E 's/^ *\[([0-9]+)\].*/\1/' | head -1; }
+slot_of(){ workspan wt pool status --repo $REPO 2>/dev/null | grep -E "\] leased  $1( |\$)" | sed -E 's/^ *\[([0-9]+)\].*/\1/' | head -1; }
 leased(){ [ -n "$(slot_of "$1")" ]; }
 release_branch(){ local b=$1 n; tmux kill-window -t "=$REPO:$b" 2>/dev/null; n=$(slot_of "$b")
-  if [ -n "$n" ]; then bn wt pool return "$n" >/dev/null 2>&1 || bn wt pool return "$n" --force >/dev/null 2>&1; fi
+  if [ -n "$n" ]; then workspan wt pool return "$n" >/dev/null 2>&1 || workspan wt pool return "$n" --force >/dev/null 2>&1; fi
   git --git-dir="$BARE" branch -D "$b" >/dev/null 2>&1; ! leased "$b"; }
 sublist(){ "$B" tat $REPO --pick-stage sublist </dev/null 2>/dev/null; }
 first_kind(){ sublist | awk -F'|' -v k="$1" '$1==k{print $2; exit}'; }
@@ -101,10 +101,10 @@ if open_sub; then key C-w; wait_until 20 bash -c "[ \$(tmux list-windows -t '=$R
 sleep 2; kill_new_wins "$before"; fi
 
 CASE=sub-release; if want "${ALL[@]}"; then say "$CASE: ctrl-r releases a leased slot by keypress"
-before=$(wins); bn wt pool get tat-zz-lease --holder tat-harness >/dev/null 2>&1; sleep 1; kill_new_wins "$before" >/dev/null
+before=$(wins); workspan wt pool get tat-zz-lease --holder tat-harness >/dev/null 2>&1; sleep 1; kill_new_wins "$before" >/dev/null
 leased tat-zz-lease && ok "fixture lease on slot $(slot_of tat-zz-lease)" || bad "fixture lease failed"
 if open_sub; then typ "tat-zz-lease"; wait_for ' 1/[0-9]+' && ok "row filtered" || bad "row not found"
-  key C-r; wait_until 30 bash -c "! bn wt pool status --repo $REPO | grep -qE '\] leased  tat-zz-lease( |\$)'" && ok "slot back to idle" || bad "still leased"; close_picker; fi
+  key C-r; wait_until 30 bash -c "! workspan wt pool status --repo $REPO | grep -qE '\] leased  tat-zz-lease( |\$)'" && ok "slot back to idle" || bad "still leased"; close_picker; fi
 release_branch tat-zz-lease; fi
 
 CASE=menu-worktree; if want "${ALL[@]}"; then say "$CASE: ctrl-o on a worktree row opens the action menu; Esc returns to the picker"
@@ -116,7 +116,7 @@ if [ -z "$wbr" ]; then echo "   skip: no idle worktree row to act on"; elif open
 CASE=typed-lease; if want "${ALL[@]}"; then say "$CASE: typing a new branch name and Enter leases a slot and opens its window"
 before=$(wins)
 if open_sub; then typ "tat-zz-typed"; wait_for ' 0/[0-9]+'; key Enter; picker_done 60 || bad "picker did not finish"
-  wait_until 30 bash -c "bn wt pool status --repo $REPO | grep -qE '\] leased  tat-zz-typed( |\$)'" && ok "slot leased to tat-zz-typed" || bad "no lease"
+  wait_until 30 bash -c "workspan wt pool status --repo $REPO | grep -qE '\] leased  tat-zz-typed( |\$)'" && ok "slot leased to tat-zz-typed" || bad "no lease"
   wins | grep -q ' tat-zz-typed$' && ok "window opened" || bad "no window"; fi
 restore_user; release_branch tat-zz-typed && ok "released" || bad "release failed"; kill_new_wins "$before" >/dev/null; fi
 
@@ -125,11 +125,11 @@ before=$(wins); idx=$(sublist | awk -F'|' '$1=="poolidle"{print NR; exit}')
 [ -n "$idx" ] && ok "first idle row is #$idx" || bad "no idle row"
 if [ -n "$idx" ] && open_sub; then for _ in $(seq 2 "$idx"); do key Down; done; key Enter
   wait_for 'branch to create:' 15 && ok "prompt shown" || bad "no prompt"; typ "tat-zz-prompt"; key Enter; picker_done 60 || bad "picker did not finish"
-  wait_until 30 bash -c "bn wt pool status --repo $REPO | grep -qE '\] leased  tat-zz-prompt( |\$)'" && ok "leased from the prompt" || bad "no lease"
+  wait_until 30 bash -c "workspan wt pool status --repo $REPO | grep -qE '\] leased  tat-zz-prompt( |\$)'" && ok "leased from the prompt" || bad "no lease"
   restore_user; release_branch tat-zz-prompt && ok "released" || bad "release failed"; kill_new_wins "$before" >/dev/null
   if open_sub; then for _ in $(seq 2 "$idx"); do key Down; done; key Enter
     wait_for 'branch to create:' 15; key Enter; picker_done 30 && ok "empty answer just exits" || bad "picker hung on empty answer"
-    bn wt pool status --repo $REPO | grep -q "tat-zz" && bad "stray lease" || ok "no stray lease"; fi; fi
+    workspan wt pool status --repo $REPO | grep -q "tat-zz" && bad "stray lease" || ok "no stray lease"; fi; fi
 restore_user; fi
 
 CASE=remote-pr; if want "${ALL[@]}"; then say "$CASE: selecting a remote PR row checks its branch out into a slot"
@@ -137,7 +137,7 @@ row=$(sublist | grep '^remotepr|' | head -1); pr=$(echo "$row" | cut -d'|' -f2);
 [ -n "$pr" ] && ok "using PR #$pr ($br)" || echo "   skip: no remote-only PR row to test with"
 before=$(wins)
 if [ -n "$pr" ] && open_sub; then typ "#$pr"; wait_for ' 1/[0-9]+' || bad "row not found"; key Enter; picker_done 120 || bad "picker did not finish"
-  wait_until 30 bash -c "bn wt pool status --repo $REPO | grep -qE '\] leased  $br( |\$)'" && ok "PR branch leased into slot $(slot_of "$br")" || bad "PR branch not leased"
+  wait_until 30 bash -c "workspan wt pool status --repo $REPO | grep -qE '\] leased  $br( |\$)'" && ok "PR branch leased into slot $(slot_of "$br")" || bad "PR branch not leased"
   restore_user; release_branch "$br" && ok "released and local branch deleted" || bad "release failed"; fi
 kill_new_wins "$before" >/dev/null; fi
 
@@ -154,5 +154,5 @@ rm -f "$JOBS/tat-zz-echo.sh"; sleep 2; kill_new_wins "$before" >/dev/null; fi
 
 say "residue sweep"
 git --git-dir="$BARE" branch --list 'tat-zz*' | grep -q . && bad "tat-zz branches remain" || ok "no tat-zz branches"
-bn wt pool status --repo $REPO | grep -q tat-zz && bad "tat-zz lease remains" || ok "no tat-zz lease"
+workspan wt pool status --repo $REPO | grep -q tat-zz && bad "tat-zz lease remains" || ok "no tat-zz lease"
 wins | grep -v " $W " | grep -q tat-zz && bad "tat-zz window remains" || ok "no tat-zz window"

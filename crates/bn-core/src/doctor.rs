@@ -1,8 +1,8 @@
-//! `bn doctor` — the attention list. A deterministic health check that aggregates everything
+//! `workspan doctor` — the attention list. A deterministic health check that aggregates everything
 //! wanting a nudge into one ranked list: untouched/blocked/goal-less local notes (filesystem),
 //! failing cron jobs (the event log), attention items raised by hand, by a script, or by an agent
-//! (`bn attn`), and pressing todos (overdue / priority A) from the current repo's `TODO.txt`
-//! (`bn task`). All read-time and offline — no network — so it runs free in cron or at session
+//! (`workspan attn`), and pressing todos (overdue / priority A) from the current repo's `TODO.txt`
+//! (`workspan task`). All read-time and offline — no network — so it runs free in cron or at session
 //! start. Each source renders as its own `Finding` variant; the list is ordered by priority then
 //! age, so what's actively broken floats to the top.
 
@@ -101,7 +101,7 @@ pub struct InboxFinding {
 /// `fix` is the exact one-line remedy (#323, #640).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct McpFinding {
-    /// The server's name in the config (e.g. `time`, `bn`).
+    /// The server's name in the config (e.g. `time`, `workspan`).
     pub server: String,
     /// The unresolvable command (e.g. `uvx`) or the unreachable endpoint url.
     pub command: String,
@@ -497,7 +497,7 @@ const MCP_CONFIGS: &[(&str, &str)] = &[
 
 /// The environment variable `workspan shell-init`'s wrappers export. A child process cannot inspect its
 /// parent shell's functions, so this marker is the only honest signal that the wrappers were
-/// actually sourced into the shell that ran `bn`.
+/// actually sourced into the shell that ran `workspan`.
 pub const SHELL_WRAPPER_MARKER: &str = "BN_SHELL_WRAPPERS";
 
 /// Why the `claude`/`copilot` wrappers aren't driving launches in this shell, or `None` when they
@@ -589,7 +589,7 @@ fn mcp_findings(root: &Path, path_var: &str) -> Vec<Finding> {
                 }));
             } else if let Some(url) = entry.get("url").and_then(|u| u.as_str()) {
                 // HTTP transport: a user's custom remote server — verify the endpoint is reachable
-                // instead of a PATH binary. (bn itself is stdio, so it never lands here.)
+                // instead of a PATH binary. (workspan itself is stdio, so it never lands here.)
                 let pair = (name.clone(), url.to_string());
                 if seen.contains(&pair) || http_endpoint_reachable(url) {
                     continue;

@@ -1,7 +1,7 @@
 #!/bin/sh
 # tunnel-host -- make this machine reachable over SSH through an authenticated Dev Tunnel.
 #
-# Run on the machine others connect TO (e.g. a Cloud PC's WSL):  bn run tunnel-host
+# Run on the machine others connect TO (e.g. a Cloud PC's WSL):  workspan run tunnel-host
 # tunnel-auto runs it unasked on a machine whose devtunnel CLI is already signed in.
 # Pair: tunnel-connect.sh on the machine you connect FROM.
 #
@@ -16,13 +16,13 @@
 #      re-runs this, so a reboot or a tmux restart brings the host back by itself.
 #
 # Discovery needs no shared config: both machines sign in to Dev Tunnels with the same account,
-# so `bn run tunnel-connect` finds every host by the bn-host label.
+# so `workspan run tunnel-connect` finds every host by the bn-host label.
 #
-# A machine that should never be reached (connect-only): `BN_TUNNEL_HOST=0 bn run tunnel-setup`.
+# A machine that should never be reached (connect-only): `BN_TUNNEL_HOST=0 workspan run tunnel-setup`.
 # This then stops what an earlier run started and deletes this machine's tunnel, so the others stop
 # listing it; the host key is kept, so turning hosting back on does not change it.
 #
-# Local network mode, opt-in per host: `BN_TUNNEL_LAN=1 bn run tunnel-setup` makes sshd listen on
+# Local network mode, opt-in per host: `BN_TUNNEL_LAN=1 workspan run tunnel-setup` makes sshd listen on
 # every interface (still key-only) and puts this machine's LAN address on the tunnel as a label, so
 # a client on the same network connects straight to it and keeps the tunnel as the fallback
 # (tunnel-connect). Off, sshd is loopback only and the Dev Tunnel is the one way in.
@@ -90,7 +90,7 @@ chmod 700 "$HOME/.ssh" "$STATE"
 # ClientAlive*: drop a dead tunnel session in ~90s instead of holding it open forever.
 old_cfg=$(cat "$STATE/sshd_config" 2>/dev/null || true)
 cat > "$STATE/sshd_config" <<EOF
-# Written by bn tunnel-host. $NOTE
+# Written by workspan tunnel-host. $NOTE
 Port $PORT
 ListenAddress $LISTEN
 HostKey $STATE/host_ed25519
@@ -189,7 +189,7 @@ if [ -n "$lan_label" ]; then
   say "local network mode: reachable at $lan_ip:$PORT from the same network"
   # WSL with mirrored networking shares the Windows address, and Windows blocks inbound by default.
   if grep -qi microsoft /proc/version 2>/dev/null; then
-    say "on WSL, allow the port once from an elevated PowerShell: New-NetFirewallHyperVRule -Name bn-ssh-$PORT -DisplayName 'bn ssh $PORT' -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts $PORT"
+    say "on WSL, allow the port once from an elevated PowerShell: New-NetFirewallHyperVRule -Name bn-ssh-$PORT -DisplayName 'workspan ssh $PORT' -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts $PORT"
   fi
 fi
 # The nickname, or none, as the tunnel's one bn-nick label: the other machines show it and add it
@@ -232,7 +232,7 @@ if [ "${BN_TUNNEL_FOREGROUND:-0}" != 1 ] && sess=$(bn_tunnel_session); then
     tmux new-window -d -t "$sess" -n tunnel "sh '$(cd "$(dirname "$0")" && pwd -P)/lib/devtunnel-loop.sh' host '$DT' '$ID' '$NAME'"
     say "hosting $ID in tmux window $sess:tunnel (restarts itself if it drops)"
   fi
-  say "connect from another machine (same Dev Tunnels account):  bn run tunnel-connect"
+  say "connect from another machine (same Dev Tunnels account):  workspan run tunnel-connect"
 else
   say "hosting $ID in the foreground (restarts if it drops; Ctrl-C twice stops it)"
   exec sh "$(dirname "$0")/lib/devtunnel-loop.sh" host "$DT" "$ID" "$NAME"

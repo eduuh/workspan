@@ -1,4 +1,4 @@
-//! `bn mcp init <claude|copilot>` — presentation layer over `bn_core::mcp::init`. The wiring
+//! `workspan mcp init <claude|copilot>` — presentation layer over `bn_core::mcp::init`. The wiring
 //! itself lives in bn-core so the `bn_mcp_init` MCP tool shares it verbatim.
 
 use bn_core::mcp::{self, Harness};
@@ -10,24 +10,24 @@ pub fn parse_harness(s: &str) -> Option<Harness> {
     Harness::parse(s)
 }
 
-/// The `bn-mcp` binary name for the current platform.
+/// The `workspan-mcp` binary name for the current platform.
 fn bn_mcp_name() -> &'static str {
     if cfg!(windows) {
-        "bn-mcp.exe"
+        "workspan-mcp.exe"
     } else {
-        "bn-mcp"
+        "workspan-mcp"
     }
 }
 
-/// Resolve the `bn-mcp` binary: prefer the sibling next to the running `bn` (same install dir, so a
+/// Resolve the `workspan-mcp` binary: prefer the sibling next to the running `workspan` (same install dir, so a
 /// from-source or release install runs its matching build), else fall back to the bare name on
 /// `PATH`.
 ///
 /// The **canonicalized** path is tried first, because workspan is routinely launched through a symlink:
 /// install.sh maintains `<config_dir>/bn -> <bin_dir>/bn` as the stable anchor, and the cron units
 /// and MCP client registrations both spawn workspan through it. `current_exe()` hands back that symlink
-/// path, whose sibling directory holds no `bn-mcp` — so resolving without canonicalizing looked
-/// beside the *anchor* instead of beside the real binary and died with "could not exec bn-mcp",
+/// path, whose sibling directory holds no `workspan-mcp` — so resolving without canonicalizing looked
+/// beside the *anchor* instead of beside the real binary and died with "could not exec workspan-mcp",
 /// taking every MCP client down with it. Falling back to the uncanonicalized sibling keeps a
 /// non-symlinked install working even if canonicalize() fails.
 pub(crate) fn resolve_bn_mcp() -> PathBuf {
@@ -46,7 +46,7 @@ pub(crate) fn resolve_bn_mcp() -> PathBuf {
     PathBuf::from(bn_mcp_name())
 }
 
-/// `workspan mcp serve [--orchestrate]` — exec the sibling `bn-mcp` stdio launcher, pinned to the current
+/// `workspan mcp serve [--orchestrate]` — exec the sibling `workspan-mcp` stdio launcher, pinned to the current
 /// worktree. The child derives its `(repo, branch)` from this cwd, so an MCP client needs no
 /// per-call scope headers. On unix we `exec()` so stdio/signals flow straight through (the client
 /// speaks MCP over this process's stdin/stdout); elsewhere we spawn+wait and forward the exit code.
@@ -60,7 +60,7 @@ pub fn serve(orchestrate: bool) {
         // exec() only returns on failure.
         let err = std::process::Command::new(&bin).args(args).exec();
         crate::fail(&format!(
-            "workspan mcp serve: could not exec {} ({err}) — is bn-mcp installed beside workspan? Try install.sh.",
+            "workspan mcp serve: could not exec {} ({err}) — is workspan-mcp installed beside workspan? Try install.sh.",
             bin.display()
         ));
     }
@@ -69,7 +69,7 @@ pub fn serve(orchestrate: bool) {
         match std::process::Command::new(&bin).args(args).status() {
             Ok(status) => std::process::exit(status.code().unwrap_or(0)),
             Err(e) => crate::fail(&format!(
-                "workspan mcp serve: could not run {} ({e}) — is bn-mcp installed beside workspan?",
+                "workspan mcp serve: could not run {} ({e}) — is workspan-mcp installed beside workspan?",
                 bin.display()
             )),
         }

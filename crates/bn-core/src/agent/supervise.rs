@@ -291,7 +291,7 @@ pub fn supervise(cfg: &Config, idle_mins: i64, stuck_mins: i64) -> Fleet {
     let now = now_epoch_secs();
     let mut fleet = supervise_from(cfg, &claude_root, &copilot_root, now, idle_mins, stuck_mins);
     // Stamp each agent's #500 role from the machine's launch-path work-class attribution — the same
-    // bn-owned record `bn dispatch` writes and ingest reads. Kept out of the offline testable core
+    // bn-owned record `workspan dispatch` writes and ingest reads. Kept out of the offline testable core
     // so [`supervise_from`] stays a pure filesystem read.
     let launches = crate::cost::launch_records();
     stamp_launch_metadata(&mut fleet.agents, &launches);
@@ -308,7 +308,7 @@ pub fn supervise(cfg: &Config, idle_mins: i64, stuck_mins: i64) -> Fleet {
         fleet = Fleet::from_agents(agents);
         stamp_launch_metadata(&mut fleet.agents, &launches);
     }
-    // Last, so it covers the pending entries folded in above too: can bn actually write to each of
+    // Last, so it covers the pending entries folded in above too: can workspan actually write to each of
     // these, or is it only watching? Kept out of `supervise_from` for the same reason as roles —
     // it shells out to tmux, and that core stays a pure filesystem read.
     let windows = stamp_control(cfg, &mut fleet.agents);

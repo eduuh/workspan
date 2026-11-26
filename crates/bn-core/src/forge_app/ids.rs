@@ -1,4 +1,4 @@
-//! The highest bn id a Forge task list has handed out, remembered per endpoint.
+//! The highest workspan id a Forge task list has handed out, remembered per endpoint.
 //!
 //! A load lists open activities and those completed in the last
 //! [`super::store::COMPLETED_WINDOW_DAYS`] days. A task finished before that is not in the list, so

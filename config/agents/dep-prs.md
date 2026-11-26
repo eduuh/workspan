@@ -1,6 +1,6 @@
 ---
 name: dep-prs
-requires_repo: bn
+requires_repo: workspan
 kind: command
 opt_in: true
 on_calendar: "*-*-* 03:00:00"
@@ -13,7 +13,7 @@ is the process; this manifest is the schedule. No `run:` line: the agent resolve
 `jobs/dep-prs.sh`, which holds the settings and the guards.
 
 Opt-in, so it runs only on the machine that turns it on (a worker, never the laptop at 3am).
-`requires_repo: bn` is only the gate that the machine runs workspan's own lanes; the job sweeps every repo.
+`requires_repo: workspan` is only the gate that the machine runs workspan's own lanes; the job sweeps every repo.
 On the worker, in config.toml:
 
 ```toml

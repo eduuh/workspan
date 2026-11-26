@@ -1,7 +1,7 @@
 //! The native jobs behind [`bn_core::wt_actions`] — the verbs the worktree picker offers as rows.
 //!
-//! Each one is deliberately thin. The work these do already existed as a `bn` subcommand; what was
-//! missing was a *runnable job name* for it, because a picker row runs its verb as `bn run <job>`
+//! Each one is deliberately thin. The work these do already existed as a `workspan` subcommand; what was
+//! missing was a *runnable job name* for it, because a picker row runs its verb as `workspan run <job>`
 //! in a window it can watch ([`crate::cmd::wt_action_run`]). So the bodies here reuse
 //! [`crate::wt::run_code`] and the existing job functions rather than reimplementing anything, and
 //! the file earns its place by keeping the wrappers out of `jobs.rs`, which is at the size ratchet.
@@ -101,7 +101,7 @@ pub(crate) fn job_build_main(cfg: &Config, ctx: Option<&Resolved>) -> i32 {
         return 1;
     }
     // Build in the main worktree the sync just fast-forwarded, never the main slot: the sync
-    // leaves a slot that is in use or dirty where it was, and building there installed a bn 114
+    // leaves a slot that is in use or dirty where it was, and building there installed a workspan 114
     // commits behind main. Refuse rather than build anything but the remote tip.
     let dir = crate::main_slot::main_worktree(&worktree_dir, &ctx.repo);
     if !dir.is_dir() {

@@ -72,7 +72,7 @@ pub(super) fn route(cfg: &Config, action: CmdIntake, json: bool) {
                 one_shot,
                 &refs,
                 stage,
-                // A typed `bn dispatch` always renders its seed from a workflow skill.
+                // A typed `workspan dispatch` always renders its seed from a workflow skill.
                 None,
                 json,
             );

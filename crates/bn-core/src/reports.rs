@@ -138,8 +138,8 @@ pub fn stand(cfg: &Config, today: &str) -> Stand {
         "stand: ensure today's daily",
     );
     let mut dailies = daily::read_window(cfg, &yday, today);
-    // `read_window` is file-only; swap today's entry for the projection so `bn stand` counts the
-    // same goals `bn daily` shows.
+    // `read_window` is file-only; swap today's entry for the projection so `workspan stand` counts the
+    // same goals `workspan daily` shows.
     if let Some(slot) = dailies.iter_mut().find(|d| d.front.date == today) {
         *slot = daily::view(cfg, today);
     }

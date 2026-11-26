@@ -1,4 +1,4 @@
-//! `bn issue file --kind`. Split out of [`super`] under the never-grow ratchet.
+//! `workspan issue file --kind`. Split out of [`super`] under the never-grow ratchet.
 
 /// The problem kind for `workspan issue file`, each mapping to a canonical label.
 #[derive(clap::ValueEnum, Clone, Copy, Debug, PartialEq, Eq)]

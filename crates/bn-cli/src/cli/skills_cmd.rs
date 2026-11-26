@@ -1,4 +1,4 @@
-//! `bn skills ...` clap surface, split from the top-level command catalog.
+//! `workspan skills ...` clap surface, split from the top-level command catalog.
 
 use crate::*;
 

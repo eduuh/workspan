@@ -42,7 +42,7 @@ class BindingTests(unittest.TestCase):
             "#!/bin/sh\nexec " + shlex.quote(cls.tmux) + ' -S "$CHECK_SOCKET" "$@"\n'
         )
         wrapper.chmod(0o755)
-        bn = cls.home / ".config/bn/bn"
+        workspan = cls.home / ".config/bn/workspan"
         bn.write_text(
             "#!" + sys.executable + "\n"
             "import json, os, sys\n"

@@ -51,7 +51,7 @@ class CodespaceCliTests(unittest.TestCase):
 
     def connect(self):
         return subprocess.run(
-            [ROOT / "target/debug/bn", "cs", "connect", "fixture-codespace"],
+            [ROOT / "target/debug/workspan", "cs", "connect", "fixture-codespace"],
             env=self.env,
             capture_output=True,
             text=True,

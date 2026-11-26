@@ -134,7 +134,7 @@ jobs:
         run: cargo test --workspace
 
       # Skills are read at run time, so a renamed subcommand or flag breaks them silently. Check
-      # every `bn ...` they cite against the binary this commit builds, and render each one.
+      # every `workspan ...` they cite against the binary this commit builds, and render each one.
       - name: Skill commands and rendering
         run: |
           cargo build -p bn-cli
@@ -209,9 +209,9 @@ jobs:
         run: sh scripts/check-shell-multibyte.sh
 
 
-  # End-to-end: the real `bn` binary against a real tmux server, in a hermetic sandbox.
+  # End-to-end: the real `workspan` binary against a real tmux server, in a hermetic sandbox.
   #
-  # This lane covers what unit tests structurally cannot — `bn dispatch` leasing a worktree,
+  # This lane covers what unit tests structurally cannot — `workspan dispatch` leasing a worktree,
   # branching, rendering the seed prompt, opening a tmux window and starting an agent in it —
   # by giving each test its own HOME, config, state, notes, worktree pool and tmux server,
   # with a scripted fake agent on PATH instead of a real harness.
@@ -272,10 +272,10 @@ jobs:
           }
           echo "runner=$RUNNER_NAME os=$(uname -s) $(tmux -V)"
 
-      # The harness resolves target/debug/bn (or $BN_E2E_BIN). A stale binary against fresh
+      # The harness resolves target/debug/workspan (or $BN_E2E_BIN). A stale binary against fresh
       # config/prompts/*.md fails in confusing ways — the prompts are read at runtime while the
       # arguments that fill them are compiled in — so always build before running.
-      - name: Build bn
+      - name: Build workspan
         run: cargo build --workspace
 
       # `--ignored` because the cases are marked so, to keep them out of the plain unit lane.

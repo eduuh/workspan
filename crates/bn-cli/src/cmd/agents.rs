@@ -1,4 +1,4 @@
-//! `bn agents` command family — strict catalog validation/rendering plus review-specialist
+//! `workspan agents` command family — strict catalog validation/rendering plus review-specialist
 //! list/show/new/install/uninstall/bootstrap commands.
 
 use crate::*;

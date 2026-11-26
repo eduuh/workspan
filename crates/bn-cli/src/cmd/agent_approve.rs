@@ -2,12 +2,12 @@
 //!
 //! [`bn_core::agent::approval`] decides; this realizes. Kept out of `cmd/orchestrate.rs` (which is
 //! at its file-size ratchet) so the supervisor's arm stays a few lines, and so the *same* policy
-//! path is reachable from outside an orchestrate wave — an agent started by a plain `bn dispatch`
+//! path is reachable from outside an orchestrate wave — an agent started by a plain `workspan dispatch`
 //! used to get no policy at all.
 //!
 //! Everything decided here is appended to `<state_dir>/approvals.jsonl`, whether it was approved or
 //! escalated. An unattended approval you cannot audit afterwards is not a feature, it is a hole:
-//! the log is what makes "what did bn say yes to while I was asleep?" a question with an answer.
+//! the log is what makes "what did workspan say yes to while I was asleep?" a question with an answer.
 
 use bn_core::agent::{
     decide_with_builtin_default, ApprovalDecision, ApprovalPolicy, LaneKind, PendingPrompt,
@@ -113,7 +113,7 @@ pub(crate) fn sweep(cfg: &Config, dry_run: bool, as_json: bool) -> (usize, usize
         ) else {
             continue;
         };
-        // Trust comes from the agent's lease: `bn dispatch` marks a lane trusted when its goal is
+        // Trust comes from the agent's lease: `workspan dispatch` marks a lane trusted when its goal is
         // your own words (no external link). Anything else stays untrusted and escalates.
         let ctx = PolicyCtx { lane: LaneKind::Dispatched, trusted: lane_trusted(&leases, &target) };
         let policy = ApprovalPolicy::load();

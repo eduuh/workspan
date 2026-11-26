@@ -1,7 +1,7 @@
-//! `bn on` — user-scriptable reactions to the event log.
+//! `workspan on` — user-scriptable reactions to the event log.
 //!
-//! bn already writes every interesting thing that happens to `events.jsonl`, and already reacts to
-//! some of it: `bn watch` toasts agents that need you, `bn doctor` surfaces failing crons. But
+//! workspan already writes every interesting thing that happens to `events.jsonl`, and already reacts to
+//! some of it: `workspan watch` toasts agents that need you, `workspan doctor` surfaces failing crons. But
 //! those reactions are compiled in. Wanting a different one — "when a PR merges in any repo, run
 //! this" — meant editing Rust. This module is the write-your-own half: a rule matches events, and
 //! a command runs for each match.

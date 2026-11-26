@@ -1,4 +1,4 @@
-//! Cross-repo GitHub issues — the reservoir `bn task pull` refills from (#999, EPIC #993).
+//! Cross-repo GitHub issues — the reservoir `workspan task pull` refills from (#999, EPIC #993).
 //!
 //! # The failure this module exists to fix
 //!

@@ -514,7 +514,7 @@ fn discover(worktree_dir: &Path) -> Vec<Candidate> {
         //
         // We deliberately do NOT sniff the command for "orchestrate" — a dispatched agent's seed
         // prompt (passed as `copilot -i <prompt>`) routinely contains the word, and a harness
-        // process is never the orchestrator daemon itself anyway (that's the `bn orchestrate`
+        // process is never the orchestrator daemon itself anyway (that's the `workspan orchestrate`
         // process that spawns them).
         let is_orchestrator = bn_core::agent::is_controller_slot_path(&worktree_path);
 
@@ -644,7 +644,7 @@ fn reconcile(cfg: &Config, worktree_dir: &Path, opts: &ReapOpts) -> Vec<Verdict>
         .map(|a| (target_key(&a.repo, &a.branch), (a.health, a.idle_secs)))
         .collect();
     // The second half of the orchestrator guard. `discover` answers for the controller by its pool
-    // slot, but a `bn dispatch --orchestrator` agent runs the wave from an ordinary slot on a real
+    // slot, but a `workspan dispatch --orchestrator` agent runs the wave from an ordinary slot on a real
     // branch, so placement cannot see it. Its role can: the fleet stamps `AgentRole::Orchestrator`
     // from the machine's own attribution log, which outlives the window that used to carry the
     // answer in its session name.

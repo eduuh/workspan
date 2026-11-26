@@ -1,4 +1,4 @@
-//! `bn agent live` — the joined agent fleet, the machine-readable "what are all my agents doing".
+//! `workspan agent live` — the joined agent fleet, the machine-readable "what are all my agents doing".
 //!
 //! Two independent signals describe a live agent, and neither alone is the whole picture:
 //!   - **Plane A** — the per-window `@bn_agent` tmux option (working / waiting / done), set by each
@@ -215,13 +215,13 @@ pub fn collect(cfg: &Config, idle: i64, stuck: i64) -> Vec<LiveView> {
             )
             .state;
             // Persist what we just worked out. Until now this inference lived and died inside a
-            // single `bn agent live` / `bn watch` pass: the classifier could tell that an agent was
+            // single `workspan agent live` / `workspan watch` pass: the classifier could tell that an agent was
             // blocked, or had hit a usage cap, and the tab bar, jump picker and attention badge —
             // every cheap reader of `@bn_agent` — never learned it, because nothing wrote it back.
             // That is why `blocked` and `needs-decision` were dead vocabulary on BOTH sides.
             //
             // Only on an actual change, so a steady fleet costs no tmux calls, and only from here:
-            // `collect` already runs off the 5s path (`bn watch` is the *:0/5 cron), whereas the
+            // `collect` already runs off the 5s path (`workspan watch` is the *:0/5 cron), whereas the
             // status bar must never pay for a capture-pane sweep.
             if r.state != before {
                 crate::cmd::setup::set_tmux_window_option_on(
@@ -740,22 +740,22 @@ mod tests {
             " ~/wt [⎇ deps/1]                  Session: 11.06 AIC used",
             "╻▄▄▄▄▄▄▄▄▄▄",
             "┃",
-            "┃ [bn msg from bn:coord] Task: resolve #80 (form-data 4.0.4).",
-            "┃ outcome. — reply: bn agent msg bn:coord \"<your answer>\"",
+            "┃ [workspan msg from bn:coord] Task: resolve #80 (form-data 4.0.4).",
+            "┃ outcome. — reply: workspan agent msg bn:coord \"<your answer>\"",
             "╹▀▀▀▀▀▀▀▀▀▀",
             " Interactive · Allow All · @ files · # issues",
         ]
         .iter()
         .map(|s| s.to_string())
         .collect();
-        let msg = "[bn msg from bn:coord] Task: resolve #80 (form-data 4.0.4).";
+        let msg = "[workspan msg from bn:coord] Task: resolve #80 (form-data 4.0.4).";
         assert!(
             tail_confirms_submit(&tail),
             "the old check was fooled by the lone ┃"
         );
         assert!(!submit_landed(&tail, msg));
         let sent: Vec<String> = [
-            "  ❯ [bn msg from bn:coord] Task: resolve #80",
+            "  ❯ [workspan msg from bn:coord] Task: resolve #80",
             "╻▄▄▄▄",
             "┃",
             "╹▀▀▀▀",
@@ -774,7 +774,7 @@ mod tests {
         .iter()
         .map(|s| s.to_string())
         .collect();
-        let long = "[bn msg from bn:coord] a long task that wraps — reply: bn agent msg bn:coord \"<your answer>\"";
+        let long = "[workspan msg from bn:coord] a long task that wraps — reply: workspan agent msg bn:coord \"<your answer>\"";
         assert!(
             !submit_landed(&wrapped, long),
             "the head scrolled off, the end is still in the box"

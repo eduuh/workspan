@@ -1,8 +1,8 @@
-//! Pool warming — the `bn wt pool warm` command and the `pool-warm` cron behind it.
+//! Pool warming — the `workspan wt pool warm` command and the `pool-warm` cron behind it.
 //!
 //! Split out of `wt_pool.rs` under the 1000-line ratchet. The seam is deliberate rather than
 //! arbitrary: warming is the one pool operation that *builds* (fetch, checkout/advance per slot,
-//! then `bn build` in each), and it is the only one with a cron entry point, so it carries its own
+//! then `workspan build` in each), and it is the only one with a cron entry point, so it carries its own
 //! resolution rules and its own failure semantics. Slot classification, leasing, prune/destroy and
 //! status stay in the parent.
 //!
@@ -52,7 +52,7 @@ fn warm_in_window(ctx: &PoolCtx, new: bool, slot: Option<u32>) -> bool {
     }
     let self_exe = std::env::current_exe()
         .map(|p| p.to_string_lossy().to_string())
-        .unwrap_or_else(|_| "bn".to_string());
+        .unwrap_or_else(|_| "workspan".to_string());
     let new_flag = if new { " --new" } else { "" };
     let slot_flag = slot.map(|n| format!(" --slot {n}")).unwrap_or_default();
     let runner = format!(
@@ -148,7 +148,7 @@ fn warm_pool(cfg: &Config, ctx: &PoolCtx, here: bool, new: bool, slot: Option<u3
     };
 
     // Does this repo have a `build.sh`? Only to decide whether there's anything to build (and to
-    // scaffold a template if absent) — the build itself is `bn build`, which resolves the script
+    // scaffold a template if absent) — the build itself is `workspan build`, which resolves the script
     // the same way, so the pool can never drift from the command a human runs by hand.
     let rctx = bn_core::resolver::Resolved {
         repo: ctx.repo.to_lowercase(),
@@ -164,7 +164,7 @@ fn warm_pool(cfg: &Config, ctx: &PoolCtx, here: bool, new: bool, slot: Option<u3
             let _ = std::fs::create_dir_all(&dir);
             let path = dir.join("build.sh");
             // Atomic scaffold: write a temp sibling, mark it executable, then rename into place —
-            // an atomic swap on the same fs, so a concurrent reader (e.g. `bn verify`/`bn build`
+            // an atomic swap on the same fs, so a concurrent reader (e.g. `workspan verify`/`workspan build`
             // resolving this script) never sees a half-written build.sh, only the old file or the
             // complete new one.
             let tmp = dir.join(format!("build.sh.{}.tmp", std::process::id()));
@@ -309,7 +309,7 @@ fn warm_pool(cfg: &Config, ctx: &PoolCtx, here: bool, new: bool, slot: Option<u3
         ready.push((n, slot));
     }
 
-    // Phase 2 — build, by running `bn build` in each slot. A live checkout with no build script is
+    // Phase 2 — build, by running `workspan build` in each slot. A live checkout with no build script is
     // already warm. With one, prime the first slot to seed the shared sccache cache (repo
     // `.cargo/config.toml`), then build the rest in parallel: they compile the *same* base commit,
     // so they land as cache hits instead of repeating the work — collapsing a warm from N cold
@@ -336,7 +336,7 @@ fn warm_pool(cfg: &Config, ctx: &PoolCtx, here: bool, new: bool, slot: Option<u3
     let skipped = report.count(|o| matches!(o, Outcome::Skipped(_) | Outcome::NotBuilt(_)));
     let failed = report.count(|o| matches!(o, Outcome::Failed(_)));
     let ok = report.ok();
-    // Record the refresh so `bn metrics` can surface pool freshness — how many slots warmed, and
+    // Record the refresh so `workspan metrics` can surface pool freshness — how many slots warmed, and
     // when the pool was last refreshed (one event per `pool warm`, alongside pool_get/pool_return).
     {
         let mut f = serde_json::Map::new();
@@ -626,11 +626,11 @@ enum BuildOutcome {
 /// A warm runs for minutes to hours, and reinstalling workspan replaces the file under the running
 /// process. On Linux `current_exe` then reads `<path> (deleted)`, which cannot be spawned. That
 /// failed every slot build of the 2026-09-27 02:01 pool-build: workspan was reinstalled the same second
-/// the run started. The file now at `<path>` is the newly installed bn, which is the one to run.
-/// Falls back to `bn` on PATH when there is no usable path at all.
+/// the run started. The file now at `<path>` is the newly installed workspan, which is the one to run.
+/// Falls back to `workspan` on PATH when there is no usable path at all.
 fn self_exe(current: Option<PathBuf>) -> PathBuf {
     let Some(p) = current else {
-        return PathBuf::from("bn");
+        return PathBuf::from("workspan");
     };
     if p.exists() {
         return p;
@@ -638,7 +638,7 @@ fn self_exe(current: Option<PathBuf>) -> PathBuf {
     let s = p.to_string_lossy();
     match s.strip_suffix(" (deleted)") {
         Some(orig) if Path::new(orig).exists() => PathBuf::from(orig),
-        _ => PathBuf::from("bn"),
+        _ => PathBuf::from("workspan"),
     }
 }
 
@@ -646,7 +646,7 @@ fn self_exe(current: Option<PathBuf>) -> PathBuf {
 /// so the pool builds exactly the way `workspan build` does and the two can't drift. `--repo/--branch
 /// main` is required, not a nicety: a pool slot is a *detached* checkout, so `workspan build`'s cwd
 /// resolution finds no branch there. Re-executes *this* binary (`current_exe`) rather than whatever
-/// `bn` is on PATH, so a dev build warms with itself. Inherits stdio; the child prepends
+/// `workspan` is on PATH, so a dev build warms with itself. Inherits stdio; the child prepends
 /// `~/.local/bin:~/.bin` to PATH for the script, and both env vars below reach it through the child.
 /// `CARGO_INCREMENTAL=0`: a warm builds a fresh checkout with no prior incremental state to reuse,
 /// and disabling it lets sccache cache the workspace crates too. `jobs` caps `cargo`'s parallelism
@@ -663,12 +663,12 @@ fn run_bn_build(repo: &str, slot: &Path, jobs: Option<usize>) -> BuildOutcome {
     }
     // Stream the build's stderr through, watching for a skip. A monorepo's `build.sh` declines a second
     // concurrent `lage build` with exit 0 and a `SKIPPED:` line (exit 75 read as a failure in an
-    // older bn), so the exit code alone reports a build that never ran as built.
+    // older workspan), so the exit code alone reports a build that never ran as built.
     cmd.stderr(std::process::Stdio::piped());
     let mut child = match cmd.spawn() {
         Ok(child) => child,
         Err(e) => {
-            // Say why: a bare "build failed" here once hid that bn itself never started.
+            // Say why: a bare "build failed" here once hid that workspan itself never started.
             eprintln!(
                 "{RED}[{}] could not start `{} build`: {e}{NC}",
                 slot.display(),

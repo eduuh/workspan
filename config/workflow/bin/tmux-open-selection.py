@@ -30,14 +30,14 @@ def is_url(text):
 
 
 def open_target(target, directory):
-    bn = str(Path.home() / ".config/bn/bn")
+    workspan = str(Path.home() / ".config/bn/workspan")
     result = subprocess.run(
-        [bn, "open", "--", target],
+        [workspan, "open", "--", target],
         cwd=directory, check=True, capture_output=True, text=True,
     )
-    # bn prints the target and exits zero when no platform opener is available.
+    # workspan prints the target and exits zero when no platform opener is available.
     if result.stdout.strip() == target:
-        raise ValueError("bn open found no platform opener")
+        raise ValueError("workspan open found no platform opener")
     if result.stderr:
         sys.stderr.write(result.stderr)
 

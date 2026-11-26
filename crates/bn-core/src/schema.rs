@@ -3,10 +3,10 @@
 //!
 //! This exists because a consistent envelope is not the same as a *promised* one. Every command
 //! already emitted `{ok, command, data, error}`, but only by convention — nothing said so, nothing
-//! checked it, and a script had no way to tell a renamed field from an absent one. `bn schema`
+//! checked it, and a script had no way to tell a renamed field from an absent one. `workspan schema`
 //! publishes the contract and [`ENVELOPE_VERSION`](crate::render::ENVELOPE_VERSION) versions it.
 //!
-//! The registry is deliberately curated rather than generated. bn emits well over a hundred
+//! The registry is deliberately curated rather than generated. workspan emits well over a hundred
 //! command tags, most of them write paths whose `data` is an acknowledgement nobody scripts
 //! against; listing all of them would be a wall of noise that rots. What is here is the read side
 //! — the commands you would actually build a dashboard or a cron on — and each entry is verified

@@ -1,13 +1,13 @@
 #!/usr/bin/env sh
 # The 1000-line "never grow" ratchet. See .file-size-baseline for the rules it enforces.
 #
-#   scripts/check-file-size.sh            full check   (CI `gates` job, pre-push, bn verify)
+#   scripts/check-file-size.sh            full check   (CI `gates` job, pre-push, workspan verify)
 #   scripts/check-file-size.sh --staged   staged blobs (pre-commit; sub-second)
 #   scripts/check-file-size.sh --update   rewrite the baseline from the working tree
 #   scripts/check-file-size.sh --list     print every in-scope file over the limit, biggest first
 #
 # POSIX sh + awk on purpose, not Python. This runs in the pre-commit hook (where an interpreter
-# start on every commit is felt), inside `bn verify`'s disposable rebased worktree (spawned via
+# start on every commit is felt), inside `workspan verify`'s disposable rebased worktree (spawned via
 # `/bin/sh -c` with a hand-built PATH that a heavier dependency could miss), and on three Fedora
 # boxes plus a mac where `sh` and `awk` are the only interpreters guaranteed present.
 set -eu

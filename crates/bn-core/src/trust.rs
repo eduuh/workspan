@@ -1,6 +1,6 @@
 //! Pre-grant an agent harness's *folder trust* so a freshly-created worktree boots without the
 //! interactive "trust this folder?" prompt. This is the user's explicit opt-in (it rides on
-//! `--yolo` / `bn trust-folder`) for worktrees they created from their own repos — the harnesses'
+//! `--yolo` / `workspan trust-folder`) for worktrees they created from their own repos — the harnesses'
 //! yolo flags (`--dangerously-skip-permissions`, `--allow-all-paths`) skip *tool/path* permissions
 //! but NOT the first-run folder-trust gate, which is what actually blocks a dispatched agent.
 //!

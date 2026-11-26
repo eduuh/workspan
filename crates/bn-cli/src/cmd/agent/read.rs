@@ -1,6 +1,6 @@
 //! Reading a running agent: its live tmux pane, and its session transcript.
 //!
-//! The read-only half of supervision, and the layer `bn agent prompt` sits on. Split out of
+//! The read-only half of supervision, and the layer `workspan agent prompt` sits on. Split out of
 //! `cmd/agent.rs` to keep it under the file-size ratchet.
 
 use crate::*;

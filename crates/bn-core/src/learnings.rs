@@ -1,9 +1,9 @@
-//! `bn learnings` (#322) — the fleet-learning inspection view. Dispatched agents record what
-//! they discover with `bn learned` (codebase/tooling facts) and `bn reflect` (one thing to
-//! improve, incl. skill reflections `bn reflect "skill:<name> — …"`). Those land in the per-host
+//! `workspan learnings` (#322) — the fleet-learning inspection view. Dispatched agents record what
+//! they discover with `workspan learned` (codebase/tooling facts) and `workspan reflect` (one thing to
+//! improve, incl. skill reflections `workspan reflect "skill:<name> — …"`). Those land in the per-host
 //! daily files ([`crate::daily`]), each stamped with the branch/issue/harness it came from
 //! ([`crate::daily::LogProvenance`]). Because daily files live on the date axis — never under
-//! `<repo>/<branch>` — they survive `bn wt cleanup` untouched, so the learnings outlive the
+//! `<repo>/<branch>` — they survive `workspan wt cleanup` untouched, so the learnings outlive the
 //! archived note; this module just gathers, attributes, groups, and reviews them.
 //!
 //! It is pure aggregation over the daily window (like [`crate::reports::weekly`]) plus a small
@@ -41,7 +41,7 @@ impl Kind {
     }
 }
 
-/// The author axis for filtering: recorded by a dispatched agent (a harness was driving bn) or
+/// The author axis for filtering: recorded by a dispatched agent (a harness was driving workspan) or
 /// by me (a plain shell). `Any` (the default) applies no author filter.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Default)]
 pub enum Author {

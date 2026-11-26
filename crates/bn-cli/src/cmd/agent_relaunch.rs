@@ -1,6 +1,6 @@
-//! `bn agent relaunch <repo:branch>` — kill a running agent and respawn it in the same worktree.
+//! `workspan agent relaunch <repo:branch>` — kill a running agent and respawn it in the same worktree.
 //!
-//! The fleet board has always had a "Relaunch" button, and it was wired to `bn agent recover
+//! The fleet board has always had a "Relaunch" button, and it was wired to `workspan agent recover
 //! --yes` — which is not a relaunch at all: it looks for a worktree with commits ahead of base and
 //! no PR, then pushes the branch and opens a GitHub PR. When it found nothing the dashboard said
 //! "relaunch failed"; when it found something it opened a PR behind a confirm that promised an
@@ -19,7 +19,7 @@
 //!     this; the envelope's `fresh_reason` always says which of the two applied.
 //!
 //! The pool lease is deliberately **kept**: a relaunch reuses the worktree, so the slot must not go
-//! back to the pool (that is `bn agent kill`'s job). It is re-stamped instead — the recorded holder
+//! back to the pool (that is `workspan agent kill`'s job). It is re-stamped instead — the recorded holder
 //! pid belongs to the process we just killed, and the pool's stale-lease reclaim would otherwise
 //! read the slot as abandoned and hand it to another dispatch mid-relaunch.
 //!
@@ -101,7 +101,7 @@ pub(crate) fn decide(
     requested_harness: Option<&str>,
 ) -> Result<RelaunchPlan, (&'static str, String)> {
     let target = target.trim();
-    // Same shape guard as `bn agent kill`: `repo:branch` is an identity, and a malformed one must
+    // Same shape guard as `workspan agent kill`: `repo:branch` is an identity, and a malformed one must
     // never widen into a tmux target.
     let Some((repo, branch)) = target.split_once(':') else {
         return Err((

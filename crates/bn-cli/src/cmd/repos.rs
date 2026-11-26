@@ -1,4 +1,4 @@
-//! `bn repos` — the repo fleet as one addressable thing (see [`crate::cli::ReposCmd`]).
+//! `workspan repos` — the repo fleet as one addressable thing (see [`crate::cli::ReposCmd`]).
 //!
 //! Two facts about the bare+worktree layout shape this command. First, the inventory already
 //! exists: `<bare_dir>/<name>.git` is the only source that knows about a repo you cloned but have

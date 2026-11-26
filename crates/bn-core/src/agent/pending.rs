@@ -1,7 +1,7 @@
 //! The "starting…" placeholders — dispatched agents that have not come up yet.
 //!
 //! Split out of `supervise.rs` for the 1000-line ratchet, along the seam #1150 created. It answers
-//! something the fleet listing cannot: a `bn dispatch` that has taken a slot but whose harness has
+//! something the fleet listing cannot: a `workspan dispatch` that has taken a slot but whose harness has
 //! not yet written a transcript is real, committed work, and a fleet that showed nothing there left
 //! every client believing the machine was idle.
 //!
@@ -220,7 +220,7 @@ mod tests {
 
     #[test]
     fn launch_that_came_up_under_another_id_is_not_also_pending() {
-        // The harness wrote its own transcript id, so the id bn pinned never goes live — only the
+        // The harness wrote its own transcript id, so the id workspan pinned never goes live — only the
         // checkout says the launch arrived.
         let claimed = Claimed::from(
             &[working("repo-page", "actually-this-one", 1_100)],

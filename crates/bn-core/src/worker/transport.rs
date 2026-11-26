@@ -1,6 +1,6 @@
 //! SSH remote-exec transport (#718, epic #707 M1) — the reusable, hardened transport the
 //! orchestrator/daemon uses to reach a worker node. Factors the one-shot SSH shape that lived
-//! inside `bn connect`'s `dispatch_remote` into a library API the scheduler can call:
+//! inside `workspan connect`'s `dispatch_remote` into a library API the scheduler can call:
 //! [`exec`], [`probe`], and `poll_status`.
 //!
 //! Design invariants (the hardening from epic #707 v4):
@@ -718,8 +718,8 @@ impl<'a, R: SshRunner> Transport<'a, R> {
         }
     }
 
-    /// Cheap reachability probe: is the worker reachable with key auth and is `bn` present? Runs
-    /// `command -v bn` remotely. `Ok(true)` = reachable + workspan present, `Ok(false)` = reachable but
+    /// Cheap reachability probe: is the worker reachable with key auth and is `workspan` present? Runs
+    /// `command -v workspan` remotely. `Ok(true)` = reachable + workspan present, `Ok(false)` = reachable but
     /// workspan missing; a transport error means unreachable/auth. Retries as a non-mutating read.
     pub fn probe(&self) -> Result<bool, TransportError> {
         match self.read(&["command", "-v", "bn"])? {

@@ -1,4 +1,4 @@
-//! `bn release` — the release-on-idle companion (#627). The pure, testable core of cutting a
+//! `workspan release` — the release-on-idle companion (#627). The pure, testable core of cutting a
 //! GitHub release end-to-end: pick/bump a semver from the last tag, roll release notes up from the
 //! PRs merged since that tag, and decide whether a release is *allowed* right now (idle fleet +
 //! green `main`, clean tree, not behind, not already released for this commit).

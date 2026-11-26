@@ -5,7 +5,7 @@
 //!
 //! * `--fresh` recovery, which is a person saying so.
 //! * A slot whose only occupants have reported done — a Copilot sitting at its prompt after
-//!   `bn agent done`, its window still open. That is not an occupant in any sense that should stop
+//!   `workspan agent done`, its window still open. That is not an occupant in any sense that should stop
 //!   the next stage of the same task from starting here; it is the slot waiting to be taken over.
 //!   Refusing it once blocked the pipeline's own next agent for that branch for hours.
 //!

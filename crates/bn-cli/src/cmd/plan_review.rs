@@ -1,4 +1,4 @@
-//! `bn review` — the plan-review gate CLI (#349): the human's approve/request-changes/reject side
+//! `workspan review` — the plan-review gate CLI (#349): the human's approve/request-changes/reject side
 //! of a dispatched agent's plan, plus the agent's own `submit`/`status` write/poll. The store lives
 //! in `bn_core::plan_review`; this is the thin CLI shell over it.
 use crate::*;
@@ -960,8 +960,8 @@ pub(crate) fn plan_review_id_for_attn(attn_id: &str) -> Option<String> {
 
 /// The tmux `display-popup` argv that opens a plan-review in an nvim popup for decision-in-place,
 /// mirroring the `prefix e` / `prefix E` pattern (`-E -w 97% -h 97%`, so closing nvim closes the
-/// popup). `bn` is the already-shell-quoted path to this executable; the trailing element is the
-/// single shell-command tmux runs (`<bn> review edit <id>` — the read/edit plan buffer plus the
+/// popup). `workspan` is the already-shell-quoted path to this executable; the trailing element is the
+/// single shell-command tmux runs (`<workspan> review edit <id>` — the read/edit plan buffer plus the
 /// approve/request-changes/reject prompt on close). Pure over its inputs → unit-testable.
 pub(crate) fn plan_review_popup_cmd(bn: &str, review_id: &str) -> Vec<String> {
     vec![
@@ -984,10 +984,10 @@ pub(crate) fn open_plan_review_popup(attn_id: &str) -> bool {
     let Some(review_id) = plan_review_id_for_attn(attn_id) else {
         return false;
     };
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     if std::env::var_os("TMUX").is_some() {
-        let bn = crate::shq(&exe.display().to_string());
-        let _ = bn_core::tmux::tmux_run(&plan_review_popup_cmd(&bn, &review_id));
+        let workspan = crate::shq(&exe.display().to_string());
+        let _ = bn_core::tmux::tmux_run(&plan_review_popup_cmd(&workspan, &review_id));
     } else {
         let _ = std::process::Command::new(&exe)
             .args(["review", "edit", &review_id])

@@ -14,7 +14,7 @@
 //! So the marker, and one predicate for it, read in the places that would otherwise each spell out
 //! the same string comparison:
 //!
-//! - `bn task`'s day view folds machine tasks out (`--all` still shows them);
+//! - `workspan task`'s day view folds machine tasks out (`--all` still shows them);
 //! - [`crate::pipeline::gate`] admits it without SMART judgement — a generated prompt has no author
 //!   to hand a refusal back to.
 //!

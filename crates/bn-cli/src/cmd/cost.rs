@@ -1,4 +1,4 @@
-//! `bn cost` — the unified token-usage + $ cost report (#381).
+//! `workspan cost` — the unified token-usage + $ cost report (#381).
 //!
 //! Rolls every recorded agent run up by work-class into one board, in two clearly-labeled cost
 //! units: **AIC** (the real Copilot bill) and **$ (API-equiv)** (a cache-aware price-table

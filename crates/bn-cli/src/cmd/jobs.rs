@@ -29,7 +29,7 @@ pub(crate) fn native_job_line(line: &str, error: bool) {
 
 /// Run one cadence tick: every job in `children`, in order, through the normal `workspan run` path.
 ///
-/// These clusters used to be one systemd timer (and one `bn` process) per job, all firing on the
+/// These clusters used to be one systemd timer (and one `workspan` process) per job, all firing on the
 /// same schedule. Folding them behind a single timer costs no observability: each child still goes
 /// through [`run_native_job`]/`run_job`, so it records its **own** `cron_run` event — `workspan cron` and
 /// `workspan doctor` show the same per-job rows and per-job failure counts as before. It also preserves
@@ -814,7 +814,7 @@ pub(crate) fn job_pr_observe(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
         // read time for every metrics surface, so the scorecard stays unflattered while surfaces
         // that ask "what did I actually finish yesterday" (the standup fold) can still see the
         // work. Skipping here instead erased it from both, which is why a day spent entirely in
-        // `bn` read back as "no completed tasks recorded".
+        // `workspan` read back as "no completed tasks recorded".
         let mut pr = po::ObservedPr {
             repo: row.repo,
             number: row.number,

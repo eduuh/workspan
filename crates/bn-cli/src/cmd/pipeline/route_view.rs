@@ -1,4 +1,4 @@
-//! `bn pipeline route` — what pipeline each task's complexity would buy it.
+//! `workspan pipeline route` — what pipeline each task's complexity would buy it.
 //!
 //! Read-only on purpose. [`bn_core::pipeline::route`] decides a route and nothing consumes the
 //! answer yet, so this is the whole feature for now: a table to look at, disagree with, and tune

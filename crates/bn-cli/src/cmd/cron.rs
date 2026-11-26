@@ -1,9 +1,9 @@
-//! `bn cron` — job scheduling: run/register/dashboard.
+//! `workspan cron` — job scheduling: run/register/dashboard.
 //!
-//! Crons are **headless**: `bn run <job>` executes the job in this process and records the
+//! Crons are **headless**: `workspan run <job>` executes the job in this process and records the
 //! outcome. There is no tmux session, window, or pane involved — a cron never creates a session,
 //! never steals focus, and never leaves a window behind. Read a run's result from the event log
-//! (`bn cron`) rather than from a parked terminal.
+//! (`workspan cron`) rather than from a parked terminal.
 use crate::*;
 
 #[path = "cron/machine_scope.rs"]
@@ -84,7 +84,7 @@ fn no_such_job(job: &str) -> String {
 
 /// Run a named agent or ordinary job **in this process**. Agent manifests are resolved first:
 /// specialists are refused, explicit `run:` commands use the common wrapper, and absent `run:`
-/// resolves the same-name staff/native/script implementation without recursive `bn` spawning.
+/// resolves the same-name staff/native/script implementation without recursive `workspan` spawning.
 pub(crate) fn run_job(cfg: &Config, ctx: Option<&Resolved>, job: &str) -> i32 {
     if !machine_scope::run_enabled(cfg) {
         return 1;
@@ -716,7 +716,7 @@ pub(crate) fn emit_cron_register(
                 Err(e) => errors.push(format!("{}: supersede failed: {e}", t.timer_unit)),
             }
         }
-        // Remove bn timers no longer in any manifest. Registration is the source of truth, so a
+        // Remove workspan timers no longer in any manifest. Registration is the source of truth, so a
         // dropped manifest entry means a dropped timer — no flag to opt in.
         for t in &orphans {
             match timers::unregister(&t.timer_unit) {
@@ -875,8 +875,8 @@ pub(crate) fn maybe_fire_catchup(cfg: &Config) {
     if !cfg.cron_enabled_here() {
         return;
     }
-    // The spawned children are `bn run …`, already excluded by the caller's match — but guard with
-    // an env flag too, so any nested bn call inside a job can't re-trigger the sweep.
+    // The spawned children are `workspan run …`, already excluded by the caller's match — but guard with
+    // an env flag too, so any nested workspan call inside a job can't re-trigger the sweep.
     if std::env::var_os("BN_NO_CATCHUP").is_some() {
         return;
     }
@@ -892,7 +892,7 @@ pub(crate) fn maybe_fire_catchup(cfg: &Config) {
     if std::fs::write(&sentinel, b"").is_err() {
         return;
     }
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     // Only `[[cron]]` entries. Agent frontmatter `catch_up` is ignored while scheduled agents are
     // disabled: catching one up would fire the schedule the shipped manifest no longer runs.
     for job in bn_core::crons::catch_up_jobs(cfg, None) {

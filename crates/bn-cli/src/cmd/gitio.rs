@@ -1,4 +1,4 @@
-//! git/clipboard/url side-effects + `bn diff`/`bn shot`.
+//! git/clipboard/url side-effects + `workspan diff`/`workspan shot`.
 use crate::*;
 use std::path::{Path, PathBuf};
 
@@ -297,7 +297,7 @@ pub(crate) fn emit_diff(
 /// Restore the default SIGPIPE disposition on Unix. Rust ignores SIGPIPE by default, so a
 /// closed downstream pipe (`workspan todo | head`, `workspan diff | grep -q`) turns a write into an
 /// `EPIPE` error that the print macros then panic on. Resetting to `SIG_DFL` makes workspan die
-/// quietly like a normal Unix filter instead — matching the bash bn, which never panicked.
+/// quietly like a normal Unix filter instead — matching the bash workspan, which never panicked.
 #[cfg(unix)]
 #[allow(
     unsafe_code,

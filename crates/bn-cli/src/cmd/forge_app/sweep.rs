@@ -1,4 +1,4 @@
-//! `bn forge sweep`: the Forge agent loop's two steps, run once, only when `[tasks] provider =
+//! `workspan forge sweep`: the Forge agent loop's two steps, run once, only when `[tasks] provider =
 //! "forge"`. Nothing runs it automatically: you run it by hand, or from your own cron.
 //!
 //! **Claim** ([`sweep_forge_claims`]): an activity assigned to the family's agent member that nothing
@@ -6,11 +6,11 @@
 //! repository is one it has cloned and is allowed to work on, and while it holds fewer than `--max`
 //! unfinished claims. `claim_activity` is Forge's conditional update, so two machines racing for one
 //! task cannot both win: the loser hears `already_claimed` and moves on without a word. The winner
-//! stamps the local repo name as `repo:` (so dispatch and the SMART gate see the name bn knows the
-//! clone by) and comments `claimed by bn@<node>`. Then it starts the task the way every producer
-//! starts one: `bn dispatch --task <id>` ([`start_claimed`]).
+//! stamps the local repo name as `repo:` (so dispatch and the SMART gate see the name workspan knows the
+//! clone by) and comments `claimed by workspan@<node>`. Then it starts the task the way every producer
+//! starts one: `workspan dispatch --task <id>` ([`start_claimed`]).
 //!
-//! **Complete on merge** ([`poll_forge_merges`]): `bn agent done` leaves a task with a PR open
+//! **Complete on merge** ([`poll_forge_merges`]): `workspan agent done` leaves a task with a PR open
 //! ([`crate::cmd::close_out`]). This asks `gh pr view <pr> --json state` about each one, at most
 //! once per [`PR_POLL_SECS`] per task, so a cron that runs the sweep often does not hammer GitHub.
 //! `MERGED` completes the task in Forge; `CLOSED` says so once and leaves the task for a person.
@@ -40,7 +40,7 @@ const STATE_FILE: &str = "forge-sweep.json";
 /// The deadline for one `gh pr view`.
 const GH_TIMEOUT: Duration = Duration::from_secs(30);
 
-/// Who this machine claims as: `bn@<node_id>`.
+/// Who this machine claims as: `workspan@<node_id>`.
 pub(crate) fn claimer() -> String {
     format!("bn@{}", bn_core::worker::node_id())
 }

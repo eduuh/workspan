@@ -1,4 +1,4 @@
-//! Human rendering for `bn watchdog`.
+//! Human rendering for `workspan watchdog`.
 
 use bn_core::coord::watchdog::{Eval, Watchdog};
 use bn_core::util::fmt_local_short;

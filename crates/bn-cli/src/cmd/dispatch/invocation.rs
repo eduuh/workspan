@@ -1,4 +1,4 @@
-//! The canonical argv builder for agent-bearing `bn dispatch` invocations.
+//! The canonical argv builder for agent-bearing `workspan dispatch` invocations.
 //!
 //! Its own module because `dispatch.rs` is at the file-size ratchet's mercy: the tests that guard the
 //! command shape belong beside the builder, not wedged into the file it is trying not to grow.
@@ -129,7 +129,7 @@ impl<'a> DispatchInvocation<'a> {
     pub(crate) fn launch(&self) -> Result<(), String> {
         #[cfg(test)]
         {
-            // The unit-test executable is not the `bn` CLI; re-entering it would re-run the suite.
+            // The unit-test executable is not the `workspan` CLI; re-entering it would re-run the suite.
             LAUNCHED.with(|launched| launched.borrow_mut().push(self.args()));
             Ok(())
         }

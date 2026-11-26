@@ -1,4 +1,4 @@
-//! `bn agent switch` — hop a worktree to another harness mid-task, printing the resume command
+//! `workspan agent switch` — hop a worktree to another harness mid-task, printing the resume command
 //! or swapping the tmux pane in place.
 
 use super::*;
@@ -36,7 +36,7 @@ pub(crate) fn emit_switch(
     });
 
     // Who we're leaving: the outgoing session's harness when one was resolved — the truthful answer
-    // even when targeting another branch via --repo/--branch, where the harness *driving* bn is an
+    // even when targeting another branch via --repo/--branch, where the harness *driving* workspan is an
     // orchestrator, not the session being taken over. `detect_harness()` is only the fallback for
     // the bare in-worktree case with no outgoing session. `from` also seeds the default target
     // (switch to the *other* harness), so deriving it from the outgoing session fixes that too.
@@ -91,9 +91,9 @@ pub(crate) fn emit_switch(
         .as_ref()
         .and_then(|o| bn_core::agent::last_request_for(&o.session_id, &o.harness));
 
-    // Record the switch to the synced metrics log. Every switch path lands here (`bn switch`, the
+    // Record the switch to the synced metrics log. Every switch path lands here (`workspan switch`, the
     // fleet auto-switch #307, orchestrator relaunch), so this is the single chokepoint that makes
-    // harness-hop frequency visible in `bn metrics` (#326). Emitted *before* the in-place swap,
+    // harness-hop frequency visible in `workspan metrics` (#326). Emitted *before* the in-place swap,
     // which respawns (and may kill) this very process — code after it may never run. Best-effort:
     // metrics are observability, not correctness, so a write error is swallowed. `from` is omitted
     // when unknown (a window-only outgoing row); `reason` defaults to a manual switch.
@@ -132,8 +132,8 @@ pub(crate) fn emit_switch(
         None => wt::harness_cmd(&to, &resume_prompt, true, None),
     };
 
-    // --in-place: actually perform the swap. Runs before any output on purpose — when bn is
-    // invoked from inside the pane being respawned, `respawn-pane -k` kills bn itself, so the
+    // --in-place: actually perform the swap. Runs before any output on purpose — when workspan is
+    // invoked from inside the pane being respawned, `respawn-pane -k` kills workspan itself, so the
     // handoff and trust must already be on disk (they are, above) and any output after this
     // point may never print. In that self-swap case the user's evidence of success is the new
     // harness booting in their pane.
@@ -234,7 +234,7 @@ pub(crate) fn run_in_place_swap(
         .and_then(|t| proc::tmux(&["list-panes", "-t", &tmux_exact_target(&t), "-F", "#{pane_id}"]))
         .and_then(|out| out.lines().next().map(|l| l.trim().to_string()))
         .filter(|p| !p.is_empty());
-    // $TMUX_PANE is only a valid target when bn is running *inside* this worktree — from an
+    // $TMUX_PANE is only a valid target when workspan is running *inside* this worktree — from an
     // orchestrator window it would respawn the orchestrator's own pane.
     let cwd_in_wt = std::env::current_dir()
         .map(|d| d.starts_with(wt))
@@ -346,7 +346,7 @@ pub(crate) fn git_wip(wt: &std::path::Path) -> Option<bn_core::agent::WorkingCha
 }
 
 /// Resolve `workspan switch`'s target harness: an explicit arg (validated), else the opposite of the
-/// harness driving bn, else the review harness, else copilot. Errors on an unknown explicit arg.
+/// harness driving workspan, else the review harness, else copilot. Errors on an unknown explicit arg.
 pub(crate) fn resolve_switch_target(
     arg: Option<&str>,
     from: Option<&str>,

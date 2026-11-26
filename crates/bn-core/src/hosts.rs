@@ -1,7 +1,7 @@
-//! Host registry for native SSH (`bn connect`). `~/.ssh/config` is the
+//! Host registry for native SSH (`workspan connect`). `~/.ssh/config` is the
 //! source of truth for connection details; the config.toml `[hosts]` table only adds what ssh
 //! config can't express (where worktrees live on that box, the default agent harness, whether
-//! `bn` is installed there). Resolution: enumerate `Host` stanzas (wildcards and `Match` blocks
+//! `workspan` is installed there). Resolution: enumerate `Host` stanzas (wildcards and `Match` blocks
 //! skipped), left-join `[hosts]` by alias, filter out localhost.
 
 use std::collections::HashMap;
@@ -14,7 +14,7 @@ pub struct HostExtra {
     pub repo_root: Option<String>,
     /// Default agent harness when dispatching there (`claude` / `copilot`).
     pub harness: Option<String>,
-    /// Whether `bn` is installed on the target. `false` = connect works but dispatch/preview
+    /// Whether `workspan` is installed on the target. `false` = connect works but dispatch/preview
     /// degrade; unset = unknown (probed at dispatch time).
     pub bn: Option<bool>,
 }

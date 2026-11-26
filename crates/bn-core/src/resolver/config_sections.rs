@@ -182,7 +182,7 @@ pub(super) struct PoolSection {
 /// An agent whose manifest sets `opt_in: true` does something consequential — spends model tokens,
 /// writes into your notes, opens a session — so it stays off until it is named here. One list
 /// rather than a `[<agent>] enabled` table per agent: an agent is a Markdown manifest, and it
-/// should be possible to add one without also teaching `bn` a new config section.
+/// should be possible to add one without also teaching `workspan` a new config section.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub(super) struct AgentsSection {
     pub(super) enabled: Option<Vec<String>>,

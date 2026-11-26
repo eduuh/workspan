@@ -1,4 +1,4 @@
-//! Pure task-pipeline **phase** inference for the `bn pipeline` read model (#657).
+//! Pure task-pipeline **phase** inference for the `workspan pipeline` read model (#657).
 //!
 //! The pipeline view deliberately owns no state. Callers gather the existing branch-note,
 //! plan-review, attention, verify, PR, and live-agent signals into [`TaskSignals`], then this
@@ -8,7 +8,7 @@
 //!
 //! Two vocabularies describe a task's position, and they are not interchangeable:
 //!
-//! - [`Phase`] (here) — the **4-value inference** shown by the `bn pipeline` tracker. Derived
+//! - [`Phase`] (here) — the **4-value inference** shown by the `workspan pipeline` tracker. Derived
 //!   read-only from signals on every call; nothing persists it.
 //! - [`crate::pipeline::stage::Stage`] — the **9-value durable state machine** (EPIC #746),
 //!   persisted in note frontmatter and the `pipeline_stage` event log.

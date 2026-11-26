@@ -142,7 +142,7 @@ pub struct Churn {
     ///
     /// Churn is the one metric read from `git log` in the current directory rather than from the
     /// repo-tagged event log, so it was the one metric the exclusion never reached: standing in
-    /// `bn` reported `bn`'s own tooling churn as if it were project work, which is precisely the
+    /// `workspan` reported `workspan`'s own tooling churn as if it were project work, which is precisely the
     /// number [`crate::metrics::EXCLUDED_REPOS`] exists to keep out of the scorecard.
     #[serde(default = "counted_default")]
     pub counted: bool,

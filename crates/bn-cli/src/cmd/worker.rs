@@ -1,4 +1,4 @@
-//! `bn worker` (#719, epic #707 M1) — thin CLI over the `bn_core::worker` attempt registry +
+//! `workspan worker` (#719, epic #707 M1) — thin CLI over the `bn_core::worker` attempt registry +
 //! capacity snapshot. `status` renders the versioned payload (JSON or a human summary); `finish`
 //! closes a running attempt (the tail of the fire-and-forget spawn line).
 

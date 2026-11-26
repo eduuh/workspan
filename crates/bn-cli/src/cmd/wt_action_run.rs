@@ -1,9 +1,9 @@
 //! Running a picker verb now, in a visible tmux window in the session of the repo it serves.
 //!
-//! A verb pressed in `bn tat` wants to be running before the person looks up, and findable while it
-//! runs. So it opens a detached window named after the job, runs `bn run <job> --repo R` there, and
-//! lets the window close when the run exits 0. A failed run keeps its dead pane to be read. `bn run`
-//! records the outcome itself (the running marker and the `cron_run` event), so `bn cron` sees a
+//! A verb pressed in `workspan tat` wants to be running before the person looks up, and findable while it
+//! runs. So it opens a detached window named after the job, runs `workspan run <job> --repo R` there, and
+//! lets the window close when the run exits 0. A failed run keeps its dead pane to be read. `workspan run`
+//! records the outcome itself (the running marker and the `cron_run` event), so `workspan cron` sees a
 //! picker run like any other, and the picker reads the row's state back from the window.
 use crate::*;
 use bn_core::wt_actions::WtAction;

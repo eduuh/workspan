@@ -1,7 +1,7 @@
 //! The Forge agent: work Forge activities assigned to a family's *agent* member on this machine.
 //!
 //! Forge (the wira360 app) lets a family add an agent participant and assign it activities. Every
-//! bn machine with a Forge MCP entry polls for those, and the Forge server makes the claim atomic,
+//! workspan machine with a Forge MCP entry polls for those, and the Forge server makes the claim atomic,
 //! so exactly one node works a task. The claim is a **lease**: the node heartbeats while its agent
 //! runs, and a node that dies stops heartbeating, so the task becomes claimable again once the lease
 //! expires instead of staying stuck on a machine that is gone.
@@ -9,7 +9,7 @@
 //! Not named `forge`: [`crate::forge`] is the git host (GitHub / ADO) a repo lives on.
 //!
 //! Everything here is pure (text and values in, decisions out). The CLI job owns the network calls
-//! (through `bn-mcp --forge-call`), the tmux window and the state file.
+//! (through `workspan-mcp --forge-call`), the tmux window and the state file.
 //!
 //! Opt-in is the MCP config itself: a machine whose `~/.claude.json` (or `[forge_agent] mcp_config`)
 //! has an HTTP MCP server authorised with a Forge `fam_` key runs the loop; `[forge_agent] enabled =
@@ -323,7 +323,7 @@ mod tests {
     #[test]
     fn discovers_the_fam_key_entry() {
         let text = json!({"mcpServers": {
-            "bn": {"type": "stdio", "command": "bn-mcp"},
+            "bn": {"type": "stdio", "command": "workspan-mcp"},
             "forge-prod": {"type": "http", "url": "https://api.wira360.com/mcp",
                            "headers": {"Authorization": "Bearer fam_abc"}},
             "other": {"type": "http", "url": "https://x/mcp",

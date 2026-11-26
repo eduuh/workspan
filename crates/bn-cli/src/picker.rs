@@ -1,11 +1,11 @@
 //! Native interactive pickers — the fzf-driven attention popups that used to live as shell
 //! scripts under `workflow/bin`. Phase 1 ports `bn-attention.sh` (prefix `C-a`) to
-//! `bn doctor --pick`.
+//! `workspan doctor --pick`.
 //!
 //! Mirrors the self-referencing shape of the bash original: the same binary renders the row
 //! list and the preview panel and performs the per-key actions, and fzf's key bindings just
-//! re-invoke `bn` with a hidden `--pick-stage`. No attention logic lives here — every row and
-//! action is an existing native `bn` surface (`doctor`, `attn ack/snooze`, `cron show`).
+//! re-invoke `workspan` with a hidden `--pick-stage`. No attention logic lives here — every row and
+//! action is an existing native `workspan` surface (`doctor`, `attn ack/snooze`, `cron show`).
 //!
 //! Extends the `workspan wt` precedent (native fzf + native dispatch); see `MIGRATION.md`.
 
@@ -239,8 +239,8 @@ pub fn run(cfg: &Config) {
     }
 
     let rows: Vec<Row> = findings.iter().map(row_for).collect();
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::shq(&exe.display().to_string());
     let head = header(&findings);
 
     // {2}=kind {3}=id {4}=job {5}=link {6}=path. ctrl-a/ctrl-s act then reload in place; ctrl-r
@@ -254,28 +254,28 @@ pub fn run(cfg: &Config) {
         .arg("--with-nth=1")
         .arg("--delimiter=\t")
         .arg(format!(
-            "--preview={bn} doctor --pick-stage preview {{2}} {{3}} {{4}} {{5}} {{6}}"
+            "--preview={workspan} doctor --pick-stage preview {{2}} {{3}} {{4}} {{5}} {{6}}"
         ))
         .arg("--preview-window=right:55%:wrap")
         .arg(format!("--header={head}"))
         .arg(format!(
-            "--bind=ctrl-a:execute-silent({bn} doctor --pick-stage ack {{2}} {{3}})+reload({bn} doctor --pick-stage list)"
+            "--bind=ctrl-a:execute-silent({workspan} doctor --pick-stage ack {{2}} {{3}})+reload({workspan} doctor --pick-stage list)"
         ))
         .arg(format!(
-            "--bind=ctrl-s:execute-silent({bn} doctor --pick-stage snooze {{2}} {{3}})+reload({bn} doctor --pick-stage list)"
+            "--bind=ctrl-s:execute-silent({workspan} doctor --pick-stage snooze {{2}} {{3}})+reload({workspan} doctor --pick-stage list)"
         ))
         .arg(format!(
-            "--bind=ctrl-x:execute-silent({bn} doctor --pick-stage remove {{2}} {{3}})+reload({bn} doctor --pick-stage list)"
+            "--bind=ctrl-x:execute-silent({workspan} doctor --pick-stage remove {{2}} {{3}})+reload({workspan} doctor --pick-stage list)"
         ))
         .arg(format!(
-            "--bind=ctrl-p:execute-silent({bn} doctor --pick-stage plan {{2}} {{3}})+reload({bn} doctor --pick-stage list)"
+            "--bind=ctrl-p:execute-silent({workspan} doctor --pick-stage plan {{2}} {{3}})+reload({workspan} doctor --pick-stage list)"
         ))
         .arg(format!(
-            "--bind=ctrl-g:execute-silent({bn} doctor --pick-stage start {{2}} {{3}})+reload({bn} doctor --pick-stage list)"
+            "--bind=ctrl-g:execute-silent({workspan} doctor --pick-stage start {{2}} {{3}})+reload({workspan} doctor --pick-stage list)"
         ))
-        .arg(format!("--bind=ctrl-r:reload({bn} doctor --pick-stage refresh)"))
+        .arg(format!("--bind=ctrl-r:reload({workspan} doctor --pick-stage refresh)"))
         .arg(format!(
-            "--bind=enter:execute({bn} doctor --pick-stage open {{2}} {{3}} {{4}} {{5}} {{6}})"
+            "--bind=enter:execute({workspan} doctor --pick-stage open {{2}} {{3}} {{4}} {{5}} {{6}})"
         ))
         .stdin(Stdio::piped())
         .spawn()
@@ -435,7 +435,7 @@ fn open(kind: &str, id: &str, job: &str, link: &str, path: &str) {
             }
         }
         "cron" => {
-            let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+            let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
             let out = Command::new(exe).args(["cron", "show", job]).output();
             page(&out.map(|o| o.stdout).unwrap_or_default());
         }

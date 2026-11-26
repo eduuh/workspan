@@ -1,9 +1,9 @@
-//! `bn-mcp --forge-call`: one MCP tool call against a remote Streamable-HTTP server (the Forge app),
-//! for the `bn forge-agent` loop.
+//! `workspan-mcp --forge-call`: one MCP tool call against a remote Streamable-HTTP server (the Forge app),
+//! for the `workspan forge-agent` loop.
 //!
-//! The `bn` binary carries no async runtime or HTTP client, and pulling reqwest + TLS into it for a
-//! five-minute poll is the wrong trade. `bn-mcp` already links tokio and rmcp, so the client lives
-//! here and `bn` shells out to it the way it shells out to `gh`.
+//! The `workspan` binary carries no async runtime or HTTP client, and pulling reqwest + TLS into it for a
+//! five-minute poll is the wrong trade. `workspan-mcp` already links tokio and rmcp, so the client lives
+//! here and `workspan` shells out to it the way it shells out to `gh`.
 //!
 //! The request arrives on **stdin**, not argv, so the bearer key never shows up in `ps`:
 //! `{"url", "token", "tool", "arguments"}`. The reply on stdout is always one JSON line:

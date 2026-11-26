@@ -1,14 +1,14 @@
 //! Estimation calibration — the join between the *estimate* side (todos / daily goals carrying
 //! an `--est`) and the *actuals* side (the [punch log](crate::track)). Nearly nobody measures
 //! their own estimation calibration, yet it's the cheapest way to make future plans honest, and
-//! bn already holds both halves; this module adds the join (#245).
+//! workspan already holds both halves; this module adds the join (#245).
 //!
 //! Two moments feed it, both deliberately approximate (the report's job is the *ratio trend*,
 //! not per-item precision):
 //!
 //! - **at close** — [`todo_actual_secs`] / [`goal_actual_secs`] sum the punch-log intervals over
 //!   the item's open window (`[created..=done]`), scoped to the item's branch (todos) or link
-//!   (daily goals). `bn done` / `bn daily done` stamp the result as `actual:` when it's non-zero,
+//!   (daily goals). `workspan done` / `workspan daily done` stamp the result as `actual:` when it's non-zero,
 //!   and skip cleanly otherwise so an empty log records nothing rather than garbage.
 //! - **on demand** — [`report`] reads every closed item that carries *both* `est:` and `actual:`
 //!   across branch notes and daily history, and renders `median(actual/est)` per bucket

@@ -1,8 +1,8 @@
 //! Append-only event log — the substrate for cron observability (now) and productivity
 //! metrics (later). One JSONL file under the state dir. Events are flat (a `kind`, a `ts`,
 //! and kind-specific fields flattened alongside) so new event kinds never need a schema
-//! migration. Cron calls `bn run`, which appends `cron_run` events here; `bn cron status`
-//! and `bn doctor` read them back. AI never touches this at runtime — pure script substrate.
+//! migration. Cron calls `workspan run`, which appends `cron_run` events here; `workspan cron status`
+//! and `workspan doctor` read them back. AI never touches this at runtime — pure script substrate.
 
 use crate::resolver::state_dir;
 use crate::util::now_epoch_secs;
@@ -191,14 +191,14 @@ pub fn append_event_at(
     if let Some(dir) = path.parent() {
         std::fs::create_dir_all(dir)?;
     }
-    // Held until this function returns, so no other bn process can interleave a write.
+    // Held until this function returns, so no other workspan process can interleave a write.
     let guard = lock_log(path);
     let mut f = std::fs::OpenOptions::new()
         .create(true)
         .append(true)
         .open(path)?;
     // ONE write, payload and newline together. `writeln!` issues them as separate `write` calls,
-    // and these logs are appended to concurrently by unrelated `bn` processes — every note command
+    // and these logs are appended to concurrently by unrelated `workspan` processes — every note command
     // writes a metric — so a split write lets two lines interleave into one corrupt line. A single
     // O_APPEND write is atomic on a local filesystem; [`lock_log`] is what extends that guarantee
     // to the 9p mounts where it does not hold. (`read_events_at` skips unparseable lines, which is

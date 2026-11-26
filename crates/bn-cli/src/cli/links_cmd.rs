@@ -1,9 +1,9 @@
-//! `bn links` — the store of links worth going back to: a PBI, a PR, a portal blade, a docs
+//! `workspan links` — the store of links worth going back to: a PBI, a PR, a portal blade, a docs
 //! site, a dashboard.
 //!
-//! Bare `bn links` is the picker and `bn links <query>` opens a match directly, so the
+//! Bare `workspan links` is the picker and `workspan links <query>` opens a match directly, so the
 //! subcommands here are only the things that are not "open one" — which is why the parent
-//! variant carries `args_conflicts_with_subcommands` (the `bn ref` shape).
+//! variant carries `args_conflicts_with_subcommands` (the `workspan ref` shape).
 use crate::*;
 
 /// `workspan links`' own arguments: bare, a query, a tag filter, or one of [`LinksCmd`].

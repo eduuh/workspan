@@ -1,4 +1,4 @@
-//! `bn q` — quick-capture inbox + focus-block drain.
+//! `workspan q` — quick-capture inbox + focus-block drain.
 use crate::*;
 
 

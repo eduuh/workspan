@@ -1,4 +1,4 @@
-//! `bn edit diff` — pick a worktree, land in its editor on its diff.
+//! `workspan edit diff` — pick a worktree, land in its editor on its diff.
 //!
 //! The gesture this replaces: noticing an agent finished somewhere, switching sessions to find it,
 //! working out what it changed, and driving git by hand. Here the whole fleet is one list, the
@@ -100,23 +100,25 @@ pub(crate) fn pick_stage(cfg: &Config, stage: DiffStage) {
 
 /// The picker itself.
 pub(crate) fn run(cfg: &Config, base: Option<&str>) {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::shq(&exe.display().to_string());
 
-    // {4} is the worktree path, so the preview is the real `bn diff` for that checkout — three-dot,
+    // {4} is the worktree path, so the preview is the real `workspan diff` for that checkout — three-dot,
     // so it shows what this branch changed rather than counting the base's own newer commits.
     let child = Command::new("fzf")
         .arg("--reverse")
         .arg("--ansi")
         .arg("--delimiter=\t")
         .arg("--with-nth=1")
-        .arg(format!("--preview={bn} diff --path {{4}} --three-dot"))
+        .arg(format!(
+            "--preview={workspan} diff --path {{4}} --three-dot"
+        ))
         .arg("--preview-window=right:55%:wrap")
         .arg(format!(
-            "--bind=start:reload({bn} edit diff --pick-stage list)"
+            "--bind=start:reload({workspan} edit diff --pick-stage list)"
         ))
         .arg(format!(
-            "--bind=ctrl-r:reload({bn} edit diff --pick-stage list)"
+            "--bind=ctrl-r:reload({workspan} edit diff --pick-stage list)"
         ))
         .arg("--header=↵ open the diff in that worktree's editor · ctrl-r reload")
         .stdin(Stdio::null())
@@ -126,7 +128,7 @@ pub(crate) fn run(cfg: &Config, base: Option<&str>) {
     let child = match child {
         Ok(c) => c,
         Err(_) => {
-            // No fzf: print the list and hold, matching every other bn picker's degradation.
+            // No fzf: print the list and hold, matching every other workspan picker's degradation.
             // These rows were painted for fzf, so on stdout they have to obey NO_COLOR again.
             for r in rows(cfg) {
                 println!("{}", style::strip_unless_enabled(&r.display));
@@ -201,7 +203,7 @@ fn goto(window: &str, pane: &str) {
 /// with nothing to look at.
 fn fallback(target: &EditTarget, why: &str) {
     eprintln!("workspan edit diff: {why} — showing the diff here instead");
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     let out = Command::new(exe)
         .args([
             "diff",

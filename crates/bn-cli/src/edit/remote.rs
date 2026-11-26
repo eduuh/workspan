@@ -1,4 +1,4 @@
-//! `bn edit remote <machine>`: this machine's nvim window, that machine's nvim.
+//! `workspan edit remote <machine>`: this machine's nvim window, that machine's nvim.
 //!
 //! The editor runs on the remote machine, headless and listening on a socket, in a tmux window
 //! there (session `bn-remote-edit`), so its buffers, undo, LSP and git are the remote checkout's
@@ -7,9 +7,9 @@
 //! - the forward died with it: the connection dropped, so connect again (the editor is untouched);
 //! - the forward is still up and the remote nvim is gone: you quit (`:qa`), so stop;
 //! - the forward is still up and the remote nvim is alive: you detached (`:detach`), so stop.
-//!   `bn edit remote` again picks up the same editor.
+//!   `workspan edit remote` again picks up the same editor.
 //!
-//! A branch whose worktree already has a `bn edit` nvim on that machine (`@bn_nvim_sock`) reuses
+//! A branch whose worktree already has a `workspan edit` nvim on that machine (`@bn_nvim_sock`) reuses
 //! it, so the pane there and the window here are one editor.
 
 use std::process::{Command, Stdio};
@@ -171,7 +171,7 @@ mod tests {
         let reuse = s.find("@bn_nvim_sock").unwrap();
         let start = s.find("nvim --headless --listen").unwrap();
         assert!(reuse < start, "an existing editor is looked for first");
-        assert!(s.contains("bn wt add"), "a missing checkout is made");
+        assert!(s.contains("workspan wt add"), "a missing checkout is made");
         assert!(s.contains("echo \"SOCK=$sock\""));
     }
 

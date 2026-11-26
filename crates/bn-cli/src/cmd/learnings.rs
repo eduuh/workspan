@@ -1,4 +1,4 @@
-//! `bn learnings` — captured learnings + human review decisions.
+//! `workspan learnings` — captured learnings + human review decisions.
 use crate::*;
 
 /// `workspan learnings` — render the windowed, filtered, grouped fleet-learning inspection view (#322).

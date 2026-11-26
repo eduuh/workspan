@@ -23,7 +23,7 @@ fn sanitize(s: &str) -> String {
 }
 
 /// Render the systemd `.service` + `.timer` bodies for one cron entry. `bn_path` is the absolute
-/// `bn` binary the service execs (e.g. `~/.bin/bn`). The schedule passes straight into
+/// `workspan` binary the service execs (e.g. `~/.bin/workspan`). The schedule passes straight into
 /// `OnCalendar=` — systemd validates it itself.
 pub fn render_systemd(rc: &ResolvedCron, bn_path: &str) -> (String, String) {
     let e = &rc.entry;

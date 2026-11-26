@@ -1,5 +1,5 @@
-//! `bn ref` command family: list/get/edit/add/append reference docs in either scope — the
-//! person-scoped standards store (#623) or one repo's reference notes. The sibling of `bn skills`
+//! `workspan ref` command family: list/get/edit/add/append reference docs in either scope — the
+//! person-scoped standards store (#623) or one repo's reference notes. The sibling of `workspan skills`
 //! for reusable *standards* and durable *findings* rather than *workflows*. Reads/writes through
 //! [`bn_core::references`].
 

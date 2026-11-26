@@ -1,4 +1,4 @@
-//! Pure decision tests for `bn wt close` — no tmux, no git. Facts are constructed directly, so
+//! Pure decision tests for `workspan wt close` — no tmux, no git. Facts are constructed directly, so
 //! every branch of the `prefix x` decision is pinned without a server or a checkout.
 
 use super::*;

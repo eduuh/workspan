@@ -1,7 +1,7 @@
 # Route every rustc invocation through scripts/rustc-wrapper, which opts into a shared sccache
 # compile cache and the mold linker *when they're installed*, and is a transparent no-op
 # otherwise — so a checkout still builds on any machine or CI runner that lacks them. Repeat and
-# parallel builds (notably `bn wt pool warm`, which builds N identical slots) then reuse one
+# parallel builds (notably `workspan wt pool warm`, which builds N identical slots) then reuse one
 # compile instead of redoing it N times.
 [build]
 rustc-wrapper = "scripts/rustc-wrapper"
@@ -24,7 +24,7 @@ retry = 10
 # ~0.87 MiB (well under 2 MiB), so this 8 MiB is now generous safety headroom rather than
 # load-bearing; the `cli_tree_fits_reduced_stack` canary test enforces the 2 MiB ceiling
 # so a future regrowth fails loudly. cargo injects this into the environment of the test
-# binaries it spawns, so plain `cargo test --workspace` (CI + `bn verify`) picks it up.
+# binaries it spawns, so plain `cargo test --workspace` (CI + `workspan verify`) picks it up.
 [env]
 RUST_MIN_STACK = "8388608"
 

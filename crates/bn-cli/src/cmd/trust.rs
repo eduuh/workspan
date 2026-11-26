@@ -1,4 +1,4 @@
-//! Harness folder-trust settings shared by agent launchers and `bn trust-folder`.
+//! Harness folder-trust settings shared by agent launchers and `workspan trust-folder`.
 use crate::*;
 
 /// Apply harness folder trust for `path` (claude | copilot | both).

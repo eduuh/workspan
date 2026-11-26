@@ -1,15 +1,15 @@
 //! [`ForgeTaskStore`]: bn's task list read from, and written back to, Forge activities.
 //!
 //! **Load** calls `list_bn_tasks` and maps each row to a task ([`super::mapping::task_from_row`]).
-//! bn ids must stay stable across loads, so an activity with no usable `id` in its `agentMeta`
+//! workspan ids must stay stable across loads, so an activity with no usable `id` in its `agentMeta`
 //! (none, malformed, or a duplicate of an earlier activity's) gets the next free `t<N>` and the id
 //! is written back straight away with `set_activity_meta`. Rows are ordered by creation time, so
 //! which of two colliding activities keeps the id is deterministic on every machine. The load also
-//! keeps a snapshot: for each activity, its version and the [`TaskState`] bn saw.
+//! keeps a snapshot: for each activity, its version and the [`TaskState`] workspan saw.
 //!
 //! **Save** compares each task with that snapshot and sends only what changed, meta first because
 //! it is the one guarded write: `set_activity_meta` carries `expectedVersion`, and a
-//! `version_conflict` fails the save naming the bn id rather than overwriting someone else's edit.
+//! `version_conflict` fails the save naming the workspan id rather than overwriting someone else's edit.
 //! Title, priority and due date go to one `update_activity`; done, wip and reopen go to
 //! `set_activity_status`. A task with no `src:forge:` is new: it is created under the goal whose
 //! repository matches its `repo:`, or the Inbox goal, and its meta is written after.
@@ -21,7 +21,7 @@
 //! the loaded file's [`TodoFile::id_floor`] carries it to every `next_id` a caller mints.
 //!
 //! A store built without a key is still a store: every call fails with the error pointing at
-//! `bn forge login`, because the factory that builds it cannot return an error.
+//! `workspan forge login`, because the factory that builds it cannot return an error.
 
 use std::any::Any;
 use std::collections::{BTreeMap, HashMap};

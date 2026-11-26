@@ -1,14 +1,14 @@
 //! Fold the retired `~/projects/branch-notes-work/bn` tree into the one notes root.
 //!
-//! bn used to fall back to that tree as its work root whenever `~/projects/notes/bn` was absent, so
+//! workspan used to fall back to that tree as its work root whenever `~/projects/notes/bn` was absent, so
 //! the person-scoped stores (`tasks.txt`, `tasks/`, `links.md`, `references/`) landed in a
-//! directory that is not a git repo and never synced. bn now reads a single root
+//! directory that is not a git repo and never synced. workspan now reads a single root
 //! (`~/projects/branch-notes`); this module carries whatever the old tree holds across, once.
 //!
 //! Crash-safe and idempotent: the legacy dir is first renamed to a fresh `<legacy>.migrated[-N]`
-//! (an atomic claim, so two bn processes never both merge it), the merge only copies, and a
+//! (an atomic claim, so two workspan processes never both merge it), the merge only copies, and a
 //! `MIGRATED` marker is written last. A run that died midway finds a claim without the marker and
-//! merges it again, which converges because every step is a union. An older bn that recreates the
+//! merges it again, which converges because every step is a union. An older workspan that recreates the
 //! legacy dir gets it claimed and merged the same way. The claimed dirs stay as backups.
 
 use std::collections::HashSet;

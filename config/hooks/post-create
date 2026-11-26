@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
-# post-create — bn worktree lifecycle hook (SAMPLE).
+# post-create — workspan worktree lifecycle hook (SAMPLE).
 #
-# Runs once, right after bn creates a new worktree, so a fresh branch is ready to
+# Runs once, right after workspan creates a new worktree, so a fresh branch is ready to
 # work in without manual setup. Install by copying to one of:
 #   ~/.config/bn/hooks/post-create        every repo (personal)
 #   <repo>/.bn/hooks/post-create          just that repo (committable)

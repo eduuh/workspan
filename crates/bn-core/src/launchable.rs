@@ -1,11 +1,11 @@
 //! The merged "what can I launch" catalog — Markdown agents ([`crate::agents`]) and workflow
 //! skills ([`crate::skills`]) folded into one addressable roster.
 //!
-//! bn grew two catalogs for the same question. An agent manifest (`config/agents/<name>.md`)
+//! workspan grew two catalogs for the same question. An agent manifest (`config/agents/<name>.md`)
 //! declares an execution contract and is reached by cron; a skill (`config/prompts/<name>.md`)
-//! declares a process and is reached by `bn dispatch --skill`. Both are a Markdown body that
+//! declares a process and is reached by `workspan dispatch --skill`. Both are a Markdown body that
 //! seeds a harness, and from the launcher's side the distinction is bookkeeping — so
-//! `bn agent run` addresses them through one list rather than making a person remember which
+//! `workspan agent run` addresses them through one list rather than making a person remember which
 //! catalog a name lives in.
 //!
 //! Each source keeps its own discovery and its own precedence rules (both are already

@@ -113,7 +113,7 @@ printf '%s\\n' '[{"id":12,"fields":{"System.Title":"Fix CI"}}]'
         prompts.mkdir(parents=True)
         prompt = prompts / "start-session.md"
         command = ["sh", str(ROOT / "scripts/check-prompt-sources.sh")]
-        for retired in ("bn_context", "bn --cat", "workspan add todo"):
+        for retired in ("bn_context", "workspan --cat", "workspan add todo"):
             with self.subTest(retired=retired):
                 prompt.write_text(f"Run `{retired}`.\n")
                 proc = subprocess.run(command, env=self.env, cwd=self.home,

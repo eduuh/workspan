@@ -86,17 +86,17 @@ fn discover(cfg: &Config, cwd: &Path, task: &str) -> Result<Value, String> {
     let mut commands = Vec::new();
     if !context.is_null() {
         if let Some(id) = context["task_id"].as_str() {
-            commands.push(hints::bn(&["task", "doc", id])?);
+            commands.push(hints::workspan(&["task", "doc", id])?);
         } else {
-            commands.push(hints::bn(&["task", "list"])?);
+            commands.push(hints::workspan(&["task", "list"])?);
         }
-        commands.push(hints::bn(&["plan", "status"])?);
-        commands.push(hints::bn(&["pipeline", "status"])?);
+        commands.push(hints::workspan(&["plan", "status"])?);
+        commands.push(hints::workspan(&["pipeline", "status"])?);
     }
     if task.is_empty() {
-        commands.push(hints::bn(&["discover", "<task>"])?);
+        commands.push(hints::workspan(&["discover", "<task>"])?);
     } else if workflows.is_empty() {
-        commands.push(hints::bn(&["skills"])?);
+        commands.push(hints::workspan(&["skills"])?);
     }
     Ok(json!({
         "task": task,

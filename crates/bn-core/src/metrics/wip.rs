@@ -141,7 +141,7 @@ pub(crate) fn open_branch_wips(cfg: &Config, today: &str) -> Vec<BranchWip> {
 
 /// Today's fragmentation picture — the DevEx *cognitive-load* axis the delivery metrics miss.
 /// Frictionless worktree-switching is great for parallelism and terrible for focus; this puts a
-/// number on that cost from telemetry `bn` already captures (the `activity`/`note_closed` stream,
+/// number on that cost from telemetry `workspan` already captures (the `activity`/`note_closed` stream,
 /// each event stamped with its `repo`/`branch`). Neutral framing — a signal, not a scold.
 #[derive(Debug, Default, Serialize, Deserialize)]
 pub struct Fragmentation {

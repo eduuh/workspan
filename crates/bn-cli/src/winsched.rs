@@ -1,5 +1,5 @@
-//! Reading Windows Task Scheduler tasks that run `bn run <job>` — the WSL-wake pattern, where a
-//! Windows task runs `wsl.exe … bn run <job>` to both boot WSL and do the work. `bn cron` shows
+//! Reading Windows Task Scheduler tasks that run `workspan run <job>` — the WSL-wake pattern, where a
+//! Windows task runs `wsl.exe … workspan run <job>` to both boot WSL and do the work. `workspan cron` shows
 //! these alongside systemd timers so a job scheduled from the Windows side doesn't read as
 //! "not scheduled".
 //!
@@ -46,10 +46,10 @@ pub fn on_wsl() -> bool {
 /// this only bounds how stale the shown "next run" can drift.
 const CACHE_TTL_SECS: i64 = 3600;
 
-// One TSV row per bn task: `job\tnext_epoch\tstate\tlast_result\ttaskname`. Maps each task to its
-// job by matching `bn run <job>` in the action arguments — the mirror of how timers.rs reads
+// One TSV row per workspan task: `job\tnext_epoch\tstate\tlast_result\ttaskname`. Maps each task to its
+// job by matching `workspan run <job>` in the action arguments — the mirror of how timers.rs reads
 // ExecStart. Disabled tasks are included (not filtered) so the dashboard can flag a dead schedule.
-const PS_QUERY: &str = "Get-ScheduledTask | Where-Object { ($_.Actions | ForEach-Object Arguments) -match 'bn run' } | ForEach-Object { $a=($_.Actions|ForEach-Object Arguments) -join ' '; $j=if($a -match 'bn run (\\S+)'){$Matches[1]}else{''}; $i=$_|Get-ScheduledTaskInfo; $n=$i.NextRunTime; $e=if($n){[int64]([DateTimeOffset]$n).ToUnixTimeSeconds()}else{0}; $lr=if($i.LastTaskResult -ne $null){$i.LastTaskResult}else{''}; \"$j`t$e`t$($_.State)`t$lr`t$($_.TaskName)\" }";
+const PS_QUERY: &str = "Get-ScheduledTask | Where-Object { ($_.Actions | ForEach-Object Arguments) -match 'workspan run' } | ForEach-Object { $a=($_.Actions|ForEach-Object Arguments) -join ' '; $j=if($a -match 'workspan run (\\S+)'){$Matches[1]}else{''}; $i=$_|Get-ScheduledTaskInfo; $n=$i.NextRunTime; $e=if($n){[int64]([DateTimeOffset]$n).ToUnixTimeSeconds()}else{0}; $lr=if($i.LastTaskResult -ne $null){$i.LastTaskResult}else{''}; \"$j`t$e`t$($_.State)`t$lr`t$($_.TaskName)\" }";
 
 /// Windows tasks running a `workspan run <job>`, served from cache for speed. Empty off WSL. May spawn
 /// a detached background refresh when the cache is stale; pays the live query only on a cold miss.
@@ -129,7 +129,7 @@ fn run_powershell(script: &str) -> Option<String> {
 /// Re-exec `workspan cron refresh-windows` detached so the dashboard returns now and the cache is fresh
 /// for the next call. Fire-and-forget: the handle is dropped, orphaning the child to finish alone.
 ///
-/// **Only when this process really is `bn`.** `current_exe()` is whatever is running, and under
+/// **Only when this process really is `workspan`.** `current_exe()` is whatever is running, and under
 /// `cargo test` that is the test harness — which does not have subcommands, so `cron` and
 /// `refresh-windows` arrive as *test-name filters*. The child then runs every test matching them,
 /// including the ones that reach this function, and each of those spawns again: a self-replicating
@@ -140,7 +140,7 @@ fn spawn_background_refresh() {
     let Ok(exe) = std::env::current_exe() else {
         return;
     };
-    if exe.file_stem().and_then(|s| s.to_str()) != Some("bn") {
+    if exe.file_stem().and_then(|s| s.to_str()) != Some("workspan") {
         return;
     }
     let _ = Command::new(exe)

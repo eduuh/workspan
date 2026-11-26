@@ -19,7 +19,7 @@
 //! The two write rows are why this module has the shape it does. A Claude Code turn is mostly cache
 //! traffic — a few *fresh* input tokens, tens of thousands of cache reads, and a cache write every
 //! time the prefix grows — so the write column is a real share of the bill, and pricing a 1-hour
-//! write at the 5-minute rate understates it by 60%. bn captured neither before this module
+//! write at the 5-minute rate understates it by 60%. workspan captured neither before this module
 //! existed: cache writes were dropped outright, understating every Claude session, and the TTL
 //! split had nowhere to live. [`TokenUsage`] carries all four buckets so [`cost_usd`] can charge
 //! each at its own rate.

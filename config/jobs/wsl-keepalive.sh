@@ -8,7 +8,7 @@
 # `bn-tunnels` tmux session come up), makes sure a `main` tmux session exists, then sleeps forever:
 # that one process is what keeps the distro alive.
 #
-# Run it once per machine, from inside WSL:  bn run wsl-keepalive   (or: sh wsl-keepalive.sh)
+# Run it once per machine, from inside WSL:  workspan run wsl-keepalive   (or: sh wsl-keepalive.sh)
 # Idempotent: re-running updates the task and starts it if the keeper is not already running.
 # `sh wsl-keepalive.sh status` reports the task and whether the keeper is running;
 # `sh wsl-keepalive.sh remove` unregisters the task (the running keeper stays until WSL stops).
@@ -55,11 +55,11 @@ fi
 case "$DISTRO" in *[!A-Za-z0-9._-]*) die "unexpected distro name '$DISTRO'" ;; esac
 
 TASK=bn-wsl-keepalive
-# The keeper, as it runs inside WSL. A login shell so bn and nvm are on PATH; `exec sleep` keeps
+# The keeper, as it runs inside WSL. A login shell so workspan and nvm are on PATH; `exec sleep` keeps
 # exactly one long-lived process holding the distro.
 # `main` first, then a pause for tmux-continuum's restore, then the tunnels: whichever session
 # exists first is the one the restore reuses, and a `bn-tunnels` made first collected the restored
-# `bn` agent windows (2026-09-27).
+# `workspan` agent windows (2026-09-27).
 KEEPER="tmux has-session -t main 2>/dev/null || tmux new-session -d -s main; sleep 60; sh \$HOME/.config/bn/repo/config/jobs/tunnel-auto.sh; exec sleep infinity"
 
 BOOT_TASK=bn-wsl-keepalive-boot

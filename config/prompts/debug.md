@@ -12,7 +12,7 @@ The requested scope determines whether the result is diagnosis or a verified cod
 For diagnosis-only requests, gather evidence without editing source or tests; do not add
 diagnostic logging that changes code.
 
-1. **Reproduce first.** Read the assigned task's context and call `bn_ref` (no name) for what past
+1. **Reproduce first.** Read the assigned task's context and call `workspan_ref` (no name) for what past
    sessions already learned about this repo — this failure may be a known gotcha, and reading a
    one-line index is cheaper than root-causing it twice. Take the symptom ({{symptom}}) or the assigned bug. Before
    touching a cause, make the failure happen *on demand* — ideally a failing test or an exact
@@ -48,8 +48,8 @@ diagnostic logging that changes code.
 6. **Capture the learning.** Record the non-obvious cause with `workspan learned "…"` — the thing that
    would've saved you an hour. Then ask whether it is *durable repo knowledge*: will it trip up
    the next session on this repo, not just this branch? If so, fold it into the repo's reference
-   notes with `bn_ref_append` — one line, under `gotchas`, ending in where it came from and
-   today's date (see `/bn:repo-reference`). This is the step that stops the same cause
+   notes with `workspan_ref_append` — one line, under `gotchas`, ending in where it came from and
+   today's date (see `/workspan:repo-reference`). This is the step that stops the same cause
    being root-caused twice. Close the assigned bug with `workspan task do <id>` only when verified.
 
 7. **Report.** One line: *root cause → fix → verify PASS*. Then the repro, the cause, what changed,

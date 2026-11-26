@@ -1,5 +1,5 @@
 //! Where a launched agent may look — the harness argv that fixes its allowed working set, and the
-//! directories bn widens that set with.
+//! directories workspan widens that set with.
 //!
 //! Split from `agent.rs` under the file-size ratchet, but the seam is a real one: everything here
 //! is a pure function from a [`LaunchPlan`] to argv, with no process, tmux or lease work, which is
@@ -7,7 +7,7 @@
 //!
 //! The rule these encode: an agent is confined to the directory it was started in.
 //! [`bn_core::mcp::Harness::autonomy_args`] documents the measurements behind that; this module
-//! owns the other half — the directories bn hands back, because bn's own state lives outside the
+//! owns the other half — the directories workspan hands back, because bn's own state lives outside the
 //! worktree and an agent that cannot reach its own branch note is not scoped, it is broken.
 
 use super::agent::LaunchPlan;
@@ -93,9 +93,9 @@ pub(crate) fn build_claude_args(plan: &LaunchPlan, has_transcripts: bool) -> Vec
 /// Copilot's standing shell approval for workspan itself, so an agent can follow the AGENTS.md rule to
 /// reap stale worktrees (`workspan wt reap --all --yes`) without a prompt. Copilot matches shell rules on
 /// the command name only — `shell(workspan wt reap:*)` and `shell(workspan wt:*)` never match — so the rule
-/// has to cover every `bn` subcommand. Claude's narrower `Bash(workspan wt reap:*)` lives in its stowed
+/// has to cover every `workspan` subcommand. Claude's narrower `Bash(workspan wt reap:*)` lives in its stowed
 /// settings instead.
-const COPILOT_BN_SHELL_RULE: &str = "shell(bn)";
+const COPILOT_BN_SHELL_RULE: &str = "shell(workspan)";
 
 /// Build the argv (after the harness binary) for a **Copilot** launch. Resumes the resolved session
 /// id with `--resume=` when one exists (unless `--fresh`); otherwise starts fresh, pinning the
@@ -272,7 +272,7 @@ mod tests {
             build_copilot_args(&resumed, Some("abc")),
         ] {
             assert!(
-                args.windows(2).any(|w| w == ["--allow-tool", "shell(bn)"]),
+                args.windows(2).any(|w| w == ["--allow-tool", "shell(workspan)"]),
                 "{args:?}"
             );
         }

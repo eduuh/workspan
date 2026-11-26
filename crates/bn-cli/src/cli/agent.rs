@@ -1,4 +1,4 @@
-//! `bn agent …` — the clap surface for the agent-supervision commands.
+//! `workspan agent …` — the clap surface for the agent-supervision commands.
 //!
 //! Split out of `cli.rs` so the file-size ratchet leaves room for the supervision commands
 //! (`prompt`, `answer`, `instruct`) to grow. Re-exported by `cli.rs`, so `AgentCmd` resolves

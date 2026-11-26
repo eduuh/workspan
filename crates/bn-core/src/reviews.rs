@@ -1,7 +1,7 @@
 //! The PR review queue: open PRs from followed authors, for review or learning. The
 //! `pr-queue` job (GitHub via `gh`) writes the cache on a schedule; this just reads it, so
-//! `bn reviews` is instant and offline. Network stays in the cron job, never here — the
-//! north star: the script fetches, bn renders.
+//! `workspan reviews` is instant and offline. Network stays in the cron job, never here — the
+//! north star: the script fetches, workspan renders.
 
 use crate::resolver::state_dir;
 use serde::{Deserialize, Serialize};

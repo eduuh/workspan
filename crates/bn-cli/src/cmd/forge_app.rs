@@ -1,4 +1,4 @@
-//! `bn forge login`, `bn forge status` and `bn forge sweep`.
+//! `workspan forge login`, `workspan forge status` and `workspan forge sweep`.
 //!
 //! The Forge client and the credential rules live in [`bn_core::forge_app`]. This file is the
 //! command surface: the paste path, the status report, and the hand-off to [`login`], which drives

@@ -1,4 +1,4 @@
-//! `bn agent launch --host <machine>`: an agent that outlives the connection that started it.
+//! `workspan agent launch --host <machine>`: an agent that outlives the connection that started it.
 //!
 //! The agent used to run *inside* the ssh session (`ssh -tt host "cd <wt> && … launch"`), so a
 //! tunnel drop, the laptop sleeping or the terminal closing killed it mid-turn. Now one short ssh
@@ -58,14 +58,14 @@ const MISSING: i32 = 3;
 
 /// Shell lines, for a script run on the remote machine, that set `$wt` to the branch's checkout
 /// there, making one with `workspan wt add` when the branch is pushed but not checked out yet; without
-/// one they print MISSING and exit [`MISSING`]. They expect `$root`, `$repo` and `$branch`, and bn
+/// one they print MISSING and exit [`MISSING`]. They expect `$root`, `$repo` and `$branch`, and workspan
 /// on PATH.
 pub(crate) fn checkout_snippet() -> String {
     format!(
         r#"find_wt() {{ git -C "$root/$repo/main" worktree list --porcelain 2>/dev/null | awk -v b="refs/heads/$branch" '/^worktree /{{w = substr($0, 10)}} $0 == "branch " b {{print w; exit}}'; }}
 wt=$(find_wt)
 [ -n "$wt" ] || {{ [ -d "$root/$repo/$branch" ] && wt="$root/$repo/$branch"; }}
-[ -n "$wt" ] || {{ (cd "$root/$repo/main" && bn wt add "$branch" </dev/null >/dev/null 2>&1); wt=$(find_wt); }}
+[ -n "$wt" ] || {{ (cd "$root/$repo/main" && workspan wt add "$branch" </dev/null >/dev/null 2>&1); wt=$(find_wt); }}
 [ -n "$wt" ] || {{ echo MISSING; exit {MISSING}; }}"#
     )
 }

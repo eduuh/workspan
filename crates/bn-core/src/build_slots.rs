@@ -1,8 +1,8 @@
 //! The build pool: admission for work that saturates the machine and whose caller must wait.
 //!
 //! A verify gate is not dispatched: the process that wants it is already running and cannot
-//! continue until it has the verdict. `bn wt merge` must know whether the head is green before it
-//! lands; `bn verify` prints an exit code its caller acts on. So the gate takes a **ticket** from a
+//! continue until it has the verdict. `workspan wt merge` must know whether the head is green before it
+//! lands; `workspan verify` prints an exit code its caller acts on. So the gate takes a **ticket** from a
 //! fixed-size pool, runs inline, and gives the ticket back. This is throttling, not scheduling.
 //!
 //! # Why a pool of its own

@@ -32,7 +32,7 @@ pub struct FakeForge {
 }
 
 impl FakeForge {
-    /// A fake holding `rows`, with an Inbox goal and a `bn` project goal.
+    /// A fake holding `rows`, with an Inbox goal and a `workspan` project goal.
     pub fn with(rows: Vec<BnTaskRow>) -> Arc<FakeForge> {
         Arc::new(FakeForge {
             rows: Mutex::new(rows),
@@ -252,7 +252,7 @@ pub fn goal(id: &str, name: &str, url: Option<&str>) -> GoalRow {
     }
 }
 
-/// An open activity under the `bn` project goal, with `meta` as its agent meta.
+/// An open activity under the `workspan` project goal, with `meta` as its agent meta.
 pub fn row(id: &str, title: &str, created: &str, meta: &[(&str, &str)]) -> BnTaskRow {
     BnTaskRow {
         id: id.into(),

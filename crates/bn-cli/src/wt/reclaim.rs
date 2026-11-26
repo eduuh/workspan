@@ -1,16 +1,16 @@
 //! Reclaiming a worktree — **the** way it happens, and the one place that decides how.
 //!
-//! There used to be several. `bn wt cleanup` ran the gates and closed the note; `bn wt remove`
+//! There used to be several. `workspan wt cleanup` ran the gates and closed the note; `workspan wt remove`
 //! (`prefix D`) ran a bare `git worktree remove` past all of them, which on a `_pool/<n>` slot tore
 //! the checkout out from under a live lease and left the pool permanently one slot short; and
-//! `bn wt close` (`prefix x`) had its own copy of the pool-release branch. Three ways to give a
+//! `workspan wt close` (`prefix x`) had its own copy of the pool-release branch. Three ways to give a
 //! worktree back, agreeing on nothing, and only one of them checked whether it was safe.
 //!
 //! So: one implementation, reached two ways, and nothing else.
 //!
 //! * [`super::cleanup_one`] is the implementation — the gates, the note close, the removal, the
 //!   pool-lease hand-back. Every caller that reclaims a worktree goes through it.
-//! * [`run_now`] is that same work, re-entered as `bn wt close --reclaim` from the keystroke's own
+//! * [`run_now`] is that same work, re-entered as `workspan wt close --reclaim` from the keystroke's own
 //!   backgrounded process. Nothing a person does by hand in tmux should wait on a background
 //!   scheduler — `run-shell -b` already keeps the UI free, so the keystroke can afford to do the
 //!   work itself.
@@ -48,7 +48,7 @@ pub(crate) fn label_for(wt_path: &Path, branch: &str) -> String {
 fn reclaim_cmd(path: &Path, confirmed: bool) -> String {
     let exe = std::env::current_exe()
         .map(|p| p.display().to_string())
-        .unwrap_or_else(|_| "bn".to_string());
+        .unwrap_or_else(|_| "workspan".to_string());
     let mut cmd = format!(
         "{} wt close --reclaim --path {}",
         shq(&exe),

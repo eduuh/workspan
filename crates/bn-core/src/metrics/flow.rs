@@ -272,7 +272,7 @@ pub(crate) const FLOW_GAP_SECS: i64 = 30 * 60;
 /// number)` — PR numbers are repo-local, so number alone collides across repos (repo A's #42
 /// wrongly matching repo B's #42). The `owner/repo` join key comes from the gh `repo` field on
 /// `pr_merged` and from the gh URL in `note_closed`'s `pr` field (a workspan `note_closed` carries the
-/// bare workspan repo name, e.g. `bn`, in its own `repo` field, which needn't match the gh
+/// bare workspan repo name, e.g. `workspan`, in its own `repo` field, which needn't match the gh
 /// `owner/repo`, so it isn't used as the join key). A `note_closed` whose `pr` is a bare number
 /// (no repo) can't be disambiguated and matches no merge.
 #[derive(Debug, Serialize, Deserialize)]

@@ -3,7 +3,7 @@
 //! tmux integration used to be walled off in bn-cli under the "interactive / side-effecting
 //! spawns stay in the CLI" doctrine. That doctrine is dropped: the shared wrappers live here in
 //! `bn-core` so the CLI and MCP can reuse them in-process rather than
-//! re-implementing the bridge or shelling out to a `bn` subprocess.
+//! re-implementing the bridge or shelling out to a `workspan` subprocess.
 //!
 //! Every wrapper spawns `tmux` with discrete argv (never a shell), so caller-supplied names are
 //! not injection vectors.

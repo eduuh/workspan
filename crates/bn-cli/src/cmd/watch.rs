@@ -81,7 +81,7 @@ fn wake_class(
         // Finished work awaiting a look — the review inbox, not an interruption.
         T::Done | T::PrOpened => crate::toast::Class::Completion,
         // An attention item is blocking only when it is open and urgent; warn and agent-sourced
-        // items stay in `bn next` and the tmux badge.
+        // items stay in `workspan next` and the tmux badge.
         T::Attention => {
             if blocking_attn.contains(&wake.event_id) {
                 crate::toast::Class::Blocking
@@ -139,7 +139,7 @@ pub(crate) fn emit_watch(cfg: &Config, once: bool, interval: u64, stuck: i64, as
         if !new.is_empty() {
             // One interrupt per pass, never one per item: the survivors of the gate are folded
             // into a single toast, and the headline counts *those*, so "N need you" is finally
-            // true. Everything held back stays in the queue's other consumers and in `bn next`.
+            // true. Everything held back stays in the queue's other consumers and in `workspan next`.
             let candidates: Vec<_> = new
                 .iter()
                 .map(|item| {

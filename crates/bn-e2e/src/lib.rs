@@ -1,10 +1,10 @@
-//! A hermetic sandbox for end-to-end testing the `bn` binary.
+//! A hermetic sandbox for end-to-end testing the `workspan` binary.
 //!
-//! Every test gets its own bn universe — its own `HOME`, config, state, notes, worktree pool,
+//! Every test gets its own workspan universe — its own `HOME`, config, state, notes, worktree pool,
 //! **tmux server** — built from one contract ([`env::contract`]) instead of the
 //! per-script hand-rolled subsets that leaked fixtures into the real notes twice already.
 //!
-//! The tmux half is the part that needs care. bn drives the *default* tmux socket across
+//! The tmux half is the part that needs care. workspan drives the *default* tmux socket across
 //! `agent_lease`, `reap`, `agent_live`, `jump` and `connect`, and it calls `kill-window` on windows
 //! it found by enumerating the whole server. A test suite that reaches the developer's live server
 //! does not fail — it closes their windows. So the harness proves isolation before it hands out a
@@ -16,7 +16,7 @@
 //! use bn_e2e::{Sandbox, shims::Behavior};
 //! let sb = Sandbox::new()?;
 //! sb.fake_agent("claude", &Behavior::Hang)?;
-//! sb.bn(["note", "goal", "ship it"])?.expect_success()?;
+//! sb.workspan(["note", "goal", "ship it"])?.expect_success()?;
 //! assert!(sb.tmux_sessions()?.is_empty());
 //! # Ok(())
 //! # }
@@ -107,8 +107,8 @@ impl Sandbox {
         .context("seed sandbox gitconfig")?;
 
         // The stable installed-bn anchor. `dispatch::agent_launcher_bin` builds the tmux command
-        // line as `$HOME/.config/bn/bn agent launch …` — the same path install.sh creates with
-        // `ln -sfn "$bindir/bn" "$cfgdir/bn"` plus the `~/.config/bn` compat link. Without it the
+        // line as `$HOME/.config/bn/workspan agent launch …` — the same path install.sh creates with
+        // `ln -sfn "$bindir/bn" "$cfgdir/workspan"` plus the `~/.config/bn` compat link. Without it the
         // dispatched window opens but the agent never starts, because the launcher path does not
         // exist. Seeding it here keeps the sandbox faithful to an installed machine.
         let bn_bin = locate_bn()?;
@@ -118,7 +118,7 @@ impl Sandbox {
 
         // The shipped-content anchor, install.sh's `ln -sfn "$repo" "$cfgdir/repo"` (line 648).
         // `skills::shared_skills_dir` resolves the shipped skills through
-        // `<config_dir>/repo/config/prompts`, and `bn dispatch --agent` refuses to launch without
+        // `<config_dir>/repo/config/prompts`, and `workspan dispatch --agent` refuses to launch without
         // the skill its stage requires ("required skill 'investigate' not found"). Pointing the
         // anchor at this checkout means the sandbox exercises the skills actually in the tree.
         symlink_binary(&workspace_root()?, &config_dir_of(&root).join("repo"))?;
@@ -178,13 +178,13 @@ impl Sandbox {
         self.root.join(relative)
     }
 
-    /// The git repo every `bn` invocation runs in by default.
+    /// The git repo every `workspan` invocation runs in by default.
     pub fn repo(&self) -> PathBuf {
         self.root.join("repo")
     }
 
-    /// Run `bn` inside the sandbox, from the sandbox repo.
-    pub fn bn<I, S>(&self, args: I) -> Result<Run>
+    /// Run `workspan` inside the sandbox, from the sandbox repo.
+    pub fn workspan<I, S>(&self, args: I) -> Result<Run>
     where
         I: IntoIterator<Item = S>,
         S: AsRef<std::ffi::OsStr>,
@@ -463,7 +463,7 @@ impl Run {
     }
 }
 
-/// Find the `bn` binary: `$BN_E2E_BIN`, else the workspace's debug build.
+/// Find the `workspan` binary: `$BN_E2E_BIN`, else the workspace's debug build.
 fn locate_bn() -> Result<PathBuf> {
     if let Ok(path) = std::env::var("BN_E2E_BIN") {
         let path = PathBuf::from(path);
@@ -479,7 +479,7 @@ fn locate_bn() -> Result<PathBuf> {
         .parent()
         .and_then(Path::parent)
         .ok_or_else(|| anyhow!("cannot locate the workspace root from CARGO_MANIFEST_DIR"))?;
-    let debug = workspace.join("target/debug/bn");
+    let debug = workspace.join("target/debug/workspan");
     if debug.is_file() {
         return Ok(debug);
     }

@@ -1,4 +1,4 @@
-//! `bn control` — the long-lived coordination-only controller agents.
+//! `workspan control` — the long-lived coordination-only controller agents.
 //!
 //! Split out of `cli.rs` under the never-grow file-size ratchet: the clap declaration file is the
 //! one place every new command must touch, so a self-contained sub-enum is what moves out.

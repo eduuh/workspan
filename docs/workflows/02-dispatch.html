@@ -251,7 +251,7 @@ worktree-gone, window-gone) → then the guards <code>Attended</code> &gt; <code
 <tbody>
 <tr><td><code>launchable.rs</code></td><td>The merged "what can I launch" namespace — Markdown agents plus workflow skills in one list. On a name collision the agent wins and the shadowed skill is marked, not dropped. <span class="src">launchable.rs:1-16, :183</span></td></tr>
 <tr><td><code>agents.rs</code></td><td>The manifest layer. <code>AgentKind = Command | Staff | Hosted | Specialist</code>, each with different required frontmatter. <span class="src">agents.rs:39</span></td></tr>
-<tr><td><code>specialists.rs</code></td><td>A <em>compiler</em>, not a runtime — it renders manifests into native Copilot/Claude agent files so a running harness finds them under <code>/agent</code>. A specialist is not runnable by bn; <code>ensure_runnable</code> refuses it. <span class="src">specialists.rs:1-22 · agents.rs:348</span></td></tr>
+<tr><td><code>specialists.rs</code></td><td>A <em>compiler</em>, not a runtime — it renders manifests into native Copilot/Claude agent files so a running harness finds them under <code>/agent</code>. A specialist is not runnable by workspan; <code>ensure_runnable</code> refuses it. <span class="src">specialists.rs:1-22 · agents.rs:348</span></td></tr>
 <tr><td><code>agent/registry.rs</code></td><td><strong>Not</strong> a roster of agent types. It projects <code>SessionRecord</code> rows — which sessions exist and what state they are in. <span class="src">registry.rs:196, :319</span></td></tr>
 </tbody>
 </table>

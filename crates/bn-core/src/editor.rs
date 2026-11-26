@@ -1,6 +1,6 @@
 //! The per-worktree nvim: where its socket lives, and the tmux option names that find its pane.
 //!
-//! bn drives one long-lived nvim per worktree — `bn edit` creates it, parks it, restores it, and
+//! workspan drives one long-lived nvim per worktree — `workspan edit` creates it, parks it, restores it, and
 //! (via `--server <sock> --remote-expr`) tells it to open a diff or land a session. Two rules make
 //! the rest of that machinery simple:
 //!

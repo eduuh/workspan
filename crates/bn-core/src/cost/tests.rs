@@ -143,7 +143,7 @@ fn harness_tokens_get_their_product_names_and_unknowns_keep_their_own() {
     assert_eq!(harness_label("claude"), "Claude Code");
     assert_eq!(harness_label("copilot"), "Copilot");
     assert_eq!(harness_label(""), "—");
-    // A harness bn learns about later shows up under its own name, not folded into an existing row.
+    // A harness workspan learns about later shows up under its own name, not folded into an existing row.
     assert_eq!(harness_label("codex"), "codex");
 }
 

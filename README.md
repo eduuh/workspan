@@ -61,8 +61,8 @@ See [the setup reference](config/reference/entire-setup.md).
 
 ## Compatibility
 
-Workspan was previously named `bn`. The installer provides `workspan` as the primary entry point
-and `ws` as its short alias while keeping `bn` as an executable compatibility alias.
+Workspan was previously named `workspan`. The installer provides `workspan` as the primary entry point
+and `ws` as its short alias while keeping `workspan` as an executable compatibility alias.
 An existing unrelated `ws` command is never replaced. Set `WORKSPAN_INSTALL_WP=1` during
 installation to request an optional `wp` alias; an existing `wp` command is never replaced.
 
@@ -72,7 +72,7 @@ binary names remain compatible. Branch-note commands and MCP tools are retired. 
 (file or Forge), task context, plans, and execution state do not require a branch note. Entire
 owns session history. Existing historical note files are preserved, not imported or deleted;
 existing users do not need to move their configuration or task data. New clones use
-`bare/workspan.git` and `worktree/workspan/<branch>`; existing `bn` clones and active worktrees
+`bare/workspan.git` and `worktree/workspan/<branch>`; existing `workspan` clones and active worktrees
 stay where they are.
 
 Configuration: [docs/config.md](docs/config.md). Releases: [docs/releases.md](docs/releases.md).

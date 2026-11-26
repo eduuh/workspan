@@ -1,9 +1,9 @@
-//! `bn critic` — the fresh-context critic stage (#649 Phase 3, per design r17 §1).
+//! `workspan critic` — the fresh-context critic stage (#649 Phase 3, per design r17 §1).
 //!
-//! `bn critic dispatch` cuts a **fresh worktree off the PR head** with a **plan-free note**
+//! `workspan critic dispatch` cuts a **fresh worktree off the PR head** with a **plan-free note**
 //! and launches a `--fresh` critic lane seeded (via [`bn_core::pipeline::critic::critic_packet`])
 //! with ONLY the diff + done-when criteria + PR url — so the critic starts with zero prior
-//! turns and cannot read the approved plan. `bn critic verdict` drives the loop-back: PASS →
+//! turns and cannot read the approved plan. `workspan critic verdict` drives the loop-back: PASS →
 //! shippable; FAIL → a `task_type="critique"` attention item + re-enter execution, bounded by
 //! `--max-iterations` (default 3), then a `task_type="planning"` human-steer escalation.
 //!
@@ -71,7 +71,7 @@ pub(crate) fn run_critic_dispatch(
             &format!("workspan critic: no bare repo at {}", bare.display()),
         );
     }
-    // Harness precedence mirrors `bn dispatch`: an explicit `--agent` pin wins; else the Critique
+    // Harness precedence mirrors `workspan dispatch`: an explicit `--agent` pin wins; else the Critique
     // stage's configured harness (`[pipeline.stages.critique].harness`); else copilot — then the
     // machine capability gate degrades an unavailable harness to copilot (surfaced, never silent).
     let model = cfg.pipeline_model(&repo, bn_core::pipeline::stage::Stage::Critique);
@@ -150,7 +150,7 @@ pub(crate) fn run_critic_dispatch(
         crate::git::git_capture(&["diff", &range], Some(&wt_path), false).unwrap_or_default();
 
     // Seed a PLAN-FREE note: the Goal is only "critique this diff" — the `## Plan` section is never
-    // copied here, so the critic literally cannot `bn --cat` the approved plan (the cleanest
+    // copied here, so the critic literally cannot `workspan --cat` the approved plan (the cleanest
     // isolation, r17 §1.3).
     let critic_ctx = Resolved {
         repo: repo.clone(),

@@ -14,7 +14,7 @@
 //! lifted from each file's first heading, resolved by a fuzzy (exact → prefix → substring) match.
 //! Repo notes may nest (`architecture/runtime-concepts.md` is the name
 //! `architecture/runtime-concepts`) and keep an `images/` sibling for screenshots, which the walk
-//! skips. `bn ref` (CLI), the MCP `bn_ref` tools, the dispatch seed, and the review prompt all
+//! skips. `workspan ref` (CLI), the MCP `workspan_ref` tools, the dispatch seed, and the review prompt all
 //! read through here.
 
 use crate::resolver::{references_dir, Config};

@@ -4,11 +4,11 @@
 test reports a failed expectation; the workspace-wide deny targets production code paths"
 )]
 
-//! `bn on` end to end: a rule fires a real process, exactly once, and only for events that arrive
+//! `workspan on` end to end: a rule fires a real process, exactly once, and only for events that arrive
 //! after the rule exists.
 //!
 //! The unit tests in `bn_core::reactor` cover the matching decision. What they cannot cover is the
-//! part that actually bites in use: whether the cursor is durable across separate `bn` processes,
+//! part that actually bites in use: whether the cursor is durable across separate `workspan` processes,
 //! and whether the event really reaches the command. Both are checked here by having the reaction
 //! write a file and counting the lines.
 //!
@@ -40,7 +40,7 @@ fn receipts(sb: &Sandbox) -> Vec<String> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_rule_fires_once_per_event_and_receives_its_fields() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     add_appender(&sb, FROZEN_NOW, "pr_merged", &[])?;
@@ -50,7 +50,7 @@ fn a_rule_fires_once_per_event_and_receives_its_fields() -> anyhow::Result<()> {
     )?
     .expect_success()?;
 
-    sb.bn(["on", "tick"])?.expect_success()?;
+    sb.workspan(["on", "tick"])?.expect_success()?;
     assert_eq!(
         receipts(&sb),
         ["pr_merged:52"],
@@ -58,7 +58,7 @@ fn a_rule_fires_once_per_event_and_receives_its_fields() -> anyhow::Result<()> {
     );
 
     // The cursor is durable across processes: a second tick must not re-run the same event.
-    sb.bn(["on", "tick"])?.expect_success()?;
+    sb.workspan(["on", "tick"])?.expect_success()?;
     assert_eq!(
         receipts(&sb),
         ["pr_merged:52"],
@@ -69,13 +69,13 @@ fn a_rule_fires_once_per_event_and_receives_its_fields() -> anyhow::Result<()> {
 
 /// Adding a rule says what should happen next; it is not a request to replay the log.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_new_rule_does_not_fire_on_events_that_predate_it() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     sb.bn_at(FROZEN_NOW, ["event", "pr_merged", "--field", "number=1"])?
         .expect_success()?;
     add_appender(&sb, FROZEN_NOW + 10, "pr_merged", &[])?;
-    sb.bn(["on", "tick"])?.expect_success()?;
+    sb.workspan(["on", "tick"])?.expect_success()?;
     assert!(
         receipts(&sb).is_empty(),
         "a new rule replayed history: {:?}",
@@ -85,7 +85,7 @@ fn a_new_rule_does_not_fire_on_events_that_predate_it() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_field_filter_keeps_the_wrong_events_out() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     add_appender(&sb, FROZEN_NOW, "pr_merged", &["--field", "repo=bn"])?;
@@ -113,7 +113,7 @@ fn a_field_filter_keeps_the_wrong_events_out() -> anyhow::Result<()> {
         ],
     )?
     .expect_success()?;
-    sb.bn(["on", "tick"])?.expect_success()?;
+    sb.workspan(["on", "tick"])?.expect_success()?;
     assert_eq!(
         receipts(&sb),
         ["pr_merged:2"],
@@ -124,7 +124,7 @@ fn a_field_filter_keeps_the_wrong_events_out() -> anyhow::Result<()> {
 
 /// A dry run must change nothing — not the receipts, and not the cursor the next pass reads.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_dry_run_neither_runs_nor_consumes_the_event() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     add_appender(&sb, FROZEN_NOW, "pr_merged", &[])?;
@@ -134,7 +134,7 @@ fn a_dry_run_neither_runs_nor_consumes_the_event() -> anyhow::Result<()> {
     )?
     .expect_success()?;
 
-    let run = sb.bn(["on", "tick", "--dry-run", "--json"])?;
+    let run = sb.workspan(["on", "tick", "--dry-run", "--json"])?;
     run.expect_success()?;
     let v: Value = serde_json::from_str(&run.stdout)?;
     assert_eq!(
@@ -145,7 +145,7 @@ fn a_dry_run_neither_runs_nor_consumes_the_event() -> anyhow::Result<()> {
     assert!(receipts(&sb).is_empty(), "a dry run ran the command");
 
     // The event is still pending, so the real tick fires it.
-    sb.bn(["on", "tick"])?.expect_success()?;
+    sb.workspan(["on", "tick"])?.expect_success()?;
     assert_eq!(
         receipts(&sb),
         ["pr_merged:7"],
@@ -155,17 +155,17 @@ fn a_dry_run_neither_runs_nor_consumes_the_event() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn test_reports_matches_without_running_or_consuming_anything() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     add_appender(&sb, FROZEN_NOW, "pr_merged", &["--field", "repo=bn"])?;
 
-    let hit = sb.bn(["on", "test", "pr_merged", "--field", "repo=bn", "--json"])?;
+    let hit = sb.workspan(["on", "test", "pr_merged", "--field", "repo=bn", "--json"])?;
     hit.expect_success()?;
     let v: Value = serde_json::from_str(&hit.stdout)?;
     assert_eq!(v["data"]["matched"].as_array().map(Vec::len), Some(1));
 
-    let miss = sb.bn([
+    let miss = sb.workspan([
         "on",
         "test",
         "pr_merged",
@@ -182,11 +182,11 @@ fn test_reports_matches_without_running_or_consuming_anything() -> anyhow::Resul
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_disabled_rule_stops_firing_and_resumes_when_enabled() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     add_appender(&sb, FROZEN_NOW, "pr_merged", &[])?;
-    let listed = sb.bn(["on", "--json"])?;
+    let listed = sb.workspan(["on", "--json"])?;
     listed.expect_success()?;
     let v: Value = serde_json::from_str(&listed.stdout)?;
     let id = v["data"]["rules"][0]["id"]
@@ -195,22 +195,22 @@ fn a_disabled_rule_stops_firing_and_resumes_when_enabled() -> anyhow::Result<()>
         .to_string();
     assert!(!id.is_empty(), "no rule id in {}", listed.stdout);
 
-    sb.bn(["on", "disable", &id])?.expect_success()?;
+    sb.workspan(["on", "disable", &id])?.expect_success()?;
     sb.bn_at(
         FROZEN_NOW + 10,
         ["event", "pr_merged", "--field", "number=1"],
     )?
     .expect_success()?;
-    sb.bn(["on", "tick"])?.expect_success()?;
+    sb.workspan(["on", "tick"])?.expect_success()?;
     assert!(receipts(&sb).is_empty(), "a disabled rule fired");
 
-    sb.bn(["on", "enable", &id])?.expect_success()?;
+    sb.workspan(["on", "enable", &id])?.expect_success()?;
     sb.bn_at(
         FROZEN_NOW + 20,
         ["event", "pr_merged", "--field", "number=2"],
     )?
     .expect_success()?;
-    sb.bn(["on", "tick"])?.expect_success()?;
+    sb.workspan(["on", "tick"])?.expect_success()?;
     assert_eq!(
         receipts(&sb),
         ["pr_merged:2"],

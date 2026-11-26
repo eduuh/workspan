@@ -1,6 +1,6 @@
 //! Keeping the tmux session namespace to repositories.
 //!
-//! bn names a session after a repo and a window after a worktree — the layout `tat`, `bn jump` and
+//! workspan names a session after a repo and a window after a worktree — the layout `tat`, `workspan jump` and
 //! the status bar all assume. The code that broke that rule is fixed elsewhere; this module deals
 //! with the sessions that are *already there*, because tmux-resurrect saves and restores whatever
 //! it finds. An orphan killed by hand comes straight back on the next restore.
@@ -137,7 +137,7 @@ fn read_sessions() -> Vec<SessionRow> {
                         Some(WindowRow {
                             name: f[1].to_string(),
                             command: f[2].to_string(),
-                            // The option is set (even to "") for any window bn primed as an agent's.
+                            // The option is set (even to "") for any window workspan primed as an agent's.
                             agent: f.len() > 3 && !f[3].is_empty(),
                         })
                     })

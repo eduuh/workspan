@@ -7,7 +7,7 @@
 //! read time by `bn_core::metrics::visible_events`, which every metrics surface funnels through —
 //! so the scorecard stays unflattered by tooling churn while surfaces that ask "what did I
 //! actually finish yesterday" (the standup fold) still see the work. Filtering at ingest instead
-//! erased it from both, which is why a day spent entirely in `bn` read back as "no completed
+//! erased it from both, which is why a day spent entirely in `workspan` read back as "no completed
 //! tasks recorded".
 
 /// One row from the `pr-observe` search sweep.

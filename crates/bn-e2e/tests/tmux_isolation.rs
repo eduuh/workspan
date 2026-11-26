@@ -4,7 +4,7 @@
 test reports a failed expectation; the workspace-wide deny targets production code paths"
 )]
 
-//! The safety lane: proof that a sandboxed bn cannot see or touch the developer's tmux server.
+//! The safety lane: proof that a sandboxed workspan cannot see or touch the developer's tmux server.
 //!
 //! These tests come first because every other tmux test depends on them. bn's fleet surface —
 //! `agent_lease`, `reap`, `agent_live`, `jump`, `connect` — runs on the *default* tmux socket and
@@ -13,7 +13,7 @@ test reports a failed expectation; the workspace-wide deny targets production co
 //!
 //! Run with: `cargo test -p bn-e2e -- --ignored --test-threads=1`
 //! (`#[ignore]` keeps them out of the plain `cargo test --workspace` unit lane, which has no
-//! built `bn` binary to point at.)
+//! built `workspan` binary to point at.)
 
 use bn_e2e::{proof, Sandbox};
 
@@ -33,7 +33,7 @@ macro_rules! require_tmux {
 /// as a test in its own right, and adds the host→sandbox direction, so a regression in the
 /// environment contract is reported here by name instead of as a confusing failure elsewhere.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn sandbox_and_host_tmux_servers_are_mutually_invisible() -> anyhow::Result<()> {
     require_tmux!();
     let sb = Sandbox::new()?;
@@ -79,7 +79,7 @@ fn sandbox_and_host_tmux_servers_are_mutually_invisible() -> anyhow::Result<()> 
 ///
 /// The canary briefly lands on the host server; `assert_isolated` kills it on the way out.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn the_isolation_guard_refuses_when_tmux_leaks_to_the_host() -> anyhow::Result<()> {
     require_tmux!();
     let Some(host_socket) = host_socket_path() else {
@@ -178,9 +178,9 @@ fn host_socket_path() -> Option<String> {
 /// A fake agent replaces the real harness, and bn's own subprocess spawn resolves to it.
 ///
 /// Without this the tmux lane would either burn tokens or fail on a missing binary. It also
-/// records argv, so later tests can assert *how* bn invoked the agent, not just that it did.
+/// records argv, so later tests can assert *how* workspan invoked the agent, not just that it did.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_fake_agent_shim_shadows_the_real_harness() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     sb.fake_agent(
@@ -211,7 +211,7 @@ fn a_fake_agent_shim_shadows_the_real_harness() -> anyhow::Result<()> {
 ///
 /// tmux's `=` anchors only the part it precedes, so `-t "=s:feat"` leaves the WINDOW half an
 /// fnmatch pattern and resolves it to `feat-two` when no window is named exactly `feat`. Every
-/// destructive thing bn does to a window — `set-window-option`, `paste-buffer`, `send-keys`,
+/// destructive thing workspan does to a window — `set-window-option`, `paste-buffer`, `send-keys`,
 /// `kill-window` — used to be addressed that way, so with two branches sharing a prefix a steer
 /// could be typed into the wrong agent and a close could kill the wrong worktree.
 ///
@@ -219,7 +219,7 @@ fn a_fake_agent_shim_shadows_the_real_harness() -> anyhow::Result<()> {
 /// hazard is not hypothetical and cannot be "fixed" by deleting the anchoring), and the form
 /// `exact_target` produces does not.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_window_name_prefix_cannot_capture_a_write_meant_for_another_window() -> anyhow::Result<()> {
     require_tmux!();
     let sb = Sandbox::new()?;

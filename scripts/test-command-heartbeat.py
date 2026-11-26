@@ -14,7 +14,7 @@ ROOT = Path(__file__).resolve().parents[1]
 RUNNER = ROOT / "config" / "cmds" / "run.sh"
 
 
-@unittest.skipUnless(os.name == "posix", "bn commands require a POSIX shell")
+@unittest.skipUnless(os.name == "posix", "workspan commands require a POSIX shell")
 class HeartbeatTests(unittest.TestCase):
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory(prefix="bn-heartbeat-test-")

@@ -1,17 +1,17 @@
 {
   "mcpServers": {
-    "bn": {
+    "workspan": {
       "args": [
         "mcp",
         "serve"
       ],
-      "command": "bn",
+      "command": "workspan",
       "tools": [
-        "bn_cmd",
-        "bn_links_search",
-        "bn_links_add",
-        "bn_ref",
-        "bn_ref_append"
+        "workspan_cmd",
+        "workspan_links_search",
+        "workspan_links_add",
+        "workspan_ref",
+        "workspan_ref_append"
       ],
       "type": "local"
     }

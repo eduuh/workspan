@@ -8,7 +8,7 @@
 use serde::{Deserialize, Serialize};
 
 /// A controller's identity for single-owner arbitration of a repo's run. Two concurrent daemons for
-/// one repo (e.g. `run --all-repos` and `run --repo bn`) both adopt the same tmux lanes and
+/// one repo (e.g. `run --all-repos` and `run --repo workspan`) both adopt the same tmux lanes and
 /// double-count in-flight, pinning the cap so the backlog stops pulling. The owner lease lets a
 /// second controller detect a live first owner and defer, so exactly one loop drives a repo.
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]

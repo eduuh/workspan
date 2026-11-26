@@ -1,4 +1,4 @@
-//! The Forge MCP endpoint, spoken over streamable HTTP, and the tool surface bn uses from it.
+//! The Forge MCP endpoint, spoken over streamable HTTP, and the tool surface workspan uses from it.
 //!
 //! [`McpHttp`] is protocol only: JSON-RPC 2.0 over POST, `initialize` + `notifications/initialized`
 //! once, the `Mcp-Session-Id` the server hands back replayed on every later call, and responses

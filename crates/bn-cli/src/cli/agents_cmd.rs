@@ -1,4 +1,4 @@
-//! `bn agents ...` clap surface, split from the top-level command catalog.
+//! `workspan agents ...` clap surface, split from the top-level command catalog.
 
 use crate::*;
 

@@ -1,13 +1,13 @@
-//! The message outbox: `bn agent msg` never loses a message.
+//! The message outbox: `workspan agent msg` never loses a message.
 //!
-//! A message bn cannot confirm in the target's pane (the target is not live yet, the machine it
+//! A message workspan cannot confirm in the target's pane (the target is not live yet, the machine it
 //! runs on is unreachable, it sits on a dialog, or the TUI ate the Enter) is parked here, on the
-//! machine that sent it, instead of failing. `bn agent outbox --flush` (run by the tunnel watchdog
+//! machine that sent it, instead of failing. `workspan agent outbox --flush` (run by the tunnel watchdog
 //! every minute) sends each one again through the full path, relay included, and drops it only
-//! once delivery is confirmed. Nothing expires: `bn agent outbox` lists what is still waiting and
+//! once delivery is confirmed. Nothing expires: `workspan agent outbox` lists what is still waiting and
 //! why.
 //!
-//! Delivery is at-least-once. A submit bn could not confirm may have landed after all, so a retry
+//! Delivery is at-least-once. A submit workspan could not confirm may have landed after all, so a retry
 //! can repeat a message; a repeat is the price of never dropping one.
 
 use std::io::Write;
@@ -123,7 +123,7 @@ pub(crate) fn park(to: &str, from: &str, text: &str, why: &str) -> std::io::Resu
 
 /// The outcome of one retry: the `workspan agent msg` JSON envelope's `ok`, and its error message.
 fn retry(item: &Parked) -> (bool, String) {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     let out = std::process::Command::new(exe)
         .args(["agent", "msg", &item.to, "--from", &item.from, "--json", &item.text])
         .env(RETRY_ENV, "1")

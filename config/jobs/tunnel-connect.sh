@@ -1,10 +1,10 @@
 #!/bin/sh
 # tunnel-connect -- reach machines running tunnel-host over SSH, through their Dev Tunnels.
 #
-# Run on the machine you connect FROM:  bn run tunnel-connect
+# Run on the machine you connect FROM:  workspan run tunnel-connect
 # (or directly: sh tunnel-connect.sh [machine]). Pair: tunnel-host.sh on each target.
 #
-# With no machine named it connects to every bn host on the Dev Tunnels account (tunnels labelled
+# With no machine named it connects to every workspan host on the Dev Tunnels account (tunnels labelled
 # bn-host), except this machine. What it does, idempotently:
 #   1. picks this machine's SSH key: one already on the trusted GitHub account (see
 #      bn_tunnel_github_user), else ~/.ssh/bn_tunnel_ed25519, created and added to that account
@@ -14,7 +14,7 @@
 #      `bn-tunnels`, forwarding the host's SSH port (derived from its name, read from its tunnel)
 #      to the same port on 127.0.0.1 here;
 #   3. writes a managed `Host <machine>` block in ~/.ssh/config, so `ssh <machine>` and
-#      `bn connect <machine>` work.
+#      `workspan connect <machine>` work.
 # A host in local network mode (tunnel-host, bn.tunnelLan) that answers on its LAN address gets a
 # `Match ... exec` probe in front of its Host block: ssh goes straight to it on the same network
 # and through the tunnel everywhere else.
@@ -174,7 +174,7 @@ $IDS
 $end
 EOF
   cat "$tmp" > "$cfg"; rm -f "$tmp"
-  say "$to: ssh $to  (or: bn connect $to)"
+  say "$to: ssh $to  (or: workspan connect $to)"
 }
 
 listed=1
@@ -198,7 +198,7 @@ if [ "$found" = 0 ] && [ -n "$TO" ]; then
   [ -n "$id" ] || die "no tunnel for $TO. Run 'workspan run tunnel-host' on $TO first (same Dev Tunnels account)."
   connect_one "$id" "$TO"
 elif [ "$found" = 0 ] && [ "$listed" = 1 ]; then
-  say "no bn hosts on this Dev Tunnels account yet. Run 'bn run tunnel-host' on the machine to reach."
+  say "no workspan hosts on this Dev Tunnels account yet. Run 'workspan run tunnel-host' on the machine to reach."
 fi
 
 # A host gone from the account (it turned hosting off, or its tunnel was deleted) loses its Host

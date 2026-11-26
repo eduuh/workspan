@@ -4,12 +4,12 @@
 #
 # Run on the machine you connect FROM (needs the `Host <machine>` entry from tunnel-connect):
 #   sh remote-app.sh <machine> start|stop|status [repo]      (repo defaults to $BN_APP_REPO)
-# or via bn run: BN_TUNNEL_TO=<machine> BN_APP=start|stop|status bn run remote-app
+# or via workspan run: BN_TUNNEL_TO=<machine> BN_APP=start|stop|status workspan run remote-app
 #
 # start:
 #   1. leases a warm pool slot for <repo> on the host (branch `remote-app`; reused if it is already
 #      leased there) so the deps and build are already in place;
-#   2. runs the repo's `bn build start` (its start.sh) in window `app-<repo>` of the host's tmux
+#   2. runs the repo's `workspan build start` (its start.sh) in window `app-<repo>` of the host's tmux
 #      session `bn-jobs`, where it keeps running whatever the link does;
 #   3. waits until every port in BN_APP_PORTS listens on the host;
 #   4. forwards those ports to the SAME port numbers here, in window `app-<machine>` of the local
@@ -38,16 +38,16 @@ case "$REPO" in *[!A-Za-z0-9_.-]*) die "bad repo name '$REPO'" ;; esac
 for p in $PORTS; do case "$p" in *[!0-9]*|'') die "'$p' is not a port" ;; esac; done
 case "$WAIT" in ''|*[!0-9]*) die "BN_APP_WAIT_SECONDS must be a number" ;; esac
 
-# Remote commands get bn and node on PATH: our tunnel sshd runs without PAM, so a non-login ssh
+# Remote commands get workspan and node on PATH: our tunnel sshd runs without PAM, so a non-login ssh
 # command has neither ~/.local/bin nor nvm. node matters beyond the app: a repo post-checkout hook
-# may run node, and without it `git switch` exits non-zero and `bn wt pool get` reports a failed switch
+# may run node, and without it `git switch` exits non-zero and `workspan wt pool get` reports a failed switch
 # that actually succeeded.
 remote() { ssh -o BatchMode=yes -o ConnectTimeout=30 "$TO" "export PATH=\$HOME/.local/bin:\$PATH; [ -s \$HOME/.nvm/nvm.sh ] && . \$HOME/.nvm/nvm.sh >/dev/null 2>&1; $*"; }
 win="app-$REPO"
 fwd="app-$TO"
 
 # The slot this machine's app uses on the host: the one leased on branch remote-app, if any.
-slot_of() { remote "cd ~/projects/worktree/$REPO/_pool/1 2>/dev/null && bn wt pool status 2>/dev/null" | awk '/remote-app/ {gsub(/[][]/, "", $1); print $1; exit}'; }
+slot_of() { remote "cd ~/projects/worktree/$REPO/_pool/1 2>/dev/null && workspan wt pool status 2>/dev/null" | awk '/remote-app/ {gsub(/[][]/, "", $1); print $1; exit}'; }
 
 ports_up() { # every port listens on the host
   for p in $PORTS; do remote "ss -tln | grep -q '127.0.0.1:$p \|\*:$p \|\[::\]:$p \|0.0.0.0:$p '" || return 1; done
@@ -76,7 +76,7 @@ case "$ACTION" in
     remote "true" || die "cannot reach $TO (is tunnel-connect running?)"
     n=$(slot_of)
     if [ -z "$n" ]; then
-      path=$(remote "cd ~/projects/worktree/$REPO/_pool/1 && bn wt pool get remote-app --holder remote-app-$(hostname -s) --path 2>/dev/null" | tail -n 1)
+      path=$(remote "cd ~/projects/worktree/$REPO/_pool/1 && workspan wt pool get remote-app --holder remote-app-$(hostname -s) --path 2>/dev/null" | tail -n 1)
       [ -n "$path" ] && remote "test -d '$path'" || die "no warm $REPO slot could be leased on $TO"
       say "leased $path on $TO"
     else
@@ -86,7 +86,7 @@ case "$ACTION" in
     if remote "tmux list-windows -t bn-jobs -F '#W' 2>/dev/null | grep -qx '$win'"; then
       say "app already running in $TO bn-jobs:$win"
     else
-      remote "tmux has-session -t bn-jobs 2>/dev/null || tmux new-session -d -s bn-jobs; tmux new-window -d -t bn-jobs -n '$win' 'cd \"$path\" && PATH=\$HOME/.local/bin:\$PATH bn build start; echo \"--- app exited \$? ---\"; exec \$SHELL'" \
+      remote "tmux has-session -t bn-jobs 2>/dev/null || tmux new-session -d -s bn-jobs; tmux new-window -d -t bn-jobs -n '$win' 'cd \"$path\" && PATH=\$HOME/.local/bin:\$PATH workspan build start; echo \"--- app exited \$? ---\"; exec \$SHELL'" \
         || die "could not start the app window on $TO"
       say "starting the dev server in $TO bn-jobs:$win (logs: ssh $TO, tmux attach -t bn-jobs)"
     fi
@@ -103,7 +103,7 @@ case "$ACTION" in
   stop)
     remote "tmux kill-window -t 'bn-jobs:$win' 2>/dev/null" && say "stopped $TO bn-jobs:$win"
     n=$(slot_of)
-    [ -n "$n" ] && remote "cd ~/projects/worktree/$REPO/_pool/1 && bn wt pool return $n --force" >/dev/null 2>&1 && say "returned slot $n on $TO"
+    [ -n "$n" ] && remote "cd ~/projects/worktree/$REPO/_pool/1 && workspan wt pool return $n --force" >/dev/null 2>&1 && say "returned slot $n on $TO"
     . "$(dirname "$0")/lib/tunnel.sh"
     sess=$(bn_tunnel_session 2>/dev/null) && tmux kill-window -t "$sess:$fwd" 2>/dev/null && say "closed the local forward"
     ;;

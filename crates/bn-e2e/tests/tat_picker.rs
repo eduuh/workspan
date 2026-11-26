@@ -4,11 +4,11 @@
 test reports a failed expectation; the workspace-wide deny targets production code paths"
 )]
 
-//! The `bn tat` picker's hidden stages, run the way fzf runs them, against a sandboxed layout —
+//! The `workspan tat` picker's hidden stages, run the way fzf runs them, against a sandboxed layout —
 //! and **timed**, against a committed baseline.
 //!
 //! The picker is self-referencing: fzf's `start` reload, `--preview` and every key binding
-//! re-invoke `bn tat --pick-stage <s>`. The preview runs once per cursor move, so a regression
+//! re-invoke `workspan tat --pick-stage <s>`. The preview runs once per cursor move, so a regression
 //! there is felt on every keystroke — which is why this lane measures as well as asserts. Each
 //! stage is run three times and the best time kept (the min filters scheduler noise far better
 //! than a mean), then compared with `tat-timing.baseline` beside this crate's `Cargo.toml`:
@@ -60,7 +60,7 @@ impl Timings {
         let mut best: Option<(u128, Run)> = None;
         for _ in 0..REPS {
             let started = Instant::now();
-            let run = sb.bn(args)?;
+            let run = sb.workspan(args)?;
             let ms = started.elapsed().as_millis();
             if best.as_ref().is_none_or(|(b, _)| ms < *b) {
                 best = Some((ms, run));
@@ -90,7 +90,7 @@ fn read_baseline(path: &Path) -> BTreeMap<String, u128> {
 
 fn write_baseline(path: &Path, timings: &Timings) -> anyhow::Result<()> {
     let mut out = String::from(
-        "# `bn tat` stage timings, in milliseconds — the best of three runs of a debug build in the\n\
+        "# `workspan tat` stage timings, in milliseconds — the best of three runs of a debug build in the\n\
          # e2e sandbox (crates/bn-e2e/tests/tat_picker.rs). The lane fails when a stage exceeds\n\
          # its line × 2 (floor 120ms). Regenerate after a deliberate cost change and commit:\n\
          #   BN_E2E_TIMING_UPDATE=1 cargo test -p bn-e2e --test tat_picker -- --ignored --test-threads=1\n",
@@ -192,7 +192,7 @@ fn assert_says(run: &Run, what: &str) -> anyhow::Result<()> {
 
 /// Every read-only and guarded stage answers the way fzf expects, and within its time budget.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
     require_tmux!();
     let (sb, _bare, _worktree) = picker_sandbox()?;
@@ -283,7 +283,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         ],
     )?;
     assert_says(&refused, "window row can't be removed")?;
-    let main = sb.bn([
+    let main = sb.workspan([
         "tat",
         "repo",
         "--pick-stage",
@@ -292,7 +292,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         "worktree~main",
     ])?;
     assert_says(&main, "main checkout")?;
-    let gone = sb.bn([
+    let gone = sb.workspan([
         "tat",
         "repo",
         "--pick-stage",
@@ -301,7 +301,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         "worktree~zz",
     ])?;
     assert_says(&gone, "already gone")?;
-    let rel = sb.bn([
+    let rel = sb.workspan([
         "tat",
         "repo",
         "--pick-stage",
@@ -310,7 +310,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         "worktree~x",
     ])?;
     assert_says(&rel, "focus a leased")?;
-    let rel = sb.bn([
+    let rel = sb.workspan([
         "tat",
         "repo",
         "--pick-stage",
@@ -319,7 +319,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         "poolbranch~zz",
     ])?;
     assert_says(&rel, "no leased slot")?;
-    let cmd = sb.bn([
+    let cmd = sb.workspan([
         "tat",
         "repo",
         "--pick-stage",
@@ -328,7 +328,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         &window_arg,
     ])?;
     assert_says(&cmd, "act on a command row")?;
-    let cmd = sb.bn([
+    let cmd = sb.workspan([
         "tat",
         "repo",
         "--pick-stage",
@@ -337,7 +337,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         "cmdsep~",
     ])?;
     assert_says(&cmd, "separator")?;
-    let cmd = sb.bn([
+    let cmd = sb.workspan([
         "tat",
         "repo",
         "--pick-stage",
@@ -346,7 +346,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
         "cmd~zz",
     ])?;
     assert_says(&cmd, "no such command")?;
-    let warm = sb.bn(["tat", "repo@win", "--pick-stage", "warmpool"])?;
+    let warm = sb.workspan(["tat", "repo@win", "--pick-stage", "warmpool"])?;
     assert_says(&warm, "cold path")?;
 
     // A direct open of a name that is no project says so and creates nothing.
@@ -377,7 +377,7 @@ fn tat_stages_answer_and_stay_within_budget() -> anyhow::Result<()> {
 
 /// ctrl-d on an idle worktree: refused while dirty, removed once clean.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn tat_ctrl_d_refuses_a_dirty_worktree_and_removes_a_clean_one() -> anyhow::Result<()> {
     require_tmux!();
     let (sb, _bare, worktree) = picker_sandbox()?;
@@ -391,19 +391,19 @@ fn tat_ctrl_d_refuses_a_dirty_worktree_and_removes_a_clean_one() -> anyhow::Resu
     ];
 
     std::fs::write(worktree.join("scratch.txt"), "dirty\n")?;
-    let dirty = sb.bn(args)?;
+    let dirty = sb.workspan(args)?;
     assert_says(&dirty, "uncommitted change")?;
     assert!(worktree.is_dir(), "a dirty worktree must survive ctrl-d");
 
     std::fs::remove_file(worktree.join("scratch.txt"))?;
-    let clean = sb.bn(args)?;
+    let clean = sb.workspan(args)?;
     assert_says(&clean, "✓ removed repo/feature-a")?;
     assert!(
         !worktree.exists(),
         "a clean worktree should be gone after ctrl-d"
     );
     assert!(
-        !sb.bn(["tat", "repo", "--pick-stage", "sublist"])?
+        !sb.workspan(["tat", "repo", "--pick-stage", "sublist"])?
             .stdout
             .contains("worktree|feature-a|"),
         "the reload feed must not list the removed worktree"

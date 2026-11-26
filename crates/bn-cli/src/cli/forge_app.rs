@@ -1,8 +1,8 @@
-//! `bn forge`: the Forge app (forge.wira360.com) as bn's task store, plus the local per-agent
-//! worker bridge (list/claim/dispatch/tick) that runs claimed tasks through `bn dispatch`.
+//! `workspan forge`: the Forge app (forge.wira360.com) as bn's task store, plus the local per-agent
+//! worker bridge (list/claim/dispatch/tick) that runs claimed tasks through `workspan dispatch`.
 //!
 //! Named `forge_app` in code because `bn_core::forge` is the unrelated git-host abstraction. Both
-//! halves share the one `bn forge` word: [`ForgeAppCmd::Login`]/[`ForgeAppCmd::Status`]/
+//! halves share the one `workspan forge` word: [`ForgeAppCmd::Login`]/[`ForgeAppCmd::Status`]/
 //! [`ForgeAppCmd::Sweep`] administer the family-wide app, and the rest drive one local agent
 //! profile's claims — see [`crate::cmd::forge`] for the worker logic itself.
 use crate::*;

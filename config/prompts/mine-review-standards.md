@@ -35,7 +35,7 @@ task goal — it names the target repo, the ADO source repo, and the reference d
    printf 'Private corpus path: %s\n' "$corpus"
    # optional: --org <org|url> --project <project>   # default to your `az devops configure`
    ```
-   The script ships in workspan's repo, which `~/.bn/config/repo` links to (`config/scripts/` from a bn
+   The script ships in workspan's repo, which `~/.bn/config/repo` links to (`config/scripts/` from a workspan
    checkout). A larger corpus makes a stronger standard. If it exits non-zero (no `az`, not
    logged in, unresolved org/project, unknown repo), **STOP and report exactly what failed and
    how to fix it** — never invent standards from nothing.
