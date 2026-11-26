@@ -411,3 +411,32 @@ fn tat_ctrl_d_refuses_a_dirty_worktree_and_removes_a_clean_one() -> anyhow::Resu
 
     sb.assert_host_untouched()
 }
+
+/// A bare repo's `main` window is the main slot: reachable by typing "main", never a listed row.
+#[test]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
+fn tat_sublist_hides_the_main_window_of_a_bare_repo() -> anyhow::Result<()> {
+    require_tmux!();
+    let (sb, _bare, _worktree) = picker_sandbox()?;
+    sb.tmux(&["new-window", "-d", "-t", "repo:", "-n", "main"])?;
+    sb.tmux(&["new-window", "-d", "-t", "repo:", "-n", "feature-b"])?;
+
+    let sublist = sb.workspan(["tat", "repo", "--pick-stage", "sublist"])?;
+    let windows: Vec<&str> = sublist
+        .stdout
+        .lines()
+        .filter(|l| l.starts_with("window|"))
+        .collect();
+    assert!(
+        windows.iter().any(|l| l.contains(": feature-b ")),
+        "other windows stay listed, got:\n{}",
+        sublist.stdout
+    );
+    assert!(
+        !windows.iter().any(|l| l.contains(": main ")),
+        "the main window must not be listed, got:\n{}",
+        sublist.stdout
+    );
+
+    sb.assert_host_untouched()
+}

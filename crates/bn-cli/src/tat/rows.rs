@@ -161,6 +161,11 @@ pub(super) fn build_sub_rows(
             }
             let f = split7(line);
             open_windows.push(f[1].to_string());
+            // A bare repo's `main` window is the main slot, and main is not a row you pick: typing
+            // "main" (or picking the repo) lands there. It still counts as an open window.
+            if bare && crate::main_slot::is_main_selection(f[1]) {
+                continue;
+            }
             let marker = if f[3] == "1" { "*" } else { "" };
             // A live-agent status dot in front of the window row (#457): green ● working, yellow ●
             // waiting-on-you, dim ◌ idle, blank when no agent runs there.
