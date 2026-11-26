@@ -1,4 +1,4 @@
-//! `bn cron` — the scheduled side of bn: what fires on its own, when it last ran, and how to take
+//! `workspan cron` — the scheduled side of bn: what fires on its own, when it last ran, and how to take
 //! a job out of service.
 //!
 //! Crons are headless. A job never opens a tmux window or steals focus, so its outcome lives in

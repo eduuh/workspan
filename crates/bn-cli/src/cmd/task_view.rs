@@ -1,4 +1,4 @@
-//! Which rows a `bn task` listing shows, and in what order.
+//! Which rows a `workspan task` listing shows, and in what order.
 //!
 //! Split out of `cmd/task.rs` (which is at the 1000-line limit) because it is one coherent thing:
 //! the *view* semantics, as pure functions over a parsed store. `emit_task_list` renders whatever

@@ -1,4 +1,4 @@
-//! Attention snapshot cache — the prefix-J doctor picker (`bn doctor --pick`) recomputes the whole
+//! Attention snapshot cache — the prefix-J doctor picker (`workspan doctor --pick`) recomputes the whole
 //! finding list on every open *and* on every in-popup action-reload, and `note_findings` makes that
 //! I/O-heavy (one `store::read` YAML parse per branch note — hundreds on a busy machine, seconds of
 //! wall time). This mirrors the `next` attention cache: a short-lived on-disk snapshot of the

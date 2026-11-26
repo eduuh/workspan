@@ -1,13 +1,13 @@
 //! The one-time move of a machine's old `config.toml` into the notes tree.
 //!
-//! bn used to read a single `<config_dir>/config.toml` that each machine kept for itself, and that
+//! workspan used to read a single `<config_dir>/config.toml` that each machine kept for itself, and that
 //! named machines in `[machines.<name>]` tables. Settings now live in the synced notes tree: a
 //! shared `<notes_root>/config.toml`, plus `<notes_root>/<machine>/config.toml` for what one machine
-//! does differently. The first `bn` after the upgrade moves the old file across, keeps it as a
+//! does differently. The first `workspan` after the upgrade moves the old file across, keeps it as a
 //! backup and says what moved, so nobody has to remember a migration step.
 //!
 //! It runs once per machine because it starts by renaming the old file out of the way: a second
-//! run, or a second `bn` racing the first, finds nothing to move.
+//! run, or a second `workspan` racing the first, finds nothing to move.
 
 use crate::resolver;
 use std::path::{Path, PathBuf};
@@ -179,7 +179,7 @@ pub fn migrate_text(text: &str, root: &Path, work_repos_file: &Path) -> Report {
     if !machine_layer.is_empty() {
         let header = format!(
             "# workspan settings for {machine} only. A key here overrides the shared ../config.toml,\n\
-             # and bn records this machine's own choices here.\n\n"
+             # and workspan records this machine's own choices here.\n\n"
         );
         match write_layer(&machine_path, &header, &machine_layer) {
             Ok(()) => report.machine = Some(machine_path),
@@ -393,7 +393,7 @@ fn difference(candidate: toml::Table, existing: &toml::Table) -> toml::Table {
     out
 }
 
-/// Rename the old file to its backup, which is also the lock: `None` when another `bn` got there
+/// Rename the old file to its backup, which is also the lock: `None` when another `workspan` got there
 /// first, or when the rename cannot be done and it is safer to leave everything alone.
 fn claim(legacy: &Path) -> Option<PathBuf> {
     let mut backup = legacy.with_file_name("config.toml.bak");

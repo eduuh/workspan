@@ -1,10 +1,10 @@
-//! The meetings cache — a normalized, offline snapshot of today's calendar, so `bn gap` and
-//! `bn next --fit` can size work against the time until your next meeting *without* a live network
+//! The meetings cache — a normalized, offline snapshot of today's calendar, so `workspan gap` and
+//! `workspan next --fit` can size work against the time until your next meeting *without* a live network
 //! call or reaching into [`jobs/meetings.sh`](../../../jobs/meetings.sh) internals (#247). The
 //! `meetings` cron already fetches the day's calendar via WorkIQ and fans it out to the feed +
-//! attention list; here it *also* pipes the same events through `bn gap ingest`, which stamps them
+//! attention list; here it *also* pipes the same events through `workspan gap ingest`, which stamps them
 //! into one documented file (`state_dir()/meetings.json`). North star, same as [`crate::feed`]: the
-//! script fetches, bn renders — nothing in this module touches the network.
+//! script fetches, workspan renders — nothing in this module touches the network.
 //!
 //! Read path: [`current_gap`] returns the earliest event still ahead of `now`, gated by a
 //! freshness window ([`CACHE_MAX_AGE_SECS`]) so a prior working session's cache reads as no data —

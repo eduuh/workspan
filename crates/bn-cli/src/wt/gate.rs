@@ -1,4 +1,4 @@
-//! The no-mistake pre-land gate: `bn gate` and the [`gate_head`] core `bn wt merge` blocks on.
+//! The no-mistake pre-land gate: `workspan gate` and the [`gate_head`] core `workspan wt merge` blocks on.
 //! Split out of [`super::merge`] under the never-grow ratchet.
 
 use super::*;
@@ -219,23 +219,23 @@ pub(crate) fn cmd_gate(
     let wt_path = cwd();
     let wt_s = wt_path.to_string_lossy().to_string();
     let Some(bare) = find_bare_repo(&wt_path) else {
-        ceprintln!("{RED}bn gate: not inside a worktree{NC}");
+        ceprintln!("{RED}workspan gate: not inside a worktree{NC}");
         return false;
     };
     let Some(branch) = git_out(&["-C", &wt_s, "branch", "--show-current"]) else {
-        ceprintln!("{RED}bn gate: could not determine current branch{NC}");
+        ceprintln!("{RED}workspan gate: could not determine current branch{NC}");
         return false;
     };
     if bn_core::agent::is_reserved_branch(&branch) {
-        ceprintln!("{RED}bn gate: refusing to gate '{branch}' — gate a feature branch{NC}");
+        ceprintln!("{RED}workspan gate: refusing to gate '{branch}' — gate a feature branch{NC}");
         return false;
     }
     let Ok(ctx) = resolver::resolve(cfg, &wt_path) else {
-        ceprintln!("{RED}bn gate: not in a git repo{NC}");
+        ceprintln!("{RED}workspan gate: not in a git repo{NC}");
         return false;
     };
     let Some(head_sha) = git_out(&["-C", &wt_s, "rev-parse", "HEAD"]) else {
-        ceprintln!("{RED}bn gate: could not resolve HEAD{NC}");
+        ceprintln!("{RED}workspan gate: could not resolve HEAD{NC}");
         return false;
     };
     let log = crate::cmd::verify::GateLog::default();

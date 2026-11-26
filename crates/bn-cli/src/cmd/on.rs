@@ -1,4 +1,4 @@
-//! `bn on` — the CLI over [`bn_core::reactor`]: manage rules, and run the reactor pass.
+//! `workspan on` — the CLI over [`bn_core::reactor`]: manage rules, and run the reactor pass.
 use crate::*;
 use bn_core::reactor::{self, Firing, Rule};
 use std::collections::BTreeMap;
@@ -263,7 +263,7 @@ fn test(kind: &str, raw_fields: &[String], json: bool) -> i32 {
     for (k, v) in &fields {
         map.insert(k.clone(), serde_json::Value::String(v.clone()));
     }
-    // Stamped now so it is newer than every rule; `bn on test` asks "does this rule match this
+    // Stamped now so it is newer than every rule; `workspan on test` asks "does this rule match this
     // shape", not "would it have matched last week".
     let event = bn_core::events::Event {
         kind: kind.to_string(),

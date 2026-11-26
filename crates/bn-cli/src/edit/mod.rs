@@ -1,4 +1,4 @@
-//! `bn edit` — the per-worktree nvim: create it, park it, restore it, find it.
+//! `workspan edit` — the per-worktree nvim: create it, park it, restore it, find it.
 //!
 //! Replaces the disposable `prefix e` popup (`display-popup -E 'nvim .'`), where nvim was a direct
 //! child of the popup and the only way out was quitting it. Here the editor is a real pane that

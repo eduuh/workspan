@@ -91,7 +91,7 @@ pub(crate) enum CmdAutomation {
     /// job (config/jobs/tunnels.sh); reads only.
     Tunnels,
     /// GitHub Codespaces as ssh hosts. `workspan cs connect <codespace>` writes a managed
-    /// `# >>> workspan codespace <alias> >>>` block (from `gh cs ssh --config`, renamed to `cs-<word>`,
+    /// `# >>> bn codespace <alias> >>>` block (from `gh cs ssh --config`, renamed to `cs-<word>`,
     /// with connection reuse) into ~/.ssh/config, so `ssh <alias>`, `workspan connect` and
     /// `workspan agent launch --host` reach it; `workspan tunnels` lists it. Never wakes a stopped codespace.
     Cs {

@@ -1,9 +1,9 @@
 //! `workspan agent run` — launch a catalog agent or workflow skill by name, seeded with an instruction.
 //!
-//! bn could already list what it supports (`bn agents list`) and could already launch a harness
+//! workspan could already list what it supports (`workspan agents list`) and could already launch a harness
 //! with a prompt (`workspan agent launch --seed`), but nothing joined the two: picking an agent by name
 //! and starting it meant rendering the body yourself, or reaching for one of the bespoke launchers
-//! (`workspan control start --agent`, `bn today agent start`) that each re-implemented the same
+//! (`workspan control start --agent`, `workspan today agent start`) that each re-implemented the same
 //! render → write seed → launch dance. This is that dance, once.
 //!
 //! The name resolves through [`bn_core::launchable`], so agents and skills share one namespace —
@@ -134,8 +134,8 @@ fn pick(
         .map(|s| format!(" --pick-source {}", s.label()))
         .unwrap_or_default();
 
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::wt::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::wt::shq(&exe.display().to_string());
     let header = format!(
         "{} {} · ↵ run · esc cancel",
         rows.len(),
@@ -148,16 +148,16 @@ fn pick(
         .arg("--delimiter=\t")
         .arg("--with-nth=1")
         .arg(format!(
-            "--preview={bn} agent run --pick-stage preview{filter} {{2}}"
+            "--preview={workspan} agent run --pick-stage preview{filter} {{2}}"
         ))
-        // Adaptive: a side-by-side preview needs room, and bn panes are routinely half a screen.
+        // Adaptive: a side-by-side preview needs room, and workspan panes are routinely half a screen.
         // Under 100 columns fzf drops the preview below the list instead of squeezing both into
         // unreadable ribbons — measured at 27 columns, where the fixed layout wrapped every row
         // to two characters.
         .arg("--preview-window=right,55%,wrap,<100(down,60%)")
         .arg(format!("--header={header}"))
         .arg(format!(
-            "--bind=ctrl-r:reload({bn} agent run --pick-stage list{filter})"
+            "--bind=ctrl-r:reload({workspan} agent run --pick-stage list{filter})"
         ))
         .stdin(Stdio::piped())
         .stdout(Stdio::piped())

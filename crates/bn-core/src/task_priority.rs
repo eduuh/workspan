@@ -1,7 +1,7 @@
 //! Deterministic task prioritization and data packets.
 //!
 //! A pure-LLM ranking is reinvented every run: ask twice, get two different orders, and the list
-//! you trusted yesterday means nothing today. So [`pre_score`] is ordinary Rust over signals bn
+//! you trusted yesterday means nothing today. So [`pre_score`] is ordinary Rust over signals workspan
 //! already has. Agent identity, instructions, and policy live only in `config/agents/*.md`; this
 //! module serializes application data without interpreting it.
 

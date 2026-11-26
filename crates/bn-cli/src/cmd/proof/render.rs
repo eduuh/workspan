@@ -1,4 +1,4 @@
-//! Human rendering for `bn proof`.
+//! Human rendering for `workspan proof`.
 
 use bn_core::proof::{ItemState, Listing, Proof, Readiness, Verdict};
 

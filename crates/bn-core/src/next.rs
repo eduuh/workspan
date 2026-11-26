@@ -1,4 +1,4 @@
-//! `bn next` — the "what do I do now?" engine. [`doctor`](crate::doctor) answers *what's wrong*;
+//! `workspan next` — the "what do I do now?" engine. [`doctor`](crate::doctor) answers *what's wrong*;
 //! this answers *what to act on next*, folding every already-captured, offline signal into one
 //! ranked action list: failing cron jobs and raised attention items (broken / flagged), PRs
 //! awaiting your review (others blocked on you), your own in-flight PRs going stale (chase them),
@@ -231,7 +231,7 @@ fn kind_for_attn_source(source: &str) -> ActionKind {
         "meetings" => ActionKind::Meeting,
         "email" => ActionKind::Email,
         "teams" => ActionKind::Mention,
-        // A finished autonomous review (`bn review-pr`) is a PR sitting on your decision —
+        // A finished autonomous review (`workspan review-pr`) is a PR sitting on your decision —
         // route it like an incoming review so it lands in WAITING ON YOU, not the backlog.
         "auto-review" => ActionKind::Review,
         _ => ActionKind::Attn,
@@ -565,7 +565,7 @@ fn from_wip(cfg: &Config, now: i64, today: &str) -> Vec<Action> {
 /// Cron failures, raised attn items, and *blocked* notes from the attention list. Stale/no-goal
 /// note hygiene stays in `workspan doctor` — it isn't a "do this next" action, so it's dropped here.
 fn from_doctor(cfg: &Config, today: &str) -> Vec<Action> {
-    // Repo todos are surfaced by `bn doctor`, not here — `bn next` is the curated do-this-next
+    // Repo todos are surfaced by `workspan doctor`, not here — `workspan next` is the curated do-this-next
     // list and already drops pure note hygiene, so pass no repo (Finding::Todo never arises).
     doctor::doctor(cfg, today, i64::MAX, None)
         .into_iter()
@@ -635,13 +635,13 @@ fn from_doctor(cfg: &Config, today: &str) -> Vec<Action> {
             Finding::Workspace(_) => None,
             // Not produced here (repo=None above); doctor owns repo-todo surfacing.
             Finding::Todo(_) => None,
-            // Lingering captures are hygiene, not a next action — doctor nags, `bn q drain` fixes.
+            // Lingering captures are hygiene, not a next action — doctor nags, `workspan q drain` fixes.
             Finding::Inbox(_) => None,
             // Not produced here (repo=None above); doctor owns MCP-resolvability nags.
             Finding::Mcp(_) => None,
             // Neither staff health signal is a curated "do this next" task: a missed scheduled run
-            // A cross-machine notes leak is a machine-setup misconfig surfaced by `bn doctor`, not
-            // a per-repo task — keep it off the `bn next` action list. Inactive shell wrappers are
+            // A cross-machine notes leak is a machine-setup misconfig surfaced by `workspan doctor`, not
+            // a per-repo task — keep it off the `workspan next` action list. Inactive shell wrappers are
             // the same shape of problem: your shell's setup, not the next piece of work.
             Finding::NotesLeak(_) | Finding::ShellInit(_) | Finding::Setup(_) => None,
         })

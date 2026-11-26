@@ -8,7 +8,7 @@
 //!
 //! # The two surfaces
 //!
-//! bn writes coloured text to two destinations, and they do **not** share a colour rule:
+//! workspan writes coloured text to two destinations, and they do **not** share a colour rule:
 //!
 //! | surface | destination | painter |
 //! | ------- | ----------- | ------- |
@@ -16,7 +16,7 @@
 //! | fzf     | `fzf`'s stdin, rendered by `fzf --ansi` | [`Ink::always`] — never gated |
 //!
 //! The distinction matters because [`enabled`] asks whether *bn's own stdout* is a terminal, and
-//! the strings bn feeds to `fzf` never are — they go down a pipe that `fzf` then renders on bn's
+//! the strings workspan feeds to `fzf` never are — they go down a pipe that `fzf` then renders on bn's
 //! behalf. Gating those on [`enabled`] would strip exactly the escapes `--ansi` was passed to
 //! interpret, so the fzf row builders take an explicit [`Ink::always`].
 //!
@@ -47,8 +47,8 @@
 //! | `TERM=dumb`                  | off                                           |
 //! | stdout is not a TTY          | off — the pipe/redirect case                  |
 //!
-//! That last row is the one that matters day to day: before this module existed bn wrote escapes
-//! unconditionally, so `bn attn > today.txt` and `bn doctor | grep urgent` both embedded raw
+//! That last row is the one that matters day to day: before this module existed workspan wrote escapes
+//! unconditionally, so `workspan attn > today.txt` and `workspan doctor | grep urgent` both embedded raw
 //! `\x1b[2m` in their output. Anything that renders for a *file* rather than a terminal — the JSON
 //! envelope, note markdown, brag docs — must not call into here at all; see the surface rule in
 //! [`crate::glyph`].
@@ -528,7 +528,7 @@ mod tests {
     fn strip_leaves_plain_text_and_cursor_control_alone() {
         assert_eq!(strip("no escapes here"), "no escapes here");
         assert_eq!(strip(""), "");
-        // Clear-screen + cursor-home is control, not styling: `bn orchestrate`'s dashboard repaint
+        // Clear-screen + cursor-home is control, not styling: `workspan orchestrate`'s dashboard repaint
         // depends on it surviving.
         assert_eq!(strip("\x1b[2J\x1b[Hframe"), "\x1b[2J\x1b[Hframe");
         // A lone ESC, and a truncated sequence, must not eat the rest of the line.

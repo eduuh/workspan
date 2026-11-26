@@ -4,7 +4,7 @@
 //! `pbcopy`. Everything is best-effort — a missing backend or a failed call is swallowed, exactly
 //! like the `… || true` shell idiom.
 //!
-//! The raw backend is **deliberately not public**. Every desktop toast in `bn` goes through
+//! The raw backend is **deliberately not public**. Every desktop toast in `workspan` goes through
 //! [`policy::deliver`], which decides whether the interruption is warranted (class bar, quiet
 //! windows, dedup, cooldown, daily budget) before [`emit`] ever runs. Keeping [`emit`]
 //! `pub(crate)` means `bn-cli` cannot reach around the gate: the chokepoint is enforced by

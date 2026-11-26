@@ -1,9 +1,9 @@
-//! `bn attn badge` — the attention lanes, as one status fragment.
+//! `workspan attn badge` — the attention lanes, as one status fragment.
 //!
 //! Its own module rather than a section of `cmd/attn.rs`, which sits on the 1000-line ratchet's
 //! grandfathered list and may not gain a line (`.file-size-baseline`). Splitting it out is also
 //! honest about what it became: no longer a status-bar-only renderer, but the one assembly of
-//! "everything that wants you" shared by the `bn attn badge` command and `bn tat`'s header (#1349).
+//! "everything that wants you" shared by the `workspan attn badge` command and `workspan tat`'s header (#1349).
 use crate::*;
 
 /// Styled status-bar fragment for attention: ONE number — the total of everything that wants

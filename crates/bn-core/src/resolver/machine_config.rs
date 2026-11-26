@@ -205,7 +205,7 @@ mod tests {
         std::fs::write(&malformed, "[machine\ncron = false").expect("write malformed");
         let _hostname = EnvGuard::set("BN_HOSTNAME", "broken");
 
-        // A file bn cannot read says nothing, so every service stays on and nothing already
+        // A file workspan cannot read says nothing, so every service stays on and nothing already
         // installed is uninstalled on its account.
         for path in [malformed, temp.path().join("missing.toml")] {
             let _config = EnvGuard::set("BN_CONFIG", &path);

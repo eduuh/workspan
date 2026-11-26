@@ -1,11 +1,11 @@
 //! The MCP server: commands, references and durable links, plus workflow prompts from every skill
 //! tier. Deliberately narrower than the CLI: cross-branch, whole-person, and explicit repo/branch
-//! targeting stay in `bn` so an MCP-connected agent cannot discover or act on unrelated sessions.
+//! targeting stay in `workspan` so an MCP-connected agent cannot discover or act on unrelated sessions.
 //!
 //! The *tool* surface is what enforces that narrowness. Prompts are inert text — serving one only
 //! puts a workflow's instructions in front of the agent, and every action it then takes still goes
 //! through the same scoped tools. So the prompt list is not a security boundary and is no longer
-//! filtered: an allowlist here only hid skills from discovery while `bn skills` listed them all.
+//! filtered: an allowlist here only hid skills from discovery while `workspan skills` listed them all.
 
 use std::path::PathBuf;
 
@@ -159,10 +159,10 @@ impl BnServer {
     }
 
     #[tool(
-        name = "bn_links_search",
-        description = "Search the person-scoped link store before asking the user for a URL they have likely saved. Matches words against each link's name, tags and URL; this repo's links rank first. Read-only, and like bn_links_add it works even when no branch resolves."
+        name = "workspan_links_search",
+        description = "Search the person-scoped link store before asking the user for a URL they have likely saved. Matches words against each link's name, tags and URL; this repo's links rank first. Read-only, and like workspan_links_add it works even when no branch resolves."
     )]
-    async fn bn_links_search(
+    async fn workspan_links_search(
         &self,
         Parameters(a): Parameters<LinksSearchArgs>,
     ) -> Result<CallToolResult, ErrorData> {
@@ -180,10 +180,10 @@ impl BnServer {
     }
 
     #[tool(
-        name = "bn_links_add",
-        description = "Store one deliberately curated link. First use bn_links_search with the proposed category and a purpose query. Add only when the link is important, repeatedly useful, expensive to rediscover, and fills a gap no saved link already covers. A configured category is required; optional tags refine it. Do not save routine PRs, work items, review comments, search results, or every URL seen in a session. Re-adding the same page updates it in place; URL fragments do not create duplicates."
+        name = "workspan_links_add",
+        description = "Store one deliberately curated link. First use workspan_links_search with the proposed category and a purpose query. Add only when the link is important, repeatedly useful, expensive to rediscover, and fills a gap no saved link already covers. A configured category is required; optional tags refine it. Do not save routine PRs, work items, review comments, search results, or every URL seen in a session. Re-adding the same page updates it in place; URL fragments do not create duplicates."
     )]
-    async fn bn_links_add(
+    async fn workspan_links_add(
         &self,
         Parameters(a): Parameters<LinksAddArgs>,
     ) -> Result<CallToolResult, ErrorData> {
@@ -246,10 +246,10 @@ impl BnServer {
     }
 
     #[tool(
-        name = "bn_ref",
+        name = "workspan_ref",
         description = "Reference docs: this repo's reference notes (what past sessions discovered about it -- how it builds, where the seams are, which failures mislead) and my global coding standards. Call with no name FIRST to get the index -- every note's name and one-line summary, a cheap call -- then call again with a name to read the one document that bears on your task. Prefer this over re-deriving repo knowledge from the code."
     )]
-    async fn bn_ref(
+    async fn workspan_ref(
         &self,
         Parameters(a): Parameters<RefArgs>,
     ) -> Result<CallToolResult, ErrorData> {
@@ -304,7 +304,7 @@ impl BnServer {
             }
             return Err(ErrorData::invalid_params(
                 format!(
-                    "no reference matches '{name}' -- call bn_ref with no name to see what exists"
+                    "no reference matches '{name}' -- call workspan_ref with no name to see what exists"
                 ),
                 None,
             ));
@@ -334,10 +334,10 @@ impl BnServer {
     }
 
     #[tool(
-        name = "bn_cmd",
+        name = "workspan_cmd",
         description = "The user's own commands: shell scripts (`cmds/<name>.sh`) wrapping something they do over and over, such as opening a tmux window. Call with no name to list them (name, scope, description, usage). Call with a name and args to run one in this worktree; returns exit_code, stdout and stderr. Prefer a listed command over re-deriving the same steps by hand. Resolved branch -> project -> repo -> global; global commands work even when no branch resolves."
     )]
-    async fn bn_cmd(
+    async fn workspan_cmd(
         &self,
         Parameters(a): Parameters<CmdArgs>,
     ) -> Result<CallToolResult, ErrorData> {
@@ -350,7 +350,7 @@ impl BnServer {
         };
         let Some(cmd) = cmds::find(&self.cfg, ctx.as_ref(), &name) else {
             return Err(ErrorData::invalid_params(
-                format!("no command '{name}' -- call bn_cmd with no name to list them"),
+                format!("no command '{name}' -- call workspan_cmd with no name to list them"),
                 None,
             ));
         };
@@ -377,10 +377,10 @@ impl BnServer {
     }
 
     #[tool(
-        name = "bn_ref_append",
+        name = "workspan_ref_append",
         description = "Record ONE durable fact in this repo's reference notes, as a bullet under a section (facts by default, or gotchas). Use it the moment you learn something that will still be true next month and would save the next session time -- a root cause, a build gotcha, where a subsystem actually lives. Creates the note if it doesn't exist. Include where the fact came from and today's date in the text. Returns appended:false when that exact fact is already recorded. Task-specific context belongs in workspan task doc, not here."
     )]
-    async fn bn_ref_append(
+    async fn workspan_ref_append(
         &self,
         Parameters(a): Parameters<RefAppendArgs>,
     ) -> Result<CallToolResult, ErrorData> {
@@ -414,14 +414,14 @@ impl ServerHandler for BnServer {
                 .enable_prompts()
                 .build(),
         )
-        .with_server_info(Implementation::new("bn-mcp", env!("CARGO_PKG_VERSION")))
+        .with_server_info(Implementation::new("workspan-mcp", env!("CARGO_PKG_VERSION")))
         .with_instructions(
             "Workspan serves repo references, curated links, user commands and workflow prompts. \
              Use workspan task doc/task do for task context and execution, workspan plan status/path \
              for plan artifacts, and workspan pipeline for execution state. Entire owns session history. \
-             Read bn_ref without a name for the reference index; append only durable repo facts. \
-             Search bn_links_search before adding an important, repeatedly useful link with bn_links_add. \
-             bn_cmd lists and runs configured commands."
+             Read workspan_ref without a name for the reference index; append only durable repo facts. \
+             Search workspan_links_search before adding an important, repeatedly useful link with workspan_links_add. \
+             workspan_cmd lists and runs configured commands."
                 .to_string(),
         )
     }

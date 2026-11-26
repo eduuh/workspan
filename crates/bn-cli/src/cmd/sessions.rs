@@ -1,4 +1,4 @@
-//! `bn sessions` — the persistent cross-repo agent-session registry.
+//! `workspan sessions` — the persistent cross-repo agent-session registry.
 
 use crate::*;
 
@@ -112,7 +112,7 @@ fn off_limits(worktree: &std::path::Path) -> Option<String> {
     bn_core::agent::is_within_main_worktree(&canonical).then(|| {
         format!(
             "{} is in the main worktree — it hosts no agents and stays clean. \
-             Dispatch the work into a pool slot instead: bn dispatch \"<what you're doing>\"",
+             Dispatch the work into a pool slot instead: workspan dispatch \"<what you're doing>\"",
             canonical.display()
         )
     })
@@ -276,7 +276,7 @@ fn launch_recorded_session(row: &bn_core::agent::SessionRecord, json: bool, comm
 /// `resume_fleet::launch_command`, which has always gated on the same evidence.
 fn agent_launch_command(harness: &str, session_id: &str, resuming: bool) -> String {
     let exe = std::env::current_exe()
-        .unwrap_or_else(|_| std::path::PathBuf::from("bn"))
+        .unwrap_or_else(|_| std::path::PathBuf::from("workspan"))
         .to_string_lossy()
         .into_owned();
     let mut command = format!(
@@ -309,7 +309,7 @@ fn launch_fresh_session(cfg: &Config, worktree: &std::path::Path, json: bool, co
     let task_name = bn_core::agent::derive_task_name(None, &ctx.branch);
     let worktree_text = worktree.to_string_lossy().into_owned();
     // The machine's configured harness, not a hardcoded `copilot`. Every other launcher already
-    // asks `preferred_harness`; this one didn't, so a Claude user who ran `bn resume` in a worktree
+    // asks `preferred_harness`; this one didn't, so a Claude user who ran `workspan resume` in a worktree
     // with nothing recorded was dropped into Copilot without being told why.
     let harness = bn_core::harness::preferred_harness(cfg);
     bn_core::cost::attribute_session(bn_core::cost::SessionLaunch {
@@ -387,7 +387,7 @@ pub(crate) fn resume_registered_session(
         .unwrap_or_default();
     // The checkout alone does not identify the work. A pool slot hosts a different branch every
     // few hours, so `…/_pool/2` matched on path only would resume whatever branch held the slot
-    // last. An explicit `bn resume <id>` needs no branch — the caller named the session.
+    // last. An explicit `workspan resume <id>` needs no branch — the caller named the session.
     let branch = worktree
         .as_deref()
         .and_then(|path| resolver::resolve(cfg, path).ok())

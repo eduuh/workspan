@@ -1,11 +1,11 @@
 //! Unified token-usage + **$ cost** accounting across *all* agent work (issue #381).
 //!
-//! Today usage is fragmented: `bn agent live` shows live tokens for currently-running dispatched
-//! agents (no $, no history) and `bn staff cost` shows a monthly $ ledger for **only** the #266
+//! Today usage is fragmented: `workspan agent live` shows live tokens for currently-running dispatched
+//! agents (no $, no history) and `workspan staff cost` shows a monthly $ ledger for **only** the #266
 //! staff-cron agents. This module is the one accounting surface that unifies them, categorized by
 //! **work-class** (who launched the run) and reported in **two clearly-labeled cost units**:
 //!
-//! * **AIC** (AI Credits) — the *real* Copilot bill. bn already captures `totalNanoAiu` per Copilot
+//! * **AIC** (AI Credits) — the *real* Copilot bill. workspan already captures `totalNanoAiu` per Copilot
 //!   session ([`crate::agent::parse`]); it is surfaced here as `aic`, `None` for raw-Claude / non-
 //!   Copilot runs (which carry no AIC).
 //! * **$ (API-equiv)** — a *benchmark*: tokens × the [`model_price`] table. Not a bill — what the
@@ -17,7 +17,7 @@
 //!
 //! [`WorkClass`] is the category: orchestration | coding | scheduled | research | remote (+
 //! `unattributed` for rows recorded before the launch path threaded a class through). Every launch
-//! path stamps its class: `bn dispatch` ⇒ coding, orchestrated waves ⇒
+//! path stamps its class: `workspan dispatch` ⇒ coding, orchestrated waves ⇒
 //! coding, the #266 staff / cron / scheduled prompts ⇒ scheduled.
 //!
 //! [`rollup`] folds two event sources into one [`CostView`]: the rich `agent_session` events (#309

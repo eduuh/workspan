@@ -1,4 +1,4 @@
-//! `bn critic` — the adversarial diff-only review lane (#649 Phase 3).
+//! `workspan critic` — the adversarial diff-only review lane (#649 Phase 3).
 //!
 //! Split out of `cli.rs` under the never-grow file-size ratchet: the clap declaration file is the
 //! one place every new command must touch, so a self-contained sub-enum is what moves out.

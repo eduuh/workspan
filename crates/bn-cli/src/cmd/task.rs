@@ -1,14 +1,14 @@
-//! `bn task` — **the** task list (#996), one global store for every repo and every machine.
+//! `workspan task` — **the** task list (#996), one global store for every repo and every machine.
 //!
 //! The file is `<work_root>/tasks.txt` (`Config::tasks_file`), in todo.txt grammar. It used to
 //! be a per-repo `TODO.txt` committed into each working tree, which made the list per-repo *and*
 //! per-branch — the opposite of a single source of truth. Consequences of going global:
 //!
-//! - **No git repo is required.** `bn task` works from anywhere; repo/branch context, when there
+//! - **No git repo is required.** `workspan task` works from anywhere; repo/branch context, when there
 //!   is any, only supplies defaults for `repo:`/`branch:` on add and resolves `--repo .`.
 //! - **The bare view is "what could I do today"**, not the whole backlog: `day:` today-or-earlier
 //!   plus unscheduled work. `--all` is the backlog.
-//! - A leftover repo-local `TODO.txt` earns a one-line deprecation notice and `bn task import`.
+//! - A leftover repo-local `TODO.txt` earns a one-line deprecation notice and `workspan task import`.
 use crate::*;
 
 /// A mutation on a single task, dispatched by [`emit_task_mutate`].
@@ -209,7 +209,7 @@ pub(crate) fn emit_task_add(
         task.set_meta("due", d);
     }
     // Default `repo:` from where you're standing, unless the text already named one inline
-    // (`bn task add "… repo:atlas"` classifies straight into a meta token). The store spans repos,
+    // (`workspan task add "… repo:atlas"` classifies straight into a meta token). The store spans repos,
     // so a task with no repo is one nothing can route — #998 makes that a hard gate.
     if task.meta("repo").is_none() {
         if let Some(repo) = ctx.as_ref().map(|c| c.repo.to_ascii_lowercase()) {
@@ -352,7 +352,7 @@ pub(crate) fn emit_task_doc(cfg: &Config, id: &str, open: bool, as_json: bool) {
     let doc = bn_core::task_doc::ensure(cfg, task)
         .unwrap_or_else(|e| fail(&format!("workspan task doc: {e}")));
 
-    // Record that this task has a doc, so `bn task --json` and the SMART gate can see it without
+    // Record that this task has a doc, so `workspan task --json` and the SMART gate can see it without
     // a filesystem probe. Stored as a bare file name — never a path, which could point at the
     // wrong directory once the doc is copied beside the branch note.
     let name = doc

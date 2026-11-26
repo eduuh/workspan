@@ -68,7 +68,7 @@ pub(crate) fn cmd_merge(cfg: &Config, flags: MergeFlags) -> bool {
         Remote::GitHub { slug } => slug,
         _ => {
             ceprintln!(
-                "{YELLOW}bn wt merge supports GitHub (gh). For ADO, complete the PR in the UI/az — \
+                "{YELLOW}workspan wt merge supports GitHub (gh). For ADO, complete the PR in the UI/az — \
                  the `cleanup --all` poller will reclaim the worktree.{NC}"
             );
             return false;
@@ -99,7 +99,7 @@ pub(crate) fn cmd_merge(cfg: &Config, flags: MergeFlags) -> bool {
                 }
             }
             Err(_) => ceprintln!(
-                "{YELLOW}bn wt merge: could not resolve repo context — skipping the pre-merge gate.{NC}"
+                "{YELLOW}workspan wt merge: could not resolve repo context — skipping the pre-merge gate.{NC}"
             ),
         }
     }
@@ -718,7 +718,7 @@ pub(crate) fn cmd_merge_all(cfg: &Config, flags: MergeFlags) -> bool {
         Remote::GitHub { slug } => slug,
         _ => {
             ceprintln!(
-                "{YELLOW}bn wt merge --all supports GitHub (gh). For ADO, complete PRs in the \
+                "{YELLOW}workspan wt merge --all supports GitHub (gh). For ADO, complete PRs in the \
                  UI/az — the `cleanup --all` poller will reclaim the worktrees.{NC}"
             );
             return false;
@@ -1008,8 +1008,8 @@ pub(crate) fn cmd_merge_all_repos(cfg: &Config, flags: MergeFlags) -> bool {
     let order = bn_core::crossrepo::cross_repo_land_order(&names);
     if order.is_empty() {
         ceprintln!(
-            "{YELLOW}bn wt merge --all-repos: no bare repos under {} — clone one first \
-             (bn wt clone <url>).{NC}",
+            "{YELLOW}workspan wt merge --all-repos: no bare repos under {} — clone one first \
+             (workspan wt clone <url>).{NC}",
             bare_dir.display()
         );
         return true;

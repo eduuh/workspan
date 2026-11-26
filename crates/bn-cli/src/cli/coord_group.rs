@@ -1,7 +1,7 @@
-//! `bn watchdog`, `bn proof`, `bn compact`, `bn context` — agent coordination (see [`bn_core::coord`]).
+//! `workspan watchdog`, `workspan proof`, `workspan compact`, `workspan context` — agent coordination (see [`bn_core::coord`]).
 //!
 //! Its own flattened group, last in [`super::Command`], so the coordination commands land at the
-//! end of `bn --help` without touching the order of anything above them.
+//! end of `workspan --help` without touching the order of anything above them.
 use crate::*;
 
 #[derive(Subcommand, Debug)]
@@ -34,7 +34,7 @@ pub(crate) enum CmdCoord {
     /// Compact session bootstrap without branch-note changes: context and up to three task-relevant
     /// workflows with invocation and next commands. Run at session start or when changing tasks.
     /// Without a task, orient without guessing a workflow. Includes workspan workflows and installed
-    /// native skills, with native /name versus Claude MCP /bn:name invocation guidance.
+    /// native skills, with native /name versus Claude MCP /workspan:name invocation guidance.
     /// Works outside a repo with global skills. --json data: task, context (nullable),
     /// workflows (max 3), workflows_truncated (result cap), workflows_filtered (weak matches
     /// omitted), commands. No branch notes are created or updated.

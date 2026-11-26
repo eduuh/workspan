@@ -1,4 +1,4 @@
-//! Which agent dialogs bn may answer without a human, and which it must escalate.
+//! Which agent dialogs workspan may answer without a human, and which it must escalate.
 //!
 //! Supervision has always had exactly one auto-answer rule, hardcoded: an orchestrated ship lane
 //! dispatched with `--yolo` got its command approvals cleared with the session-scoped allow;
@@ -7,7 +7,7 @@
 //! `git push` is not" without editing Rust.
 //!
 //! This module is that rule made explicit and extensible. It is a **pure decision function** over a
-//! parsed [`PendingPrompt`] and a policy read from `approvals.toml`, so what bn will and won't
+//! parsed [`PendingPrompt`] and a policy read from `approvals.toml`, so what workspan will and won't
 //! approve on your behalf is a document you can read rather than behaviour you have to discover.
 //!
 //! The safety shape, in the order it is evaluated:
@@ -262,7 +262,7 @@ pub fn decide_with_builtin_default(
     // The lane gate is not optional. The old rule only ever ran inside the orchestrate supervisor,
     // where every lane is orchestrated by construction — so "orchestrated" was implicit and unstated.
     // Reachable from the standalone pass, an unstated gate would silently extend the most permissive
-    // rule bn has to agents it never launched.
+    // rule workspan has to agents it never launched.
     if ctx.lane != LaneKind::Orchestrated
         || prompt.kind != PaneState::CommandApproval
         || !ctx.trusted

@@ -1,4 +1,4 @@
-//! Advisory locks for the git mutations bn performs in a pool checkout: one per slot, one per
+//! Advisory locks for the git mutations workspan performs in a pool checkout: one per slot, one per
 //! pool for `warm`.
 //!
 //! The incident. Two `pool warm` runs of the same job, started from two places at once,

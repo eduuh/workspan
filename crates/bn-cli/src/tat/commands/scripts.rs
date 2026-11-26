@@ -2,22 +2,22 @@
 //!
 //! [`bn_core::wt_actions`] is the roster of verbs every repo has. A repo also has verbs of its
 //! own: the `*.sh` under `<notes>/jobs/<repo>/` (synced through the notes repo) and `.bn/jobs/`
-//! (committed with the project), which `bn build <name>` and the cron already resolve through
+//! (committed with the project), which `workspan build <name>` and the cron already resolve through
 //! [`bn_core::resolver::job_dirs`]. Until now the picker could not see them, so running a repo's
 //! `start.sh` meant leaving the list and remembering the command.
 //!
-//! A script row runs like a roster row — `bn run <name>` in a window of its own
+//! A script row runs like a roster row — `workspan run <name>` in a window of its own
 //! ([`crate::cmd::wt_action_run`]) — with two things pinned that the roster gets from
 //! `job_registry.rs`:
 //!
-//! * **The branch is `main`.** The window runs `bn run <name> --repo R --branch B`, and `--repo`
+//! * **The branch is `main`.** The window runs `workspan run <name> --repo R --branch B`, and `--repo`
 //!   without `--branch` is refused outright; a branch is also what lets `job_dirs` reach the Repo
 //!   and Project tiers at all. A native verb never noticed because it ignores its ctx.
 //! * **It runs in a tmux window at the repo's main checkout.** A script inherits the window's cwd,
 //!   and most of them `git rev-parse` from there.
 //!
 //! The verb itself is a [`WtAction`] built at runtime and leaked. Every picker callback — the side
-//! pane, Enter, `ctrl-o` — is its own short-lived `bn` process, so the leak is one
+//! pane, Enter, `ctrl-o` — is its own short-lived `workspan` process, so the leak is one
 //! struct and two strings freed at exit, and in exchange nothing that takes `&WtAction` changes and
 //! the roster in bn-core stays the pure static table its doc promises.
 use bn_core::resolver::{Config, JobScope};

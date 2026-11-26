@@ -1,6 +1,6 @@
-//! `bn run keep-warm` — top up one repo's issue-derived task reservoir.
+//! `workspan run keep-warm` — top up one repo's issue-derived task reservoir.
 //!
-//! The ranking policy is shared with `bn task pull` in `bn_core::keep_warm`; this module is the
+//! The ranking policy is shared with `workspan task pull` in `bn_core::keep_warm`; this module is the
 //! CLI realization layer: repo targeting, task-file writes, and operator-facing
 //! status lines.
 use crate::*;

@@ -1,8 +1,8 @@
 //! Checking that a self-update did not remove something the machine depends on.
 //!
-//! `self-update` rebuilds bn from main and installs it. That is the right default — a machine that
+//! `self-update` rebuilds workspan from main and installs it. That is the right default — a machine that
 //! drifts from main is a machine nobody can reason about — but it means an unattended job replaces
-//! the binary every long-running bn service on the box is executing.
+//! the binary every long-running workspan service on the box is executing.
 //!
 //! A service whose subcommand the new binary lacks fails on every restart until launchd or systemd
 //! stops trying, and nothing fails loudly: `self-update` reports success, because from its point of
@@ -11,7 +11,7 @@
 //!
 //! It reports rather than rolls back. By the time this runs `install.sh` has already replaced the
 //! binary, and a job that silently reverted the update you asked for would be its own surprise. A
-//! failed cron is visible in `bn cron` and carries its reason in the run's output tail, which is
+//! failed cron is visible in `workspan cron` and carries its reason in the run's output tail, which is
 //! what "loud" means for something that runs at midnight.
 use std::path::Path;
 
@@ -43,12 +43,12 @@ fn needed() -> Vec<&'static str> {
     out
 }
 
-/// Whether `bn` still understands `sub`.
+/// Whether `workspan` still understands `sub`.
 ///
 /// `--help` proves the subcommand is present without running it, so the check cannot have side
 /// effects. clap exits non-zero on an unknown subcommand, which is the discriminator wanted.
-fn supports(bn: &Path, sub: &str) -> bool {
-    std::process::Command::new(bn)
+fn supports(workspan: &Path, sub: &str) -> bool {
+    std::process::Command::new(workspan)
         .args([sub, "--help"])
         .stdout(std::process::Stdio::null())
         .stderr(std::process::Stdio::null())
@@ -56,24 +56,24 @@ fn supports(bn: &Path, sub: &str) -> bool {
         .is_ok_and(|s| s.success())
 }
 
-/// Verify the freshly installed `bn` can still run every service installed on this machine.
+/// Verify the freshly installed `workspan` can still run every service installed on this machine.
 ///
 /// Returns the job's exit code: 0 when nothing is missing (including when the binary is absent,
 /// which is a different failure the installer already reported).
-pub(crate) fn verify(bn: &Path) -> i32 {
-    if !bn.exists() {
+pub(crate) fn verify(workspan: &Path) -> i32 {
+    if !workspan.exists() {
         return 0;
     }
     let missing: Vec<&str> = needed()
         .into_iter()
-        .filter(|sub| !supports(bn, sub))
+        .filter(|sub| !supports(workspan, sub))
         .collect();
     if missing.is_empty() {
         return 0;
     }
     crate::cmd::jobs::native_job_line(
         &format!(
-            "self-update: the installed bn no longer supports {} — {} service(s) on this machine \
+            "self-update: the installed workspan no longer supports {} — {} service(s) on this machine \
              execute it and will fail to start",
             missing.join(", "),
             missing.len()

@@ -3,7 +3,7 @@
 //! One minute-level `agent-scheduler` loads these Markdown agents and runs the ones that are due.
 //! Successful runs wait for the next occurrence; failures respect per-agent retry backoff.
 //! Agents run headlessly, like every other cron — no tmux window is involved.
-//! The gather itself still runs via `bn run <agent.name>`, so the `.md` is metadata +
+//! The gather itself still runs via `workspan run <agent.name>`, so the `.md` is metadata +
 //! schedule + description, never a reimplementation of the existing native/staff/script job.
 //!
 //! Parsing routes through [`crate::markdown::split_frontmatter`] (the crate's single frontmatter

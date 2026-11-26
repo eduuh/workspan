@@ -8,7 +8,7 @@ use std::path::Path;
 
 // --- switch: capture the outgoing session for a cross-harness handoff -----------------------
 //
-// `bn switch <harness>` (the CLI orchestrator) leaves the current harness for another mid-task —
+// `workspan switch <harness>` (the CLI orchestrator) leaves the current harness for another mid-task —
 // e.g. Claude hit a usage limit and the work should continue in Copilot. The continuity artifact
 // is the handoff packet (composed from the note); switch's job here is to summarize the session
 // being abandoned so the incoming harness knows what it's picking up. This owns the mining (per

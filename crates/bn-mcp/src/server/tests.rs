@@ -95,7 +95,7 @@ async fn bn_cmd_lists_and_runs_a_branch_command_with_its_args() {
     .expect("write cmd");
 
     let call = |name: Option<&str>, args: &[&str]| {
-        server.bn_cmd(Parameters(CmdArgs {
+        server.workspan_cmd(Parameters(CmdArgs {
             name: name.map(str::to_string),
             args: args.iter().map(|a| a.to_string()).collect(),
             timeout_secs: None,
@@ -163,7 +163,7 @@ async fn links_can_be_searched_without_session_artifacts() {
     )
     .unwrap();
     let search = |query: Option<&str>, tag: Option<&str>| {
-        server.bn_links_search(Parameters(LinksSearchArgs {
+        server.workspan_links_search(Parameters(LinksSearchArgs {
             query: query.map(str::to_string),
             tag: tag.map(str::to_string),
             limit: None,
@@ -203,11 +203,11 @@ fn advertised_tools_exclude_session_note_runtime() {
     assert_eq!(
         names,
         [
-            "bn_cmd",
-            "bn_links_add",
-            "bn_links_search",
-            "bn_ref",
-            "bn_ref_append"
+            "workspan_cmd",
+            "workspan_links_add",
+            "workspan_links_search",
+            "workspan_ref",
+            "workspan_ref_append"
         ]
     );
 }

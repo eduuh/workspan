@@ -216,10 +216,10 @@ pub(crate) fn window_tmux_cmds(
     cmd: Option<&str>,
 ) -> Vec<Vec<String>> {
     // `new-window -t` wants a *session* target with a trailing colon (`=bn:`) — tmux then appends
-    // a new window and picks the index. The bare `=bn` form (fine for has-session/list-windows)
+    // a new window and picks the index. The bare `=workspan` form (fine for has-session/list-windows)
     // parses as a window/pane target and `new-window` rejects it with "can't specify pane here",
     // so every worktree after the first in a session silently got no window. The `=` keeps the
-    // session match exact (so `bn` can't prefix-match `bn-foo`); the `:` is what makes it a session.
+    // session match exact (so `workspan` can't prefix-match `bn-foo`); the `:` is what makes it a session.
     let target = format!("={session}:");
     let argv = |parts: &[&str]| parts.iter().map(|s| s.to_string()).collect::<Vec<_>>();
     let with_cmd = |mut v: Vec<String>| {
@@ -418,7 +418,7 @@ fn open_worktree_window_cmd_impl(
     // Recreating a worktree's window brings its agent back. A checkout that was being driven by
     // claude or copilot has that session recorded, so a window rebuilt for it (`wt go`, `tat`, a
     // pool checkout, the picker) reopens on the harness it was actually using rather than a shell
-    // that has forgotten. Only for a window bn is *creating* with no command of its own —
+    // that has forgotten. Only for a window workspan is *creating* with no command of its own —
     // selecting an existing window leaves whatever is running in it alone.
     let resume = (cmd.is_none() && !matches!(action, WinAction::SelectExisting))
         .then(|| crate::cmd::sessions::worktree_resume(&Config::load(), wt_path, branch))
@@ -458,7 +458,7 @@ fn open_worktree_window_cmd_impl(
         }
         // The first command creates the session/window; a failure there means tmux is absent or
         // rejected the command. Surface it instead of bailing silently — a silent return here is
-        // exactly how the `=bn` (no colon) target bug hid: the worktree got created, no window
+        // exactly how the `=workspan` (no colon) target bug hid: the worktree got created, no window
         // opened, and nothing said why. Trailing commands only tune the window (e.g.
         // `remain-on-exit on`), so a failure there is best-effort — it mustn't claim the window
         // failed to open. (SelectExisting emits no commands, so this loop is skipped entirely.)
@@ -733,7 +733,7 @@ mod window_match_tests {
     #[test]
     fn a_detached_worktree_claims_no_window_by_name() {
         // The bug this pins: `branch` is empty for a detached checkout (a warm-idle pool slot, or a
-        // branch deleted underneath one), and `#{@bn_branch}` is empty for every window bn never
+        // branch deleted underneath one), and `#{@bn_branch}` is empty for every window workspan never
         // stamped. Matching empty-to-empty made one `prefix x` select — and tear down — every plain
         // window on the server, across sessions.
         assert!(!window_matches_branch("shell", "", ""));

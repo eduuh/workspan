@@ -1,4 +1,4 @@
-//! `bn reviews`/`bn feed` — review queue + activity feed.
+//! `workspan reviews`/`workspan feed` — review queue + activity feed.
 use crate::*;
 
 pub(crate) fn emit_reviews(cfg: &bn_core::resolver::Config, as_json: bool) {

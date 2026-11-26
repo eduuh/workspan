@@ -28,7 +28,7 @@ const PS_DUMP: &str = "\
   101   100 node /opt/homebrew/bin/copilot --yolo
   102   101 /opt/copilot-darwin-arm64/copilot --yolo
   103   102 cargo build
-  104   103 rustc --crate-name bn
+  104   103 rustc --crate-name workspan
   200     1 node /usr/local/bin/claude -p seed
   201   200 /usr/local/lib/claude/claude
   202   201 bash -c ls

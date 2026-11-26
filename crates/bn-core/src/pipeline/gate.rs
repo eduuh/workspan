@@ -2,8 +2,8 @@
 //!
 //! [`crate::smart::check`] decides *whether* a task is ready. This module is the only thing that
 //! acts on the answer, and it is called from exactly one place: [`super::stage::transition`], on
-//! entry to [`Stage::Investigate`]. Everything that starts work — `bn dispatch`, `bn attn start`,
-//! `bn pipeline set` — records its stage through `transition`, so all of them are gated by
+//! entry to [`Stage::Investigate`]. Everything that starts work — `workspan dispatch`, `workspan attn start`,
+//! `workspan pipeline set` — records its stage through `transition`, so all of them are gated by
 //! construction rather than by remembering to call a checker.
 //!
 //! **Do not add a second call site.** Two copies of a gate drift, and the drift is
@@ -405,7 +405,7 @@ mod tests {
 
     const TODAY: &str = "2026-08-11";
 
-    /// A config whose store lives in `root`, and which knows one repo (`bn`) so a task naming it
+    /// A config whose store lives in `root`, and which knows one repo (`workspan`) so a task naming it
     /// does not trip the `unknown_repo` gap.
     fn cfg(root: &std::path::Path) -> Config {
         Config {

@@ -1,23 +1,23 @@
-//! Keeping this machine's timers matching the crons it declares, so `bn cron register` is never a
+//! Keeping this machine's timers matching the crons it declares, so `workspan cron register` is never a
 //! step anyone has to remember. Split out of `cron.rs` under the 1000-line ratchet.
 use crate::*;
 
-/// The workspan a generated timer runs: the bindir-independent `<config_dir>/bn` anchor install.sh keeps
+/// The workspan a generated timer runs: the bindir-independent `<config_dir>/workspan` anchor install.sh keeps
 /// pointed at the live binary, so units survive a bindir move, else the resolved bin dir. Both are
 /// absolute, as ExecStart requires.
 pub(super) fn registered_bn_path() -> String {
-    let anchor = resolver::config_dir().join("bn");
+    let anchor = resolver::config_dir().join("workspan");
     if anchor.exists() {
         anchor.to_string_lossy().into_owned()
     } else {
         resolver::bin_dir()
-            .join("bn")
+            .join("workspan")
             .to_string_lossy()
             .into_owned()
     }
 }
 
-/// How often an interactive `bn` may look at whether the timers still match the manifest.
+/// How often an interactive `workspan` may look at whether the timers still match the manifest.
 const RECONCILE_EVERY_SECS: u64 = 600;
 
 /// State-dir file holding [`timers_fingerprint`] as of the last clean `workspan cron register`.
@@ -105,7 +105,7 @@ pub(crate) fn maybe_reconcile_timers(cfg: &Config) {
     if recorded == timers_fingerprint(cfg, None) {
         return;
     }
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     let _ = std::process::Command::new(&exe)
         .args(["cron", "register"])
         .env("BN_NO_CATCHUP", "1")

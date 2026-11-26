@@ -1,4 +1,4 @@
-//! `bn`'s shell and tmux surface — the commands the tmux config, the status bar and the shell
+//! `workspan`'s shell and tmux surface — the commands the tmux config, the status bar and the shell
 //! wrappers call, plus the note-editing verbs a person types by hand.
 //!
 //! Split out of `cli.rs` under the 1000-line ratchet, following the one-subcommand-enum-per-file

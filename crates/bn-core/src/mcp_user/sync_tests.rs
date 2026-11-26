@@ -92,7 +92,7 @@ fn remote_http_servers_are_registered_only_in_the_selected_clients() {
 
 #[test]
 fn servers_bn_does_not_declare_and_keys_it_does_not_own_are_preserved() {
-    // The whole file belongs to the client, not to bn: install.sh's own `bn` entry and any
+    // The whole file belongs to the client, not to bn: install.sh's own `workspan` entry and any
     // hand-added server must survive a sync, or this command would quietly delete them.
     let tmp = tempfile::tempdir().unwrap();
     let cfg = tmp.path().join("mcp-config.json");

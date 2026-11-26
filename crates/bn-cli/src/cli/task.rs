@@ -1,4 +1,4 @@
-//! `bn task …` — the clap surface for the task store (#995, EPIC #993).
+//! `workspan task …` — the clap surface for the task store (#995, EPIC #993).
 //!
 //! Split out of `cli.rs` so the file-size ratchet leaves room for the capture flags (`--body`,
 //! `--link`, `--attach`) and the `attach` subcommand to exist. Re-exported by `cli.rs`, so

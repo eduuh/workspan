@@ -1,4 +1,4 @@
-//! The hooks `bn agent launch` hands a harness: the controller's turn-end guard and the tmux
+//! The hooks `workspan agent launch` hands a harness: the controller's turn-end guard and the tmux
 //! activity badge. Split out of `agent.rs` under the 1000-line ratchet.
 use crate::*;
 
@@ -19,7 +19,7 @@ fn controller_launch_env(controller_id: Option<&str>, worker_session_id: Option<
 fn bn_hook_command(args: &str) -> String {
     let executable = std::env::current_exe()
         .map(|path| path.to_string_lossy().into_owned())
-        .unwrap_or_else(|_| "bn".to_string());
+        .unwrap_or_else(|_| "workspan".to_string());
     #[cfg(windows)]
     {
         format!("& '{}' {args}", executable.replace('\'', "''"))

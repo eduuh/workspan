@@ -1,4 +1,4 @@
-//! Codespaces for `bn tat` (phase 3c) — GitHub Codespaces as remote worktrees.
+//! Codespaces for `workspan tat` (phase 3c) — GitHub Codespaces as remote worktrees.
 //!
 //! Split out of `tat.rs` unchanged. A codespace is a (repo, branch) pair, so it slots into tat's
 //! model — session = repo, window = "<branch> ☁", remote tmux session = branch. This is the ONLY

@@ -6,7 +6,7 @@ test reports a failed expectation; the workspace-wide deny targets production co
 
 //! The `--json` contract, checked against the commands that claim it.
 //!
-//! `bn schema` publishes a hand-written registry, and a hand-written registry is exactly the kind
+//! `workspan schema` publishes a hand-written registry, and a hand-written registry is exactly the kind
 //! of thing that drifts: a field gets renamed, the doc keeps the old name, and a script built on
 //! the doc breaks with no warning from either side. So the registry is not trusted here — every
 //! documented command is *run*, in a hermetic sandbox, and its real envelope is compared against
@@ -17,12 +17,12 @@ test reports a failed expectation; the workspace-wide deny targets production co
 use bn_e2e::Sandbox;
 use serde_json::Value;
 
-/// The documented field names for one command, as `bn schema <tag> --json` reports them.
+/// The documented field names for one command, as `workspan schema <tag> --json` reports them.
 ///
 /// A registry entry reads `name: type — meaning`; only the part before the first colon is the key,
 /// and a nested key (`repos[].repo`) documents a member of an array of objects.
 fn documented_keys(sb: &Sandbox, tag: &str) -> anyhow::Result<Vec<String>> {
-    let run = sb.bn(["schema", tag, "--json"])?;
+    let run = sb.workspan(["schema", tag, "--json"])?;
     run.expect_success()?;
     let v: Value = serde_json::from_str(&run.stdout)?;
     Ok(v["data"]["fields"]
@@ -56,10 +56,10 @@ fn actual_keys(data: &Value, prefix: &str, out: &mut Vec<String>) {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn the_envelope_carries_its_contract_version() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
-    let run = sb.bn(["discover", "--json"])?;
+    let run = sb.workspan(["discover", "--json"])?;
     run.expect_success()?;
     let v: Value = serde_json::from_str(&run.stdout)?;
     assert_eq!(
@@ -75,11 +75,11 @@ fn the_envelope_carries_its_contract_version() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_failure_envelope_carries_the_version_too() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     // An unknown schema tag is the cheapest failure that goes through `fail_json`.
-    let run = sb.bn(["schema", "definitely-not-a-command", "--json"])?;
+    let run = sb.workspan(["schema", "definitely-not-a-command", "--json"])?;
     let v: Value = serde_json::from_str(&run.stdout)?;
     assert_eq!(
         v["v"].as_u64(),
@@ -93,10 +93,10 @@ fn a_failure_envelope_carries_the_version_too() -> anyhow::Result<()> {
 
 /// The registry's own listing must agree with the per-command entries it points at.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn every_listed_command_has_a_resolvable_entry() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
-    let run = sb.bn(["schema", "--json"])?;
+    let run = sb.workspan(["schema", "--json"])?;
     run.expect_success()?;
     let v: Value = serde_json::from_str(&run.stdout)?;
     let listed = v["data"]["commands"]
@@ -116,11 +116,11 @@ fn every_listed_command_has_a_resolvable_entry() -> anyhow::Result<()> {
 
 /// The drift guard: what a command emits must be what the registry says it emits.
 ///
-/// Only the commands that answer identically in an empty sandbox are checked here — `bn repos`
+/// Only the commands that answer identically in an empty sandbox are checked here — `workspan repos`
 /// and friends need a populated fleet, and a test that has to build one would be testing the
 /// fixture, not the contract.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn documented_shapes_match_what_the_commands_emit() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     let jobs = sb.path("home/.bn/config/jobs");
@@ -135,7 +135,7 @@ fn documented_shapes_match_what_the_commands_emit() -> anyhow::Result<()> {
     ] {
         let mut args = argv.clone();
         args.push("--json");
-        let run = sb.bn(&args)?;
+        let run = sb.workspan(&args)?;
         run.expect_success()?;
         let v: Value = serde_json::from_str(&run.stdout)?;
 
@@ -146,7 +146,7 @@ fn documented_shapes_match_what_the_commands_emit() -> anyhow::Result<()> {
         for key in &actual {
             assert!(
                 documented.contains(key),
-                "`{tag}` emits `data.{key}`, which `bn schema {tag}` does not document.\n\
+                "`{tag}` emits `data.{key}`, which `workspan schema {tag}` does not document.\n\
                  Document it, or stop emitting it.\nemitted: {actual:?}\ndocumented: {documented:?}"
             );
         }
@@ -154,11 +154,11 @@ fn documented_shapes_match_what_the_commands_emit() -> anyhow::Result<()> {
     Ok(())
 }
 
-/// `bn build` advertises `--json`, even though its payload is not part of the published schema
+/// `workspan build` advertises `--json`, even though its payload is not part of the published schema
 /// registry. Guard the real CLI contract anyway: the wrapper must emit a clean envelope on stdout
 /// and relay the job's own output to stderr so callers can both parse and diagnose one run.
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn build_json_emits_an_envelope_and_relays_job_output() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     let jobs = sb.repo().join(".bn/jobs");
@@ -168,7 +168,7 @@ fn build_json_emits_an_envelope_and_relays_job_output() -> anyhow::Result<()> {
         "#!/bin/sh\nprintf 'build-stdout\\n'\nprintf 'build-stderr\\n' >&2\nexit 0\n",
     )?;
 
-    let run = sb.bn(["build", "--json"])?;
+    let run = sb.workspan(["build", "--json"])?;
     run.expect_success()?;
 
     let v: Value = serde_json::from_str(&run.stdout)?;

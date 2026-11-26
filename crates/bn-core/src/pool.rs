@@ -1,13 +1,13 @@
 //! Pure pool policy (#457) — the decisions behind pool-backed dispatch, with no I/O.
 //!
-//! `bn wt pool` keeps a small set of *warm* worktree slots for every repo so an agent task
+//! `workspan wt pool` keeps a small set of *warm* worktree slots for every repo so an agent task
 //! skips the cold `npm install`/build every fresh checkout would pay (the CLI primitive lives in
 //! `bn-cli`'s `wt_pool`). This module holds the decisions that are pure enough to unit-test
 //! away from git and the filesystem:
 //!   - **how big a pool is** — derived from the slots that exist rather than declared in a config
 //!     ([`derived_size`]); and
 //!   - **slot selection** — picking the lowest idle slot ([`pick_slot`]); plus
-//!   - the **dispatch mode** gate — pool vs cold — that `bn dispatch` routes on (pool by default,
+//!   - the **dispatch mode** gate — pool vs cold — that `workspan dispatch` routes on (pool by default,
 //!     `--no-pool` to force cold) ([`dispatch_worktree_mode`]).
 //!
 //! Keeping these here mirrors [`crate::repo_resolve`]: the CLI does the I/O (scan the slots, lease
@@ -44,7 +44,7 @@ pub const MAX_POOL_SIZE: usize = 16;
 ///   * never below [`DEFAULT_POOL_SIZE`], so every repo — a clone made a minute ago included —
 ///     has the main slot plus three worker lanes without anyone registering it;
 ///   * never below what is already there, so a pool cannot shrink under its own live leases (the
-///     failure mode of a flat constant: this machine had nine of ten `bn` slots leased); and
+///     failure mode of a flat constant: this machine had nine of ten `workspan` slots leased); and
 ///   * never above [`MAX_POOL_SIZE`], because each slot is a full checkout plus its build cache.
 ///
 /// Growth is the other half, and it lives at the lease: a dispatch that finds the pool full raises
@@ -243,7 +243,7 @@ pub fn dispatch_worktree_mode(no_pool: bool) -> WorktreeMode {
 
 // --- live pool IO ----------------------------------------------------------
 //
-// The `bn wt pool` primitive (deps/build cache, lease store) lives in `bn-cli`, but its *observable
+// The `workspan wt pool` primitive (deps/build cache, lease store) lives in `bn-cli`, but its *observable
 // state* — how big each pool is, and each slot's idle/leased shape — belongs in the shared core.
 // It reads the very files the CLI writes: the
 // `_pool/<n>` slot dirs and the lease store `<worktree>/<repo>/_pool/leases.json`. There is no
@@ -497,7 +497,7 @@ mod tests {
 
     #[test]
     fn a_pool_never_shrinks_under_the_slots_it_already_has() {
-        // The regression a flat constant would have caused: this machine had 9 of `bn`'s 10 slots
+        // The regression a flat constant would have caused: this machine had 9 of `workspan`'s 10 slots
         // leased, and clamping to 4 would have stranded six of them.
         assert_eq!(derived_size(10), 10);
         assert_eq!(derived_size(6), 6);

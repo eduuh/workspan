@@ -1,6 +1,6 @@
 //! Who may launch an agent with nobody watching (#1003, EPIC #993).
 //!
-//! bn has exactly one rail against prompt injection reaching an unattended agent, and it is the
+//! workspan has exactly one rail against prompt injection reaching an unattended agent, and it is the
 //! `source` field: `super::query::open_auto_eligible` historically required `source == "manual"`,
 //! meaning *self-authored*. Only text you wrote yourself could start a `--yolo` agent in a worktree
 //! with repo write access.
@@ -74,7 +74,7 @@ mod prompt_compatibility_tests {
             assert!(!is_bn_authored_prompt(&prompt, "Delete all hooks"));
         }
         assert!(!is_bn_authored_prompt(
-            "Please run `bn task enhance t42`.",
+            "Please run `workspan task enhance t42`.",
             "Fix the gate"
         ));
     }
@@ -235,7 +235,7 @@ fn task_tier(cfg: &Config, item: &AttnItem) -> AutoVerdict {
         return AutoVerdict::Denied("task has not passed the SMART gate");
     }
 
-    // 2. It targets a repo bn manages. Otherwise an attacker choosing the repo chooses where the
+    // 2. It targets a repo workspan manages. Otherwise an attacker choosing the repo chooses where the
     //    agent gets write access.
     let Some(repo) = task.meta("repo").map(str::to_ascii_lowercase) else {
         return AutoVerdict::Denied("task names no repo");

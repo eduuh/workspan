@@ -1,7 +1,7 @@
-//! `bn-mcp` — the per-worktree Model Context Protocol server for branch notes, spoken over
+//! `workspan-mcp` — the per-worktree Model Context Protocol server for branch notes, spoken over
 //! **stdio**. A third interface (after the CLI and nvim plugin) driving the same bn-core engine.
 //!
-//! This binary pins the [`bn_mcp`] tool-router to its launch cwd. `bn mcp serve` execs it;
+//! This binary pins the [`bn_mcp`] tool-router to its launch cwd. `workspan mcp serve` execs it;
 //! `--orchestrate` selects the separate, opt-in cross-worktree server.
 
 use anyhow::{Context, Result};
@@ -14,13 +14,13 @@ mod forge_call;
 
 #[tokio::main]
 async fn main() -> Result<()> {
-    // `--forge-call`: a one-shot MCP *client* call to the Forge app for `bn forge-agent`
+    // `--forge-call`: a one-shot MCP *client* call to the Forge app for `workspan forge-agent`
     // (see forge_call.rs). Checked first because it serves nothing.
     if std::env::args().any(|a| a == "--forge-call") {
         return forge_call::run().await;
     }
 
-    // `--orchestrate` selects the opt-in CROSS-WORKTREE server (the "friend"): it composes the `bn`
+    // `--orchestrate` selects the opt-in CROSS-WORKTREE server (the "friend"): it composes the `workspan`
     // CLI to manage every worktree from anywhere. Without the flag we serve the default scoped
     // server, locked to the launch worktree — the safety boundary an agent-in-a-repo relies on.
     // (A one-flag check keeps this crate arg-parser-free, matching its minimalism.)
@@ -30,13 +30,13 @@ async fn main() -> Result<()> {
         let service = BnOrchestratorServer::new()
             .serve(transport)
             .await
-            .context("starting bn-mcp --orchestrate stdio server")?;
+            .context("starting workspan-mcp --orchestrate stdio server")?;
         service.waiting().await?;
         return Ok(());
     }
 
     let cfg = bn_core::resolver::Config::load();
-    let base_dir = std::env::current_dir().context("resolving bn-mcp launch worktree")?;
+    let base_dir = std::env::current_dir().context("resolving workspan-mcp launch worktree")?;
 
     // The tier list (personal / global / per-repo) lives in bn-core so the CLI and MCP share
     // one source of truth; here we just need the paths, served low→high precedence as prompts.
@@ -53,7 +53,7 @@ async fn main() -> Result<()> {
     let service = server
         .serve(transport)
         .await
-        .context("starting bn-mcp stdio server")?;
+        .context("starting workspan-mcp stdio server")?;
     service.waiting().await?;
     Ok(())
 }

@@ -12,15 +12,15 @@ workspace = true
 name = "bn_mcp"
 path = "src/lib.rs"
 
-# The per-worktree stdio launcher (`bn mcp serve` execs this): pins its `(repo, branch)` to the
-# launch cwd. Sits beside `bn`.
+# The per-worktree stdio launcher (`workspan mcp serve` execs this): pins its `(repo, branch)` to the
+# launch cwd. Sits beside `workspan`.
 [[bin]]
-name = "bn-mcp"
+name = "workspan-mcp"
 path = "src/main.rs"
 
 [dependencies]
 bn-core.workspace = true
-# `client` + the reqwest Streamable-HTTP client back `bn-mcp --forge-call` (forge_call.rs), the
+# `client` + the reqwest Streamable-HTTP client back `workspan-mcp --forge-call` (forge_call.rs), the
 # one place bn talks to a remote MCP server. Kept out of the `bn` binary on purpose.
 rmcp = { workspace = true, features = ["client", "transport-streamable-http-client-reqwest", "reqwest"] }
 tokio.workspace = true

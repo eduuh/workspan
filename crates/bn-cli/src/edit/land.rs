@@ -4,10 +4,10 @@
 //! branch's diff, with the agent terminal already spawned — so the first thing on screen is what
 //! changed and what the agent is doing.
 //!
-//! bn owns the **data**, nvim owns the **verbs**. The spec below is a declarative table handed to
+//! workspan owns the **data**, nvim owns the **verbs**. The spec below is a declarative table handed to
 //! one named entrypoint, `require('bn').land(spec)`, rather than a list of `:` commands. A command
-//! list would put Diffview and toggleterm API details inside bn — a repo bn does not ship and
-//! cannot test — and, worse, would make idempotency unexpressible: bn would have to interrogate
+//! list would put Diffview and toggleterm API details inside workspan — a repo workspan does not ship and
+//! cannot test — and, worse, would make idempotency unexpressible: workspan would have to interrogate
 //! nvim about existing tabs and terminals before deciding what to send, which is three round trips
 //! and a race. A named entrypoint is one versioned contract, it can answer, and the plugin stays
 //! free to change *how* it satisfies it.
@@ -101,7 +101,7 @@ pub(crate) struct LandStatus {
 ///
 /// Precedence: what the caller said, then the note's recorded PR base if there is one, then the
 /// repo's own answer via [`bn_core::gitbase`], then `origin/main` as a last resort. Resolved here,
-/// in bn, *before* nvim starts.
+/// in workspan, *before* nvim starts.
 pub(crate) fn resolve_base(target: &EditTarget, asked: Option<&str>) -> String {
     if let Some(b) = asked.filter(|b| !b.trim().is_empty()) {
         return b.trim().to_string();

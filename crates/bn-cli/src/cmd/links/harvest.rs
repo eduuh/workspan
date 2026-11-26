@@ -1,4 +1,4 @@
-//! `bn links harvest`: a legacy dry-run audit of links an agent session mentioned.
+//! `workspan links harvest`: a legacy dry-run audit of links an agent session mentioned.
 
 use super::*;
 

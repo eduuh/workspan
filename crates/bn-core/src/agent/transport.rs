@@ -1,6 +1,6 @@
-//! How bn talks to an agent, once [`super::channel`] has worked out *which* agent it is.
+//! How workspan talks to an agent, once [`super::channel`] has worked out *which* agent it is.
 //!
-//! bn has long conflated three things into one string: which agent, which tmux window, and how to
+//! workspan has long conflated three things into one string: which agent, which tmux window, and how to
 //! reach it. The first is answered well by [`AgentChannel`](super::channel::AgentChannel) and its
 //! tier ladder. This module is the third — and it exists because those three stop being the same
 //! object the moment an agent runs inside an editor rather than directly in a pane. The window is
@@ -387,9 +387,9 @@ mod target_tests {
 mod liveness_tests {
     use super::*;
 
-    const PS: &str = "  100     1 -zsh\n  200   100 claude --settings {}\n  210   200 /usr/bin/bn-mcp\n\
+    const PS: &str = "  100     1 -zsh\n  200   100 claude --settings {}\n  210   200 /usr/bin/workspan-mcp\n\
                       300     1 zsh\n  310   300 nvim notes.md\n\
-                      400     1 zsh -c bn agent launch copilot\n  410   400 /home/u/.local/bin/copilot --allow-all\n";
+                      400     1 zsh -c workspan agent launch copilot\n  410   400 /home/u/.local/bin/copilot --allow-all\n";
 
     #[test]
     fn a_harness_anywhere_under_the_pane_makes_it_live() {

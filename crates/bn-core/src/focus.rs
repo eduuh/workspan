@@ -3,8 +3,8 @@
 //! Deep work fragments under a steady drip of nudges (next-action, session-start, tmux popups);
 //! the proven mitigation is a *quiet window* where only genuinely urgent signals — a failing
 //! cron, a true blocker — still interrupt, and everything routine is **suppressed and queued**
-//! for a single review when the block ends. `bn focus start <dur>` opens the block, `bn focus
-//! end` closes it (or it expires on its own), and `bn focus status` reports it.
+//! for a single review when the block ends. `workspan focus start <dur>` opens the block, `workspan focus
+//! end` closes it (or it expires on its own), and `workspan focus status` reports it.
 //!
 //! State lives in the same append-only `events.jsonl` as everything else (no new store, no
 //! migration): a `focus_start { id, duration_secs }` event opens a block; a later `focus_end
@@ -105,7 +105,7 @@ pub fn start(duration_secs: i64, now: i64) -> std::io::Result<StartOutcome> {
 }
 
 /// End the active block early. Appends `focus_end { ref: <id> }` referencing the active block.
-/// Returns the ended block (for the drain message) or `None` when no block was active — so `bn
+/// Returns the ended block (for the drain message) or `None` when no block was active — so `workspan
 /// focus end` can say "no focus block active" rather than write a dangling event.
 pub fn end(now: i64) -> std::io::Result<Option<Block>> {
     let Some(block) = active(now) else {

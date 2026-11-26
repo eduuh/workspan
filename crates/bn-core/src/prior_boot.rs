@@ -68,7 +68,7 @@ pub struct PriorRow {
     pub task_name: Option<String>,
 }
 
-/// A harness string worth acting on. `bn` writes `"unknown"` into a lease when it cannot tell, and
+/// A harness string worth acting on. `workspan` writes `"unknown"` into a lease when it cannot tell, and
 /// launching the wrong harness is worse than asking — so an unknown never wins a merge and never
 /// overwrites a known value.
 fn usable_harness(harness: &str) -> bool {

@@ -1,7 +1,7 @@
 //! Agent coordination: seats and the watchdogs that wake them.
 //!
 //! A **seat** is who holds work: a live agent addressed `repo:branch` (the same address
-//! `bn agent msg` uses) or a person, `human:<name>`. A **watchdog** is a durable scheduled check
+//! `workspan agent msg` uses) or a person, `human:<name>`. A **watchdog** is a durable scheduled check
 //! that wakes a seat, because a seat cannot wake itself.
 //!
 //! Storage is SQLite at [`db_path`], modelled on [`crate::worker::registry`]: machine-local like

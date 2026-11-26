@@ -1,4 +1,4 @@
-//! Filesystem anchors for bn tooling: the `~/.bn` home, config/bin/jobs dirs, the config layer
+//! Filesystem anchors for workspan tooling: the `~/.bn` home, config/bin/jobs dirs, the config layer
 //! paths in the notes tree, and the state / managed-repos roots.
 
 use super::util::{home, non_empty_env};
@@ -22,7 +22,7 @@ pub fn bn_home() -> PathBuf {
 /// here; see [`config_layer_paths`].
 ///
 /// `$BN_CONFIG_DIR` wins; else `<bn_home>/config`. Native Windows keeps its platform config
-/// directory (`%APPDATA%\bn`) when that is where workspan was installed and `~/.bn` was never created.
+/// directory (`%APPDATA%\workspan`) when that is where workspan was installed and `~/.bn` was never created.
 pub fn config_dir() -> PathBuf {
     if let Some(d) = non_empty_env("BN_CONFIG_DIR") {
         return PathBuf::from(d);
@@ -41,7 +41,7 @@ pub fn config_dir() -> PathBuf {
     }
 }
 
-/// Directory workspan's binaries (`bn`, `bn-mcp`, the workflow tools) live in. Resolution,
+/// Directory workspan's binaries (`workspan`, `workspan-mcp`, the workflow tools) live in. Resolution,
 /// high → low: `$BN_BIN_DIR` wins; else `<bn_home>/bin` (the new `~/.bn` layout) when `BN_HOME`
 /// is set or that dir already exists; else the legacy `~/.bin` while it still exists; else
 /// default to `<bn_home>/bin`. install.sh keeps these in step with [`config_dir`].

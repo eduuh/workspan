@@ -1,7 +1,7 @@
 //! The verbs a worktree surface can offer — the command half of a picker whose rows are otherwise
 //! all places.
 //!
-//! `bn tat`'s sub-picker lists a repo's whole surface: live windows, idle worktrees, open PRs,
+//! `workspan tat`'s sub-picker lists a repo's whole surface: live windows, idle worktrees, open PRs,
 //! codespaces, warm pool slots. Every one of those is a *place*, and Enter goes there. The verbs
 //! that act on that surface existed too, but only as chords advertised inside one long header
 //! string — `ctrl-w` warmed the pool, `ctrl-d` deleted a worktree — so the commands were present
@@ -151,7 +151,7 @@ pub fn for_scope(scope: Scope) -> impl Iterator<Item = &'static WtAction> {
 }
 
 /// Look one up by its stable id. `None` for an id no longer in the roster, which is what a picker
-/// callback must handle: fzf re-invokes `bn` with whatever payload the row carried, and that row
+/// callback must handle: fzf re-invokes `workspan` with whatever payload the row carried, and that row
 /// may have been rendered by a previous build of the binary.
 pub fn find(id: &str) -> Option<&'static WtAction> {
     ACTIONS.iter().find(|a| a.id == id)

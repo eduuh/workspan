@@ -1,4 +1,4 @@
-//! `bn agent prompt` / `bn agent answer` — read the dialog a blocked agent is on, and answer it.
+//! `workspan agent prompt` / `workspan agent answer` — read the dialog a blocked agent is on, and answer it.
 //!
 //! The pair replaces guessing. Before this, the only way to clear a permission prompt from outside
 //! the pane was to send a bare digit — the old quick-steer menu offered "Approve (1)" and

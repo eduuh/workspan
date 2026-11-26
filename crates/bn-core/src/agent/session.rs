@@ -252,7 +252,7 @@ pub fn ingest_from_with_mode(
     found.extend(scan_claude(cfg, claude_root));
 
     // Stamp the launch path's work-class (#381) onto each session before it lands, keyed on the
-    // session id the launcher pinned via `bn dispatch --session`. Unclaimed sessions stay
+    // session id the launcher pinned via `workspan dispatch --session`. Unclaimed sessions stay
     // `unattributed`, so the cost view still folds them.
     let attribution = crate::cost::attribution_map();
 

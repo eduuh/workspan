@@ -4,8 +4,8 @@
 //! items, so merged PRs / past meetings drop off), the findings store keeps *history*: every run
 //! appends one durable, queryable record — `{source, run_id, gathered_at, items, raw?}`. A cron is
 //! a script OR a headless agent; its sources are APIs or MCPs. Script crons pipe JSON into
-//! `bn findings record <source>` (same `{key,text,url}` item shape as `feed ingest`); agents call
-//! the same path. Findings are queryable by source and date via `bn findings query`, so agents
+//! `workspan findings record <source>` (same `{key,text,url}` item shape as `feed ingest`); agents call
+//! the same path. Findings are queryable by source and date via `workspan findings query`, so agents
 //! can read them as an input packet.
 //!
 //! Each source owns one append-only JSONL file under `state_dir()/findings/<source>.jsonl`, one

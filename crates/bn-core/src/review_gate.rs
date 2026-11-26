@@ -7,7 +7,7 @@
 //! Inspired by Bun's Rust rewrite (≥2 diff-only reviewers per implementer): the class of bugs it
 //! catches — use-after-free, eager `unwrap_or` panics, sign errors — all *compile clean and look
 //! plausible*, so a passing `verify` gate is not enough. This gate is a distinct, post-implementation
-//! correctness pass, complementary to the plan-review gate (#349, pre-implementation) and `bn gate`
+//! correctness pass, complementary to the plan-review gate (#349, pre-implementation) and `workspan gate`
 //! (build/test).
 //!
 //! State lives in `review-gate.json` in the state dir, one [`Entry`] per PR (`repo#number`). Each

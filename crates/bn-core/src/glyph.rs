@@ -9,9 +9,9 @@
 //! unpatched fonts, so anything persisted (note markdown, brag docs, synced files) must keep
 //! plain Unicode (✓ ★ ⚠ •). Mirrors of this set live in `config/workflow/tmux.conf`
 //! (window-status-format) and the native tmux status segments in
-//! `crates/bn-cli/src/cmd/tmux_status.rs` (`bn tmux-git`/`tmux-goal`), plus
+//! `crates/bn-cli/src/cmd/tmux_status.rs` (`workspan tmux-git`/`tmux-goal`), plus
 //! `nvim/lua/bn/util.lua` — keep them in sync when a
-//! glyph changes (`bn glyphs` renders the vocabulary for eyeballing).
+//! glyph changes (`workspan glyphs` renders the vocabulary for eyeballing).
 
 /// nf-fa-bell — an agent or item is waiting on you.
 pub const BELL: &str = "\u{f0f3}";

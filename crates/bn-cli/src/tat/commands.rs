@@ -1,4 +1,4 @@
-//! The command section of the `bn tat` sub-picker — the verbs, as rows, below the places.
+//! The command section of the `workspan tat` sub-picker — the verbs, as rows, below the places.
 //!
 //! Split out of `tat.rs` rather than grown inside it (the 1000-line ratchet; see
 //! `.file-size-baseline`). The division is the same one the rows themselves draw: `tat.rs` answers
@@ -419,15 +419,15 @@ fn idle_pool_slot_verbs(
 }
 
 fn pool_slot_command(verb: PoolSlotVerb, repo: &str, slot: u32) -> String {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::wt::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::wt::shq(&exe.display().to_string());
     let repo = crate::wt::shq(repo);
     match verb {
-        PoolSlotVerb::Warm => format!("{bn} wt pool warm --repo {repo} --slot {slot} --here"),
+        PoolSlotVerb::Warm => format!("{workspan} wt pool warm --repo {repo} --slot {slot} --here"),
         PoolSlotVerb::Rebuild => format!(
-            "{bn} wt pool destroy {slot} --repo {repo} --yes && {bn} wt pool warm --repo {repo} --slot {slot} --here"
+            "{workspan} wt pool destroy {slot} --repo {repo} --yes && {workspan} wt pool warm --repo {repo} --slot {slot} --here"
         ),
-        PoolSlotVerb::Remove => format!("{bn} wt pool destroy {slot} --repo {repo} --yes"),
+        PoolSlotVerb::Remove => format!("{workspan} wt pool destroy {slot} --repo {repo} --yes"),
     }
 }
 
@@ -676,7 +676,7 @@ pub(super) struct Ticker {
 
 impl Ticker {
     /// How often to repaint. Fast enough to read as motion, slow enough that each repaint (one
-    /// `bn` process building the rows) is a rounding error against a build that runs for minutes.
+    /// `workspan` process building the rows) is a rounding error against a build that runs for minutes.
     const INTERVAL_MS: u64 = 700;
 
     /// Start repainting, or return an inert ticker when there is nothing to watch.

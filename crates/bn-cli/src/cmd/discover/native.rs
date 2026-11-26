@@ -71,7 +71,7 @@ pub(super) fn catalog(
                 info.name.clone(),
                 Workflow {
                     copilot: Some(format!("/{}", info.name)),
-                    claude: Some(format!("/bn:{}", info.name)),
+                    claude: Some(format!("/workspan:{}", info.name)),
                     owned: true,
                     info,
                 },
@@ -119,8 +119,8 @@ fn scan(workflows: &mut BTreeMap<String, Workflow>, root: &Path, repo: bool) -> 
                 .and_then(Path::file_name)
                 .and_then(|s| s.to_str())
                 .unwrap_or_default();
-            // Native bodies are not bn templates. Validate metadata only, so native examples
-            // containing {{placeholders}} are not treated as undeclared bn arguments.
+            // Native bodies are not workspan templates. Validate metadata only, so native examples
+            // containing {{placeholders}} are not treated as undeclared workspan arguments.
             let metadata = metadata(&text)
                 .ok_or_else(|| format!("{}: missing YAML frontmatter", path.display()))?;
             let skill: NativeMetadata = serde_yaml::from_str(metadata)

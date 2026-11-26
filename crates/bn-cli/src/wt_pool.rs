@@ -1,4 +1,4 @@
-//! `bn wt pool` — a treehouse-style pool of warm, reusable worktrees for monorepos.
+//! `workspan wt pool` — a treehouse-style pool of warm, reusable worktrees for monorepos.
 //!
 //! The problem this solves: spinning up a fresh worktree for every agent task pays a cold
 //! `build.sh` / `npm install` each time. A *pool* keeps a small set of checkouts around with their
@@ -6,7 +6,7 @@
 //! `pool return` resets it (keeping ignored deps, minus Rust incremental dirs) so `get` is instant.
 //!
 //! Model (decided): **named-branch reuse**, not treehouse's anonymous detached pool — slots still
-//! hold a real branch, so `bn`'s branch-keyed notes/metrics keep working untouched. Every repo with
+//! hold a real branch, so `workspan`'s branch-keyed notes/metrics keep working untouched. Every repo with
 //! a bn-managed bare clone pools, with no config and no registration: the size is derived from the
 //! slots that exist ([`bn_core::pool::derived_size`]) and grows by one whenever a lease finds the
 //! pool full, up to [`bn_core::pool::MAX_POOL_SIZE`].
@@ -133,8 +133,8 @@ fn boot_opt(id: &str) -> Option<&str> {
     (!id.is_empty()).then_some(id)
 }
 
-/// The PID to record as the lease holder: the parent of this `bn` process (the long-lived
-/// agent/shell), so liveness checks mean "is the holder still around?" rather than "is `bn` still
+/// The PID to record as the lease holder: the parent of this `workspan` process (the long-lived
+/// agent/shell), so liveness checks mean "is the holder still around?" rather than "is `workspan` still
 /// running?" (which is always false by the time anyone looks). Falls back to our own PID off-unix.
 #[allow(
     unsafe_code,
@@ -291,7 +291,7 @@ fn warm_reset_with(slot_s: &str, bare_s: &str, known_untracked: Option<Vec<Strin
     if !Path::new(slot_s).is_dir() {
         return;
     }
-    // Never interleave with another bn process resetting or leasing this slot: the switch below
+    // Never interleave with another workspan process resetting or leasing this slot: the switch below
     // writes tracked files that a concurrent `status` + `clean -df` (reading the index from before
     // the switch) would delete as untracked. See `slot_lock`.
     let _lock =
@@ -384,7 +384,7 @@ use occupancy::{test_occupants, TEST_OCCUPANTS};
 // "In use" is a fact about *agents*, and it lives in the agent-lease registry and tmux — not in
 // leases.json. The pool used to decide from its own ledger plus [`any_proc_in`], which was a
 // `/proc` scan compiled out off Linux, so on macOS it had no process signal at all: a slot the
-// ledger had lost track of (an in-place `bn agent launch`, or a kill that resolved the wrong
+// ledger had lost track of (an in-place `workspan agent launch`, or a kill that resolved the wrong
 // worktree and handed the slot back) read as idle, was leased to the next branch, and
 // `switch_into_slot` changed the branch under a running agent. Every decision below now asks the
 // same oracle the one-agent-per-worktree launch guard asks, and [`occupancy::any_proc_in`] now
@@ -1267,7 +1267,7 @@ fn ensure_spare_slot(ctx: &PoolCtx) -> SpareSlot {
 fn schedule_warm(repo: &str) {
     // Never under `cargo test`: `current_exe()` there is the *test binary*, so spawning it with
     // `run pool-warm` argv would re-run the test suite as a subprocess. The Phase-8 integration
-    // test drives the real `bn` binary out-of-process, where this is `false` and the warm runs.
+    // test drives the real `workspan` binary out-of-process, where this is `false` and the warm runs.
     if cfg!(test) {
         return;
     }
@@ -1376,7 +1376,7 @@ fn pool_status(cfg: &Config, repo: Option<String>) -> bool {
     let built = read_warm_stamps(&ctx.pool_dir);
     let dirty_marks = read_dirty_marks(&ctx.pool_dir);
     for n in 1..=ctx.size as u32 {
-        // Slot 1 is `bn control`'s alone — label it so an idle controller slot doesn't read as
+        // Slot 1 is `workspan control`'s alone — label it so an idle controller slot doesn't read as
         // spare worker capacity.
         let role = if n == bn_core::agent::MAIN_POOL_SLOT {
             "  (controller)"

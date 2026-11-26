@@ -1,5 +1,5 @@
 //! launchd user-agent management — the macOS twin of [`crate::timers`]. Reads the `com.bn.*`
-//! agents `bn cron register` wrote to `~/Library/LaunchAgents` and (un)loads them via
+//! agents `workspan cron register` wrote to `~/Library/LaunchAgents` and (un)loads them via
 //! `launchctl bootstrap`/`bootout` in the user's GUI domain. Every entry point degrades to an
 //! empty list / no-op when `launchctl` is absent, so callers never special-case the platform.
 
@@ -46,7 +46,7 @@ pub fn registered() -> Vec<RegisteredAgent> {
             // Orchestrate daemons (#338/#395) and the
             // routine watcher daemon (#801 amendment) are long-running KeepAlive agents, NOT
             // cron jobs — keep `com.bn.orchestrate*` and `com.bn.routine` out of
-            // the cron reconcile so `bn cron register` never treats one as an orphaned cron and
+            // the cron reconcile so `workspan cron register` never treats one as an orphaned cron and
             // unloads/deletes it.
             if is_orchestrate_label(&label) || is_routine_label(&label) {
                 return None;
@@ -113,10 +113,10 @@ pub fn bootout(label: &str) -> Result<(), String> {
         .map_err(|e| e.to_string())
 }
 
-// --- `bn orchestrate` daemons (#338 / #395) ----------------------------------
+// --- `workspan orchestrate` daemons (#338 / #395) ----------------------------------
 // Each orchestrate loop is a long-running daemon (RunAtLoad + KeepAlive), not a periodic cron job,
 // so it gets its own launchd plumbing distinct from the `StartInterval` cron agents above — and is
-// excluded from the cron reconcile (see `registered`) so `bn cron register` never reaps it.
+// excluded from the cron reconcile (see `registered`) so `workspan cron register` never reaps it.
 // #395: one daemon **per repo** (`com.bn.orchestrate.<repo>`), so two concurrent runs never share
 // (or hijack) a single machine-wide agent. The bare legacy label lingers only until migration.
 
@@ -136,10 +136,10 @@ pub(crate) fn is_orchestrate_label(label: &str) -> bool {
 // than a per-repo daemon each blind to the other sessions. It gets its own reserved label so it
 // coexists with any per-repo daemons; `is_orchestrate_label` already covers it (cron never reaps it).
 
-// --- `bn routine watch` managed daemon (#801 amendment) ----------------------
+// --- `workspan routine watch` managed daemon (#801 amendment) ----------------------
 // The watcher was a long-running daemon (RunAtLoad + KeepAlive), same shape as the orchestrate
 // daemons above. The routine layer itself went in #1297; the label is still excluded from the cron
-// reconcile (see `registered`) so `bn cron register` leaves a machine's leftover plist alone.
+// reconcile (see `registered`) so `workspan cron register` leaves a machine's leftover plist alone.
 
 /// The launchd label for the routine watcher daemon.
 pub(crate) const ROUTINE_LABEL: &str = "com.bn.routine";

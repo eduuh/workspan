@@ -1,6 +1,6 @@
-//! The fzf side pane for `bn tat` — split out of `tat.rs` unchanged.
+//! The fzf side pane for `workspan tat` — split out of `tat.rs` unchanged.
 //!
-//! The hottest path in the picker: fzf's `--preview` bind re-execs `bn tat --pick-stage preview`
+//! The hottest path in the picker: fzf's `--preview` bind re-execs `workspan tat --pick-stage preview`
 //! once per focused row, so every subprocess here is paid on every cursor move. Keep it that way —
 //! nothing in this module may block on the network.
 
@@ -168,7 +168,7 @@ pub(super) fn preview(roots: &Roots, project: &str) {
 /// and says so. Everything else in it — the branch note, divergence, recent commits — is a
 /// history/object read that does not scale with the size of the checkout, and stays exact.
 ///
-/// 150ms because `bn`'s own startup is ~10ms: on an ordinary repo all three counts land well inside
+/// 150ms because `workspan`'s own startup is ~10ms: on an ordinary repo all three counts land well inside
 /// this and the pane is exact, while a repo that cannot answer in a sixth of a second is one you do
 /// not want to wait on once per keystroke.
 const TREE_BUDGET: std::time::Duration = std::time::Duration::from_millis(150);

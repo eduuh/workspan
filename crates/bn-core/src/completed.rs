@@ -1,5 +1,5 @@
 //! The **Completed** fold (#561) collects finished signals into a
-//! history of "what got done": completed branch-note todos (`bn done`), achieved daily goals,
+//! history of "what got done": completed branch-note todos (`workspan done`), achieved daily goals,
 //! resolved attention items, and landed/merged orchestrate work.
 //!
 //! Each [`CompletedItem`] carries a [`ContextLink`] so a finished item is traceable back to its full
@@ -144,7 +144,7 @@ pub struct CompletedSources<'a> {
     pub merged_prs: &'a [crate::merged_prs::MergedRef],
 }
 
-/// The repo basename a completed row groups under — `eduuh/bn` → `bn`. GitHub events carry the
+/// The repo basename a completed row groups under — `eduuh/bn` → `workspan`. GitHub events carry the
 /// `owner/repo` slug while branch-note todos carry the bare name; folding them to the same key is
 /// what lets one repo's PRs and todos land in one group instead of two.
 fn repo_base(repo: &str) -> &str {
@@ -407,7 +407,7 @@ mod tests {
         assert_eq!(out[0].title, "eduuh/wira360 #916");
     }
 
-    /// GitHub says `eduuh/bn`, branch-note todos say `bn`. They must group under one repo.
+    /// GitHub says `eduuh/bn`, branch-note todos say `workspan`. They must group under one repo.
     #[test]
     fn a_slug_and_a_bare_repo_name_group_together() {
         let prs = [merged_ref("eduuh/bn", 1, "x", 500)];

@@ -76,7 +76,7 @@ pub(super) fn route(cfg: &Config, action: CmdInsights, json: bool) {
             no_momentum,
             fit,
         } => {
-            // #503: fold an opportunistic fleet-GC sweep into the interactive `bn next` — the
+            // #503: fold an opportunistic fleet-GC sweep into the interactive `workspan next` — the
             // moment you're deciding what to do next is a good time to clear stale stragglers.
             // Skipped on the fast/automated paths (--cached picker, --brief hook, --refresh cron,
             // --clear-cache) so those stay instant and side-effect-free.

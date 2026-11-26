@@ -1,5 +1,5 @@
-//! Which tmux keys actually get pressed: `bn run tmux-keylog` (the `tick-5m` job that records them)
-//! and `bn tmux-keys` (the report that names the bindings nobody uses).
+//! Which tmux keys actually get pressed: `workspan run tmux-keylog` (the `tick-5m` job that records them)
+//! and `workspan tmux-keys` (the report that names the bindings nobody uses).
 //!
 //! tmux keeps no key history of its own beyond the message log, where every *bound* key press lands
 //! as `HH:MM: <client> key <KEY>: <command>` — newest row first, no key table, bounded by

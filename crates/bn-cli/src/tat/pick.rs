@@ -27,7 +27,7 @@ pub(super) fn top_level(
 fn native_top_level(cfg: &Config, roots: &Roots, root_opt: Option<&str>) -> Option<(String, bool)> {
     if !tui::interactive() {
         // Piped or scripted: print the list and stop, the same degrade the fzf path takes when fzf
-        // is missing. `bn tat | cat` stays useful instead of drawing frames into a pipe.
+        // is missing. `workspan tat | cat` stays useful instead of drawing frames into a pipe.
         super::rows::build_list(roots, false);
         return None;
     }
@@ -63,8 +63,8 @@ fn native_top_level(cfg: &Config, roots: &Roots, root_opt: Option<&str>) -> Opti
 }
 
 fn fzf_top_level(cfg: &Config, roots: &Roots, root_opt: Option<&str>) -> Option<(String, bool)> {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::shq(&exe.display().to_string());
     let root_flag = root_flag(root_opt);
     let child = Command::new("fzf")
         .arg("--reverse")
@@ -74,17 +74,17 @@ fn fzf_top_level(cfg: &Config, roots: &Roots, root_opt: Option<&str>) -> Option<
         .arg("--with-nth=1")
         .arg(format!("--header={}", super::status::header(cfg)))
         .arg(format!(
-            "--preview={bn} tat{root_flag} --pick-stage preview {{-1}}"
+            "--preview={workspan} tat{root_flag} --pick-stage preview {{-1}}"
         ))
         .arg("--preview-window=right:50%:wrap")
         .arg(format!(
-            "--bind=start:reload({bn} tat{root_flag} --pick-stage list)"
+            "--bind=start:reload({workspan} tat{root_flag} --pick-stage list)"
         ))
         .arg(format!(
-            "--bind=ctrl-x:execute-silent({bn} tat{root_flag} --pick-stage kill {{-1}})+reload({bn} tat{root_flag} --pick-stage list)"
+            "--bind=ctrl-x:execute-silent({workspan} tat{root_flag} --pick-stage kill {{-1}})+reload({workspan} tat{root_flag} --pick-stage list)"
         ))
         .arg(format!(
-            "--bind=ctrl-r:reload({bn} tat{root_flag} --pick-stage refresh)"
+            "--bind=ctrl-r:reload({workspan} tat{root_flag} --pick-stage refresh)"
         ))
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -237,8 +237,8 @@ fn fzf_sub(
     rows: &[SubRowItem],
     states: &CmdStates,
 ) -> SubPick {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::shq(&exe.display().to_string());
     let root_flag = root_flag(root_opt);
     let name_q = crate::shq(name);
     let listen = commands::Listen::reserve();
@@ -251,18 +251,18 @@ fn fzf_sub(
         .arg("--expect=ctrl-o")
         .arg(format!("--header={header}"))
         .arg(format!(
-            "--preview={bn} tat {name_q}{root_flag} --pick-stage subpreview --pick-arg {{1}}~{{2}}"
+            "--preview={workspan} tat {name_q}{root_flag} --pick-stage subpreview --pick-arg {{1}}~{{2}}"
         ))
         .arg("--preview-window=right:50%:wrap")
         .arg("--bind=ctrl-p:toggle-preview")
         .arg(format!(
-            "--bind=ctrl-d:execute({bn} tat {name_q}{root_flag} --pick-stage rmworktree --pick-arg {{1}}~{{2}})+reload({bn} tat {name_q}{root_flag} --pick-stage sublist)"
+            "--bind=ctrl-d:execute({workspan} tat {name_q}{root_flag} --pick-stage rmworktree --pick-arg {{1}}~{{2}})+reload({workspan} tat {name_q}{root_flag} --pick-stage sublist)"
         ))
         .arg(format!(
-            "--bind=ctrl-w:execute({bn} tat {name_q}{root_flag} --pick-stage warmpool)+reload({bn} tat {name_q}{root_flag} --pick-stage sublist)"
+            "--bind=ctrl-w:execute({workspan} tat {name_q}{root_flag} --pick-stage warmpool)+reload({workspan} tat {name_q}{root_flag} --pick-stage sublist)"
         ))
         .arg(format!(
-            "--bind=ctrl-r:execute({bn} tat {name_q}{root_flag} --pick-stage releasepool --pick-arg {{1}}~{{2}})+reload({bn} tat {name_q}{root_flag} --pick-stage sublist)"
+            "--bind=ctrl-r:execute({workspan} tat {name_q}{root_flag} --pick-stage releasepool --pick-arg {{1}}~{{2}})+reload({workspan} tat {name_q}{root_flag} --pick-stage sublist)"
         ))
         .args(commands::listen_args(listen.as_ref()))
         .envs(commands::listen_env(listen.as_ref()))
@@ -339,7 +339,7 @@ fn tat_stage_output(
     stage: &str,
     pick_arg: Option<String>,
 ) -> String {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
     let mut args = vec!["tat".to_string()];
     if let Some(name) = name {
         args.push(name.to_string());

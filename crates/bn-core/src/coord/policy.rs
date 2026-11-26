@@ -47,7 +47,7 @@ pub fn decide(wd: &Watchdog, f: &Facts) -> Decision {
                 None => Decision::Unavailable("context usage unknown".into()),
                 Some(pct) if pct >= need => Decision::Fire(text(&format!(
                     "Context at {pct}% (threshold {need}%). Compaction is not an unblock: write a \
-                     recap and plan it first — bn compact plan"
+                     recap and plan it first — workspan compact plan"
                 ))),
                 Some(pct) => Decision::Skip(format!("context at {pct}%")),
             }

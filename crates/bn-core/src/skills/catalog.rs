@@ -614,17 +614,17 @@ mod tests {
     }
 
     /// Every `bn_<name>` token in a shipped prompt must be a real workspan MCP tool. The list mirrors the
-    /// `name = "bn_…"` tools in crates/bn-mcp/src; anything else (`bn_next`, `bn_metrics`, …) is a
+    /// `name = "bn_…"` tools in crates/workspan-mcp/src; anything else (`bn_next`, `bn_metrics`, …) is a
     /// CLI command and must be written `workspan <sub>` — prompts instructing a phantom tool fail on
     /// every run.
     #[test]
     fn shipped_prompts_reference_only_real_mcp_tools() {
         const MCP_TOOLS: &[&str] = &[
-            "bn_cmd",
-            "bn_links_add",
-            "bn_links_search",
-            "bn_ref",
-            "bn_ref_append",
+            "workspan_cmd",
+            "workspan_links_add",
+            "workspan_links_search",
+            "workspan_ref",
+            "workspan_ref_append",
         ];
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
         let dirs = [root.join("config/prompts"), root.join("config/agents")];

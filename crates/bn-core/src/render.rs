@@ -407,7 +407,7 @@ mod oneline_tests {
 
     #[test]
     fn marks_a_dropped_body() {
-        // The `bn summary` case: a whole dispatch prompt stored as one todo.
+        // The `workspan summary` case: a whole dispatch prompt stored as one todo.
         assert_eq!(
             // Deliberately not phrased as a role prompt. check-prompt-sources.sh greps the
             // second-person role opener across all of bn-core/src, and its exemptions cover

@@ -1,6 +1,6 @@
 //! Closing the loop when work lands — the far end of the Today suggestion tie.
 //!
-//! `bn agent done` used to raise a review item and stop there, so the task that governed the work,
+//! `workspan agent done` used to raise a review item and stop there, so the task that governed the work,
 //! and the Today suggestion that proposed it, stayed open forever. The next reconcile sweep would
 //! then find a proposal it believed still needed starting, and start work that had already
 //! shipped. This is the write that prevents that.
@@ -12,7 +12,7 @@
 //!
 //! The completion is also the report back to whoever assigned the task: the summary and PR link go
 //! on the Forge activity as a comment, and the PR is stamped as `pr:`. A task with a PR is not
-//! done when the agent is: it stays open (wip) until the PR merges, which `bn forge sweep` notices
+//! done when the agent is: it stays open (wip) until the PR merges, which `workspan forge sweep` notices
 //! ([`crate::cmd::forge_app::sweep::poll_forge_merges`]) and completes. The file provider keeps the
 //! old behaviour exactly: close on done, no stamp, no note.
 use crate::*;

@@ -6,10 +6,10 @@
 //! server — an authenticated remote endpoint, a private gateway — which belongs to *you* rather
 //! than to any one repo, and which needs to exist in every client on every machine you sit at.
 //!
-//! install.sh already registers bn (and nvim-mcp) at user scope for all four clients, but only
+//! install.sh already registers workspan (and nvim-mcp) at user scope for all four clients, but only
 //! those two, hardcoded in shell. This module makes that registration data-driven: declare a
 //! server under `[mcp.servers.<name>]` in the shared `<notes_root>/config.toml` — which already
-//! syncs between machines — and `bn mcp sync-user` writes it into whichever of the four client
+//! syncs between machines — and `workspan mcp sync-user` writes it into whichever of the four client
 //! configs exist here.
 //!
 //! Two things make a *personal* server different from a curated one, and both are handled here:
@@ -24,7 +24,7 @@
 //!
 //! Unlike [`crate::mcp::merge_extras`], which never clobbers an existing entry, sync **overwrites**
 //! the entry under each declared name: config.toml is the source of truth, and an edit there is
-//! expected to reach every machine. Servers bn does not know about are left untouched.
+//! expected to reach every machine. Servers workspan does not know about are left untouched.
 
 use std::collections::BTreeMap;
 use std::path::{Path, PathBuf};
@@ -880,7 +880,7 @@ clients = ["claude-code", "copilot-cli"]
 #[cfg(test)]
 mod entry_tests {
     //! The four clients are four products with three entry shapes. Getting one wrong produces a
-    //! config the client parses but ignores, which looks identical to bn never having run.
+    //! config the client parses but ignores, which looks identical to workspan never having run.
     use super::{resolve, Client, UserServer};
 
     fn resolved() -> super::Resolved {

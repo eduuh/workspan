@@ -1,4 +1,4 @@
-//! `bn verify`/`bn gate` — run the repo verification gate in a snapshot.
+//! `workspan verify`/`workspan gate` — run the repo verification gate in a snapshot.
 use crate::*;
 
 /// One step in the repo's verification gate (#454, #758).
@@ -80,7 +80,7 @@ pub(crate) fn resolve_verify_target(
     ctx: &Resolved,
     job: Option<&str>,
 ) -> Result<Option<VerifyGate>, String> {
-    // An explicit --job forces a bn job script (never the native command) — and must resolve.
+    // An explicit --job forces a workspan job script (never the native command) — and must resolve.
     if let Some(j) = job {
         return match resolver::job_script(cfg, Some(ctx), j) {
             Some((_, path)) => Ok(Some(VerifyGate {
@@ -465,7 +465,7 @@ mod tests {
         assert!(text.contains("to-out") && text.contains("to-err"), "{text}");
     }
 
-    /// A verify gate runs the user's own script, which routinely shells out to `bn`. It must get
+    /// A verify gate runs the user's own script, which routinely shells out to `workspan`. It must get
     /// the same PATH every other job process gets — the one whose leading entry is workspan's own
     /// directory. Re-deriving `~/.local/bin:~/.bin:$PATH` here is what left staff gathers exiting
     /// 127 under the scheduler, so assert the shared prelude rather than an equivalent-looking

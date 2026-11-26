@@ -1,4 +1,4 @@
-//! `bn plan view [--host <machine>] [--port <n>]`: see a plan's HTML here, wherever it was made.
+//! `workspan plan view [--host <machine>] [--port <n>]`: see a plan's HTML here, wherever it was made.
 //!
 //! An agent drafts plans as HTML in its branch note folder. On another machine that folder is out
 //! of reach of this machine's browser, and forwarding a port is overkill for a static file. This
@@ -44,7 +44,7 @@ pub(crate) fn remote_script(root: &str, repo: &str, branch: &str) -> String {
         r#"export PATH="$HOME/.local/bin:$HOME/.bn/bin:$PATH"
 root={root}; repo={repo}; branch={branch}
 {checkout}
-d=$(cd "$wt" && bn --path 2>/dev/null)
+d=$(cd "$wt" && workspan --path 2>/dev/null)
 f=$(find "$d" -maxdepth 3 -type f -name '*.html' -exec ls -t {{}} + 2>/dev/null | head -n 1)
 [ -n "$f" ] || {{ echo NOPLAN; exit {NOPLAN}; }}
 printf 'FILE=%s\n' "$f"
@@ -222,7 +222,7 @@ mod tests {
     #[test]
     fn the_remote_script_looks_in_the_note_folder() {
         let s = remote_script("/w", "bn", "feat");
-        assert!(s.contains("bn --path"));
+        assert!(s.contains("workspan --path"));
         assert!(s.contains("-name '*.html'"));
         assert!(s.contains("printf 'FILE=%s\\n'"));
     }

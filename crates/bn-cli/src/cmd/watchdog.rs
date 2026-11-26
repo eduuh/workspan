@@ -1,4 +1,4 @@
-//! `bn watchdog` and the tick that evaluates due watchdogs. The rules (what fires when) are
+//! `workspan watchdog` and the tick that evaluates due watchdogs. The rules (what fires when) are
 //! [`bn_core::coord::policy`]; this file gathers the facts a rule needs, carries out the effect,
 //! and records the outcome.
 
@@ -278,7 +278,7 @@ fn gather(wd: &Watchdog, fleet: Option<&bn_core::agent::Fleet>) -> Facts {
 /// Carry out a fire. Delivering to an agent that isn't reachable right now is a deferral, not a
 /// failure: the watchdog tries again in a few minutes.
 fn act(cfg: &Config, wd: &Watchdog, text: &str) -> (Outcome, String) {
-    let line = format!("[bn watchdog {}] {text}", wd.id);
+    let line = format!("[workspan watchdog {}] {text}", wd.id);
     if is_human(&wd.target) {
         return match raise(&wd.target, &format!("watchdog:{}", wd.id), &line, "warn") {
             Ok(()) => (Outcome::Fired, "raised for a person".into()),

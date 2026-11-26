@@ -1,4 +1,4 @@
-//! `bn schema` — publish the `--json` contract (see [`bn_core::schema`]).
+//! `workspan schema` — publish the `--json` contract (see [`bn_core::schema`]).
 use crate::*;
 use bn_core::schema::{self, CommandSchema};
 
@@ -46,7 +46,7 @@ fn all(json: bool) -> i32 {
 }
 
 fn one(name: &str, json: bool) -> i32 {
-    // Accept the envelope tag or the bare subcommand that produces it, so `bn schema wt list`'s
+    // Accept the envelope tag or the bare subcommand that produces it, so `workspan schema wt list`'s
     // tag (`wt-list`) and a user's guess (`wt-list` vs `wt`) both land.
     let Some(c) = schema::find(name).or_else(|| {
         schema::COMMANDS

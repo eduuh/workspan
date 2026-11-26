@@ -1,8 +1,8 @@
 //! The notification policy gate — one chokepoint every desktop toast passes through.
 //!
-//! `bn` used to call [`super::emit`] from fifteen independent sites, each deciding on its own
+//! `workspan` used to call [`super::emit`] from fifteen independent sites, each deciding on its own
 //! whether to interrupt. There was no severity bar, no rate limit, no cross-source dedup and no
-//! quiet window, so an urgent attention item was toasted twice (once by `bn watch`, once by the
+//! quiet window, so an urgent attention item was toasted twice (once by `workspan watch`, once by the
 //! `notify` job, each with its own dedup ledger), a blocked orchestrate lane re-toasted every
 //! fifteen seconds, and neither focus mode nor away mode silenced anything. The predictable
 //! result is that the toasts stopped being read.
@@ -10,13 +10,13 @@
 //! This module applies the rule the staff framework already states for attention cards (#269,
 //! [`crate::staff_backpressure`]) to the OS toast layer: **degrade toward silence, not noise.**
 //! A toast means *work has stopped and needs your decision*. Everything else is pull-only and
-//! stays readable in `bn next` / `bn attn` / `bn agent live` and the tmux badges.
+//! stays readable in `workspan next` / `workspan attn` / `workspan agent live` and the tmux badges.
 //!
 //! Call sites declare **intent** — a [`Class`] and a stable dedup [`Notification::key`] — and
 //! [`decide`] alone decides delivery, in this order:
 //!
 //! 1. **Bar** — is this class loud enough to interrupt for? (default: [`Class::Blocking`] only)
-//! 2. **Quiet window** — away mode silences everything (it batches into the `bn afk end` digest);
+//! 2. **Quiet window** — away mode silences everything (it batches into the `workspan afk end` digest);
 //!    focus mode and protected routine blocks silence everything *except* blocking, matching what
 //!    [`crate::next::next_actions`] already does for the pull surface.
 //! 3. **Duplicate** — this exact key has never been delivered before.
@@ -24,7 +24,7 @@
 //! 5. **Budget** — at most [`DAILY_BUDGET`] toasts a day; past it the day degrades to silence.
 //!
 //! Suppression never loses anything: the underlying signal is already durable in the attention
-//! store, the wake queue and the orchestrate state, and `bn notify status` reports exactly what
+//! store, the wake queue and the orchestrate state, and `workspan notify status` reports exactly what
 //! was held back and why.
 //!
 //! **Concurrency disclosure**:

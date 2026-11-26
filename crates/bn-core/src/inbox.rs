@@ -1,4 +1,4 @@
-//! Global capture inbox (`bn q`) — a zero-decision landing zone for stray thoughts.
+//! Global capture inbox (`workspan q`) — a zero-decision landing zone for stray thoughts.
 //!
 //! One synced file per machine (`<personal_root>/<machine>/inbox.md`), mirroring the daily
 //! scheduled-queue format (fenced-YAML frontmatter over a regenerated title body) so the

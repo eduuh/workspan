@@ -1,4 +1,4 @@
-//! Join a supervised agent to the tmux window that hosts it — the "can bn write to this agent?"
+//! Join a supervised agent to the tmux window that hosts it — the "can workspan write to this agent?"
 //! question, answered once per supervisor pass and reused by every steering command.
 //!
 //! Window names are presentation, not identity (the point [`super::lease`] already makes): dispatch
@@ -10,7 +10,7 @@
 //! So the join is tiered, strongest evidence first, and every tier is pure so the whole thing is
 //! testable from a captured `list-windows` string:
 //!
-//! 1. an agent lease recording this harness session id — bn launched it and wrote down where;
+//! 1. an agent lease recording this harness session id — workspan launched it and wrote down where;
 //! 2. a window stamped `@bn_session_id` with this session — same evidence, read off the window;
 //! 3. the **worktree path**: the agent's transcript records its cwd and every window reports
 //!    `pane_current_path`, so a checkout identifies its window without either side being tagged.
@@ -308,7 +308,7 @@ fn resolve_one(
 ) -> AgentChannel {
     let sid = crate::cost::canonical_session_id(agent.session_id);
 
-    // 1. bn launched it and wrote down where — but only for as long as that window is still up.
+    // 1. workspan launched it and wrote down where — but only for as long as that window is still up.
     //    A lease outlives the agent it recorded: release is best-effort, and a harness that crashed
     //    or a window the user closed never releases at all. Trusting the record unchecked hands back
     //    a target for a window that shut minutes ago, so `tmux_target` stops meaning "a live window
@@ -322,7 +322,7 @@ fn resolve_one(
                 .iter()
                 .find(|w| w.target == l.tmux_target)
                 // The lease's checkout beats the pane's: a pane may have wandered into a
-                // subdirectory, while the lease records the slot bn actually handed this session.
+                // subdirectory, while the lease records the slot workspan actually handed this session.
                 .map(|w| (w, l.key.worktree.clone()))
         })
     {
@@ -342,7 +342,7 @@ fn resolve_one(
         return hit(w, MatchTier::WindowSession);
     }
 
-    // 3. the checkout — the tier that catches a session bn never launched.
+    // 3. the checkout — the tier that catches a session workspan never launched.
     if let Some(w) = agent.worktree.and_then(|wt| match_by_path(wt, windows)) {
         return hit(w, MatchTier::WorktreePath);
     }

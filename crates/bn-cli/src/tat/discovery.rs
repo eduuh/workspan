@@ -1,4 +1,4 @@
-//! The `bn tat` discovery cache — what the picker knows without asking the world.
+//! The `workspan tat` discovery cache — what the picker knows without asking the world.
 //!
 //! Split out of `tat.rs` unchanged. Everything here answers a picker row: the frecency-ordered
 //! project refs, a bare repo's worktree names, and the open PRs on its remote. The first two are
@@ -6,7 +6,7 @@
 //!
 //! The rule for this module: **the interactive path never blocks on the network.** A stale answer
 //! rendered now beats a fresh one rendered in two seconds, so a miss serves what it has and hands
-//! the refetch to a detached `bn tat --pick-stage warm-remote` that nothing waits on.
+//! the refetch to a detached `workspan tat --pick-stage warm-remote` that nothing waits on.
 
 use super::{
     cache_home, is_bare_repo, list_worktrees, ref_repo, sort_by_frecency, write_atomic, Roots,
@@ -269,7 +269,7 @@ fn warm_stamp_path(target: &str) -> PathBuf {
 /// of concurrent `gh` processes. Best effort throughout — a machine that cannot spawn simply keeps
 /// serving the cache it has.
 pub(super) fn spawn_remote_warm(name: Option<&str>, win_scoped: bool) {
-    // The valve, in the shape the rest of bn uses (`BN_AGENT_GUARD=0`): a machine that wants the
+    // The valve, in the shape the rest of workspan uses (`BN_AGENT_GUARD=0`): a machine that wants the
     // picker to touch nothing but its caches sets `BN_TAT_WARM=0`. Tests set it so a spawn can
     // never re-enter the test binary with picker arguments.
     if matches!(

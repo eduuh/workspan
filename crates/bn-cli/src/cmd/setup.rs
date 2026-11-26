@@ -1,4 +1,4 @@
-//! `bn glyphs` and the tmux statusline integration.
+//! `workspan glyphs` and the tmux statusline integration.
 use crate::*;
 
 /// `workspan glyphs` — render the whole icon vocabulary with names + codepoints, then a mock of the
@@ -99,9 +99,9 @@ pub(crate) fn sync_tmux(cfg: &Config, ctx: &Resolved) {
     if std::env::var_os("TMUX").is_none() {
         return;
     }
-    // This decorates the window the process is running in, but `ctx` can be any note — `bn done
+    // This decorates the window the process is running in, but `ctx` can be any note — `workspan done
     // --repo x --branch y` resolves elsewhere and would otherwise stamp *this* window with that
-    // note's counts. Once the window carries its own identity (see `bn tmux-reconcile`), we can
+    // note's counts. Once the window carries its own identity (see `workspan tmux-reconcile`), we can
     // tell the two apart and decline; a window with no identity yet behaves exactly as before.
     let (win_repo, win_branch) = (
         read_tmux_window_option("@bn_repo"),

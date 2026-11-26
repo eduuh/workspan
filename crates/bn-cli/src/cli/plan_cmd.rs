@@ -1,4 +1,4 @@
-//! `bn plan ...` clap surface, split from the top-level command catalog.
+//! `workspan plan ...` clap surface, split from the top-level command catalog.
 
 use crate::*;
 

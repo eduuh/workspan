@@ -1,4 +1,4 @@
-//! `bn resume --all` — bring back the work that was running when the machine, or just its tmux
+//! `workspan resume --all` — bring back the work that was running when the machine, or just its tmux
 //! server, last went down.
 //!
 //! A dead tmux server takes every agent with it (each harness gets SIGHUP with its pane) while the
@@ -15,13 +15,13 @@
 //! consumes the same value, so what you were shown and what runs cannot disagree.
 //!
 //! **Adopt, never open a second window.** After a reboot tmux-continuum has already restored the
-//! bn session's windows in the right worktrees, with scrollback — only the harness is missing,
+//! workspan session's windows in the right worktrees, with scrollback — only the harness is missing,
 //! because `claude` is not in resurrect's whitelist. So a row whose worktree already has a live
 //! pane is *adopted*: the launch command is sent into that pane. Opening a fresh window would give
 //! two per branch, and tidying that up runs straight into the rule that a tmux session is never
 //! killed. Here nothing is ever closed, so the rule holds by construction rather than by care.
 //!
-//! **Never claim a resume you cannot perform.** `bn agent launch` silently degrades an unfindable
+//! **Never claim a resume you cannot perform.** `workspan agent launch` silently degrades an unfindable
 //! session id to a *fresh, unseeded* agent. A recovery command that prints "resumed" and hands back
 //! a blank slate is worse than one that admits it is starting fresh, so `--resume-session` is
 //! emitted only for a transcript-verified row whose checkout still exists, and every row prints
@@ -496,7 +496,7 @@ fn restore_one(row: &RestoreRow) -> Result<(), String> {
 /// otherwise a plain launch, which the table has already labelled `fresh`.
 fn launch_command(row: &RestoreRow) -> String {
     let exe = std::env::current_exe()
-        .unwrap_or_else(|_| PathBuf::from("bn"))
+        .unwrap_or_else(|_| PathBuf::from("workspan"))
         .to_string_lossy()
         .into_owned();
     let mut command = format!(

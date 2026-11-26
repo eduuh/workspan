@@ -1,4 +1,4 @@
-//! `bn connect --window` attaches an existing `host:<alias>` session when one is listed and only
+//! `workspan connect --window` attaches an existing `host:<alias>` session when one is listed and only
 //! creates a new one otherwise; the lookup that decides between the two is pure.
 //!
 //! The not-inside-tmux branch itself is not covered: it execs `tmux attach-session` /

@@ -3,7 +3,7 @@
 //!
 //! Split out of `cron.rs` so the resolver (which job does this name mean?) and the executor (how
 //! does a job become a process?) are separately readable — they fail in very different ways, and
-//! [`job_path`] in particular is the whole reason a headless cron can call `bn` at all.
+//! [`job_path`] in particular is the whole reason a headless cron can call `workspan` at all.
 use crate::*;
 
 /// How many trailing output lines the `cron_run` ledger keeps.

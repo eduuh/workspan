@@ -23,7 +23,7 @@
 //!
 //! This module decides *whether* a task is ready. [`crate::pipeline::gate`] owns the single place
 //! that acts on the answer. Keeping the two apart is what lets the policy be unit-tested without a
-//! store, and what keeps a second copy of the check from drifting into `bn dispatch`.
+//! store, and what keeps a second copy of the check from drifting into `workspan dispatch`.
 
 use crate::task_doc::TaskDoc;
 use crate::todo::Task;

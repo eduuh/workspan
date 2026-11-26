@@ -1,4 +1,4 @@
-//! `bn links check`: is each stored link still worth opening? The decisions live here, pure and
+//! `workspan links check`: is each stored link still worth opening? The decisions live here, pure and
 //! unit-tested; the CLI runs `gh api` / `curl` and hands the raw answers back to these.
 //!
 //! The one rule that shapes everything: a page that wants you signed in is not dead. Azure

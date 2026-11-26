@@ -1,9 +1,9 @@
-//! The native picker: the interactive list surface `bn` draws itself, instead of shelling to fzf.
+//! The native picker: the interactive list surface `workspan` draws itself, instead of shelling to fzf.
 //!
 //! # Why this exists
 //!
 //! Driving fzf means the row list, the preview and every key action have to survive a trip through
-//! a shell. fzf cannot call back into a running process, so each binding re-executes `bn` with a
+//! a shell. fzf cannot call back into a running process, so each binding re-executes `workspan` with a
 //! hidden `--pick-stage` flag; rows become delimiter-joined strings whose delimiters collide with
 //! real branch names; and paths get shell-quoted into `--bind` arguments. Owning the frame deletes
 //! all three problems at once: a binding is a closure, a row carries a typed payload, and nothing
@@ -187,7 +187,7 @@ pub(crate) enum Outcome<T> {
 /// Which frontend draws the picker.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum Backend {
-    /// Spawn fzf, as `bn` has always done.
+    /// Spawn fzf, as `workspan` has always done.
     Fzf,
     /// Draw it ourselves.
     Native,
@@ -223,7 +223,7 @@ pub(crate) fn interactive() -> bool {
 /// Run the picker to completion, always leaving the terminal as it was found.
 ///
 /// Returns [`Outcome::Cancelled`] without drawing anything when there is no tty, so a piped or
-/// scripted `bn` never blocks waiting for keys that cannot arrive.
+/// scripted `workspan` never blocks waiting for keys that cannot arrive.
 pub(crate) fn run<T: Clone>(mut p: Picker<'_, T>) -> Outcome<T> {
     if !term::available() {
         return Outcome::Cancelled;

@@ -3,9 +3,9 @@
 //!
 //! Three kinds, all "things that outlive any one session":
 //!
-//!   * **references** (`bn ref`, #623) — person-scoped coding standards that apply on every repo,
-//!   * **reference notes** (`bn ref --repo`) — what past sessions discovered about *this* repo,
-//!   * **directives** (`bn agent instruct`) — branch-scoped standing instructions you gave *this*
+//!   * **references** (`workspan ref`, #623) — person-scoped coding standards that apply on every repo,
+//!   * **reference notes** (`workspan ref --repo`) — what past sessions discovered about *this* repo,
+//!   * **directives** (`workspan agent instruct`) — branch-scoped standing instructions you gave *this*
 //!     lane by hand.
 //!
 //! Directives are the reason this module exists. Before it, an instruction was a message in a pane:

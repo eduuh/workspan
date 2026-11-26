@@ -11,9 +11,10 @@ fn parse(text: &str) -> Result<AgentDef, AgentCatalogError> {
 
 #[test]
 fn command_defaults_run_and_retry() {
-    let agent =
-        parse("---\nname: demo\nkind: command\nrequires_repo: bn\non_calendar: \"*:0/15\"\n---\n")
-            .expect("agent parses");
+    let agent = parse(
+        "---\nname: demo\nkind: command\nrequires_repo: workspan\non_calendar: \"*:0/15\"\n---\n",
+    )
+    .expect("agent parses");
 
     assert_eq!(agent.kind, AgentKind::Command);
     assert_eq!(agent.run, None);
@@ -24,7 +25,7 @@ fn command_defaults_run_and_retry() {
 #[test]
 fn catch_up_frontmatter_parses() {
     let agent = parse(
-        "---\nname: demo\nkind: command\nrequires_repo: bn\non_calendar: \"*:0/15\"\ncatch_up: true\n---\n",
+        "---\nname: demo\nkind: command\nrequires_repo: workspan\non_calendar: \"*:0/15\"\ncatch_up: true\n---\n",
     )
     .expect("agent parses");
     assert!(agent.catch_up);
@@ -34,7 +35,7 @@ fn catch_up_frontmatter_parses() {
 fn a_retired_frontmatter_key_still_parses() {
     // `queue:` was removed with the machine queue; manifests that still carry it must load.
     let agent = parse(
-        "---\nname: demo\nkind: command\nrequires_repo: bn\non_calendar: \"*:0/15\"\nqueue: false\n---\n",
+        "---\nname: demo\nkind: command\nrequires_repo: workspan\non_calendar: \"*:0/15\"\nqueue: false\n---\n",
     )
     .expect("agent parses");
     assert_eq!(agent.kind, AgentKind::Command);
@@ -42,11 +43,11 @@ fn a_retired_frontmatter_key_still_parses() {
 
 #[test]
 fn a_retired_startup_trigger_still_parses() {
-    // `trigger: startup` was removed with `bn startup`; manifests that still carry it must load
+    // `trigger: startup` was removed with `workspan startup`; manifests that still carry it must load
     // as plain on-demand agents.
     for trigger in ["startup", "[cron, startup]"] {
         let agent = parse(&format!(
-            "---\nname: demo\nkind: command\nrequires_repo: bn\ntrigger: {trigger}\n---\n"
+            "---\nname: demo\nkind: command\nrequires_repo: workspan\ntrigger: {trigger}\n---\n"
         ))
         .expect("agent parses");
         assert_eq!(agent.on_calendar, None);
@@ -109,7 +110,7 @@ fn kind_schedule_and_recursion_errors_are_typed_and_path_qualified() {
     assert!(missing_kind.to_string().contains("config/agents/demo.md"));
 
     let bad_schedule = parse(
-        "---\nname: demo\nkind: command\nrequires_repo: bn\non_calendar: \"sometimes\"\n---\n",
+        "---\nname: demo\nkind: command\nrequires_repo: workspan\non_calendar: \"sometimes\"\n---\n",
     )
     .expect_err("schedule is invalid");
     assert!(matches!(
@@ -135,7 +136,7 @@ fn kind_schedule_and_recursion_errors_are_typed_and_path_qualified() {
     }
 
     let zero_retry = parse(
-        "---\nname: demo\nkind: command\nrequires_repo: bn\non_calendar: daily\nretry_after: 0m\n---\n",
+        "---\nname: demo\nkind: command\nrequires_repo: workspan\non_calendar: daily\nretry_after: 0m\n---\n",
     )
     .expect_err("retry must be positive");
     assert!(matches!(
@@ -333,8 +334,8 @@ fn the_scheduler_alone_fires_manifest_schedules() {
 
 #[test]
 fn a_specialist_always_publishes_natively() {
-    let agent =
-        parse("---\nname: demo\nkind: specialist\nrepo: bn\n---\nBody.\n").expect("agent parses");
+    let agent = parse("---\nname: demo\nkind: specialist\nrepo: workspan\n---\nBody.\n")
+        .expect("agent parses");
     assert!(agent.publishes_natively());
 }
 
@@ -342,15 +343,16 @@ fn a_specialist_always_publishes_natively() {
 fn a_plain_agent_stays_out_of_the_harness_agent_picker() {
     // The default has to be "not published": most of the catalog is packet-fed, and a staff agent
     // offered in a harness's own `/agent` list with no `gather:` behind it reads as broken.
-    let agent = parse("---\nname: demo\nkind: command\nrequires_repo: bn\n---\nBody.\n")
+    let agent = parse("---\nname: demo\nkind: command\nrequires_repo: workspan\n---\nBody.\n")
         .expect("agent parses");
     assert!(!agent.publishes_natively());
 }
 
 #[test]
 fn declaring_a_world_is_how_a_non_specialist_opts_in() {
-    let agent =
-        parse("---\nname: demo\nkind: command\nrequires_repo: bn\nworlds: [claude]\n---\nBody.\n")
-            .expect("agent parses");
+    let agent = parse(
+        "---\nname: demo\nkind: command\nrequires_repo: workspan\nworlds: [claude]\n---\nBody.\n",
+    )
+    .expect("agent parses");
     assert!(agent.publishes_natively());
 }

@@ -3,7 +3,7 @@
 //!
 //! Split out of `cmd/task.rs` (which is at the 1000-line limit) because it is one coherent thing:
 //! the pair of headless agent runs that move a task through the SMART gate. `cmd/task.rs` owns the
-//! store's CRUD; this owns the two places bn spends a model on a task.
+//! store's CRUD; this owns the two places workspan spends a model on a task.
 //!
 //! The load-bearing rule here is that **a verdict is recorded, never merely reported.** Every
 //! reader downstream — the Today board, the pipeline gate — reads

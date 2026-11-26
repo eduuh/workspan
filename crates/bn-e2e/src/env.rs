@@ -1,5 +1,5 @@
 //! The isolation contract: every environment variable that must be redirected (or unset) before
-//! a `bn` subprocess may run against a sandbox.
+//! a `workspan` subprocess may run against a sandbox.
 //!
 //! This is the *single* place the contract is written down. Two sandbox scripts once hand-rolled a
 //! subset, and each forgot `BN_NOTES_DIR`, which silently appended test fixtures to the real
@@ -28,7 +28,7 @@ use std::path::Path;
 pub const REMOVED: &[&str] = &[
     "TMUX",
     "TMUX_PANE",
-    // Belt-and-braces against a developer's shell that already points bn somewhere: any of these
+    // Belt-and-braces against a developer's shell that already points workspan somewhere: any of these
     // set in the ambient environment would otherwise win over the sandbox's own values only if we
     // failed to set them below. Removing first means the map built here is the whole truth.
     "BN_CONFIG",
@@ -70,7 +70,7 @@ pub fn contract(root: &Path, now: i64, today: &str) -> BTreeMap<String, String> 
     set("BN_MACHINE_FILE", &config.join("machine"));
     set("BN_MANAGED_REPOS_DIR", &bn_home.join("repos"));
 
-    // Worktree roots. `BN_WORKTREE_DIR` is the one `bn dispatch` resolves the bare+worktree layout
+    // Worktree roots. `BN_WORKTREE_DIR` is the one `workspan dispatch` resolves the bare+worktree layout
     // under; without it dispatch falls back to `$HOME/projects` — contained by the pinned HOME,
     // but pointing at a directory the sandbox never seeded, so dispatch fails on a missing bare
     // repo rather than exercising the workflow. `WT_ROOT` is the `wtw` wrapper's separate override

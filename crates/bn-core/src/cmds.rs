@@ -1,12 +1,12 @@
-//! `bn cmd` — your own commands: the thing you do over and over, written once as `<name>.sh` and
-//! run with arguments by you (`bn cmd <name> ...`) or an agent (the `bn_cmd` MCP tool).
+//! `workspan cmd` — your own commands: the thing you do over and over, written once as `<name>.sh` and
+//! run with arguments by you (`workspan cmd <name> ...`) or an agent (the `workspan_cmd` MCP tool).
 //!
 //! A command is a job script in everything but intent. It resolves through the same tiers
 //! (branch → project → repo → global, see [`resolver::script_tier_dirs`]) under `cmds/` instead
 //! of `jobs/`, so a cron's scripts and your hand-run wrappers never share a listing. Unlike a job
 //! it takes arguments, runs in the caller's directory, and is not recorded to the cron ledger.
 //!
-//! The script's leading comments describe it: `# description: ...` is the one line `bn cmd` and
+//! The script's leading comments describe it: `# description: ...` is the one line `workspan cmd` and
 //! agents see, `# usage: ...` says what arguments it takes.
 use std::io::Read;
 use std::path::{Path, PathBuf};
@@ -181,9 +181,9 @@ pub fn command(
 /// The PATH every process workspan spawns to run the user's own scripts gets.
 ///
 /// The leading entry is this executable's own directory, and it is load-bearing: on a stock install
-/// that is the *only* place `bn` exists (`~/.bn/bin`), and a scheduler shell — launchd, systemd,
+/// that is the *only* place `workspan` exists (`~/.bn/bin`), and a scheduler shell — launchd, systemd,
 /// cron — inherits none of the profile that normally puts it on PATH. A hand-rolled
-/// `~/.local/bin:~/.bin:$PATH` left every `run:` command that called `bn` exiting 127 with
+/// `~/.local/bin:~/.bin:$PATH` left every `run:` command that called `workspan` exiting 127 with
 /// `/bin/sh: workspan: command not found`.
 ///
 /// Job scripts, `run:` commands, staff gathers, harness dispatches, the `verify`/`build` gates and

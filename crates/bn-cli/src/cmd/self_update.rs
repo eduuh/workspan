@@ -1,4 +1,4 @@
-//! `self-update` — keep the installed `bn` in step with what is published, without ever going
+//! `self-update` — keep the installed `workspan` in step with what is published, without ever going
 //! backwards.
 //!
 //! Split out of `jobs.rs` (at the 1000-line ratchet) when the guard below was added. The shape:
@@ -14,7 +14,7 @@
 //! and every six hours this job saw HEAD ≠ stamp, ran install.sh, and put that month-old binary
 //! over whatever was on the box — including a build of the current checkout installed three
 //! minutes earlier — then stamped main's HEAD as if it had installed it. So the job now asks the
-//! release what it is before installing it, and refuses to replace an installed bn with one that
+//! release what it is before installing it, and refuses to replace an installed workspan with one that
 //! is the same or older.
 use crate::*;
 use std::path::Path;
@@ -76,7 +76,7 @@ fn resolve_bn_main_worktree() -> String {
         .unwrap_or_else(|| conventional.to_string_lossy().into_owned())
 }
 
-/// `self-update` — keep the installed `bn` in lock-step with `bn/main` whenever main advances.
+/// `self-update` — keep the installed `workspan` in lock-step with `bn/main` whenever main advances.
 /// Cheap to run often: it fast-forwards main and only re-installs when HEAD actually moved past
 /// the last install (tracked in a stamp file).
 ///
@@ -87,19 +87,19 @@ fn resolve_bn_main_worktree() -> String {
 /// the tmux layer, whose helpers are symlinks into the worktree and so already track main without
 /// re-linking.
 pub(crate) fn job_self_update(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
-    // The same anchors every other bn path resolves: `~/.bn/bin` for the binary and the config dir
+    // The same anchors every other workspan path resolves: `~/.bn/bin` for the binary and the config dir
     // for the install stamp. This used to hardcode `~/.bin` and `~/.config/bn`, the pre-`~/.bn`
     // layout, and only kept working where install.sh had left a compatibility symlink behind.
     let bindir = bn_core::resolver::bin_dir();
     let stamp = bn_core::resolver::config_dir().join(".built-at");
 
-    // Resolve bn's main worktree — robust even when bn was installed
+    // Resolve bn's main worktree — robust even when workspan was installed
     // from a feature worktree.
     let main_wt = resolve_bn_main_worktree();
 
     if !Path::new(&main_wt).is_dir() {
         native_job_line(
-            &format!("self-update: bn main worktree not found ({main_wt})"),
+            &format!("self-update: workspan main worktree not found ({main_wt})"),
             true,
         );
         return 1;
@@ -128,13 +128,13 @@ pub(crate) fn job_self_update(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     let built = std::fs::read_to_string(&stamp)
         .ok()
         .map(|s| s.trim().to_string());
-    if built.as_deref() == Some(head.as_str()) && is_executable_file(&bindir.join("bn")) {
+    if built.as_deref() == Some(head.as_str()) && is_executable_file(&bindir.join("workspan")) {
         return 0;
     }
 
-    // One way to install bn, on every machine: download what CI published. This used to prefer a
+    // One way to install workspan, on every machine: download what CI published. This used to prefer a
     // machine-local `publish-prod` job that compiled the checkout, which made the installed binary
-    // depend on whether that box had a working cargo — and meant a laptop was compiling bn to run
+    // depend on whether that box had a working cargo — and meant a laptop was compiling workspan to run
     // it. Strict release removed the reason for it: main is published as a versioned release only
     // after the full CI gate passes on that commit, so there is nothing a local build can offer
     // that the release does not, except a way to drift.
@@ -143,9 +143,9 @@ pub(crate) fn job_self_update(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     // install.sh reinstalls the *published* release, which can lag main by however long CI takes:
     // refuse to put an older build over the installed one. It is not a git/gh/tmux binary, so
     // spawning it directly is fine (the subprocess guard only covers those).
-    if let Some(why) = release_not_newer(&main_wt, &bindir.join("bn")) {
+    if let Some(why) = release_not_newer(&main_wt, &bindir.join("workspan")) {
         native_job_line(
-            &format!("self-update: {why} — leaving the installed bn alone"),
+            &format!("self-update: {why} — leaving the installed workspan alone"),
             false,
         );
         return 0;
@@ -154,9 +154,9 @@ pub(crate) fn job_self_update(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     cmd.arg("--core").current_dir(&main_wt);
     let label = format!("{} --core", installer.display());
     // Capture rather than inherit: a cron has no terminal, so inherited output goes nowhere and a
-    // failed build leaves `bn cron`/`bn doctor` showing a bare "FAIL" with no cause. Capturing lets
+    // failed build leaves `workspan cron`/`workspan doctor` showing a bare "FAIL" with no cause. Capturing lets
     // the compiler error ride into the run's `output_tail`, which is the only durable record of why
-    // an unattended update stopped keeping `bn` in lock-step with main.
+    // an unattended update stopped keeping `workspan` in lock-step with main.
     match cmd.output() {
         Ok(out) if out.status.success() => {}
         Ok(out) => {
@@ -181,10 +181,10 @@ pub(crate) fn job_self_update(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     let _ = stamp.parent().map(std::fs::create_dir_all);
     let _ = std::fs::write(&stamp, format!("{head}\n"));
     native_job_line(&format!("self-update: ran {label} @ {head}"), false);
-    crate::cmd::self_update_check::verify(&bindir.join("bn"))
+    crate::cmd::self_update_check::verify(&bindir.join("workspan"))
 }
 
-/// Why the published release must not replace the installed `bn`, or `None` when installing it is
+/// Why the published release must not replace the installed `workspan`, or `None` when installing it is
 /// the right move (it is newer, or there is no workspan with a known commit installed to protect).
 ///
 /// When the release's commit cannot be learned, this refuses. It used to install then, and that
@@ -248,8 +248,8 @@ fn same_commit(a: &str, b: &str) -> bool {
 }
 
 /// The git sha the installed binary reports in `workspan --version`.
-fn installed_sha(bn: &Path) -> Option<String> {
-    let out = std::process::Command::new(bn).arg("--version").output().ok()?;
+fn installed_sha(workspan: &Path) -> Option<String> {
+    let out = std::process::Command::new(workspan).arg("--version").output().ok()?;
     parse_version_sha(&String::from_utf8_lossy(&out.stdout))
 }
 

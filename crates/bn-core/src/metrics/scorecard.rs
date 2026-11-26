@@ -212,7 +212,7 @@ pub fn scorecard(
     let partial = partial_progress(&pcts);
 
     // WIP guard: rank each open branch by how close to merge it is, forecast a clear-by date from
-    // this window's merge cadence. Same note→rank mapping `bn next`'s top row uses.
+    // this window's merge cadence. Same note→rank mapping `workspan next`'s top row uses.
     let wip_guard = wip_guard(&open_branch_wips(cfg, today), pr.merged, window_days, today);
 
     // Warm-pool activity: this machine's pool refresh + lease events (a pool is per-box, so read

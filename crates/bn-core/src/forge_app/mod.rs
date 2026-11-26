@@ -6,14 +6,14 @@
 //! Three layers, each replaceable on its own:
 //!
 //! - [`client`]: a small blocking MCP client over streamable HTTP ([`client::McpHttp`]) and the
-//!   [`client::ForgeApi`] trait naming the Forge tools bn calls. Tests use a fake `ForgeApi`.
+//!   [`client::ForgeApi`] trait naming the Forge tools workspan calls. Tests use a fake `ForgeApi`.
 //! - [`store`]: [`store::ForgeTaskStore`], the [`crate::task_store::TaskStore`] that maps Forge
-//!   activities to bn tasks on load and pushes only what changed on save.
+//!   activities to workspan tasks on load and pushes only what changed on save.
 //! - [`session`]: one client per endpoint and key per process, so stores share an MCP session.
-//! - [`ids`]: the per-endpoint high-water mark that keeps bn ids from being reused.
+//! - [`ids`]: the per-endpoint high-water mark that keeps workspan ids from being reused.
 //! - this module: where the credential comes from ([`resolve_token`], [`write_token`]).
 //!
-//! The credential is a `fam_` API key minted for the family's agent member (`bn forge login`). It
+//! The credential is a `fam_` API key minted for the family's agent member (`workspan forge login`). It
 //! travels only in the `Authorization` header and is never logged or printed.
 
 pub mod client;

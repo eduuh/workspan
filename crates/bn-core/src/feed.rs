@@ -1,10 +1,10 @@
 //! The feed: an inbox for *informational crons* — jobs that don't *do* work but *surface* it.
 //! A feed job fetches facts (open PRs to review, today's meetings) and writes them as items with
-//! links; `bn feed` renders them grouped by source. Each source (one cron) owns a file under
+//! links; `workspan feed` renders them grouped by source. Each source (one cron) owns a file under
 //! `state_dir()/feed/<source>.json`, and a run REPLACES that file wholesale — so the feed mirrors
 //! the current state, and merged PRs / past meetings drop off on the next run instead of piling
-//! up. North star, same as the review queue: the script fetches, bn renders. Jobs only ever write
-//! through `bn feed ingest <source>`; nothing here touches the network.
+//! up. North star, same as the review queue: the script fetches, workspan renders. Jobs only ever write
+//! through `workspan feed ingest <source>`; nothing here touches the network.
 
 use crate::resolver::state_dir;
 use serde::{Deserialize, Serialize};

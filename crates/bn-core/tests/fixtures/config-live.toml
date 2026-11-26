@@ -146,7 +146,7 @@ plan_review_quorum = 2
 agent = "copilot"               # copilot | claude
 remote_overflow = false
 # Autonomous mode: the repos whose reproduced bugs may become work without being asked.
-# The explore pass files them (`bn issue file --kind bug --label autonomous-repro`); everything
+# The explore pass files them (`workspan issue file --kind bug --label autonomous-repro`); everything
 # downstream — task pull, enhance, queue, dispatch, gate, critic — already exists.
 own = ["bn"]
 # `needs-triage` is the gate on product-facing findings: wira360's explore pass files with that
@@ -211,7 +211,7 @@ retain_days = 14                # 0 keeps all
 # dir = "/home/you/.local/state/bn/logs"  # default <state_dir>/logs
 
 # This machine's runtime opt-ins. Without a [machines.<name>] entry bn treats the host as
-# unregistered: cron_enabled_here() is false, so `bn cron register` declares nothing and no
+# unregistered: cron_enabled_here() is false, so `workspan cron register` declares nothing and no
 # scheduler agent is ever written — which is how the darwin nightly-release went 8 days without
 # publishing. The machine name is the one in ~/.bn/config/machine ("snapshot-host"), not the hostname.
 # `queue` is a retired key (the machine queue is gone). It stays here to prove an old config that

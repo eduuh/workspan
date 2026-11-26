@@ -77,7 +77,7 @@ fn only_due_watchdogs_are_returned_and_a_slot_is_claimed_once() {
     let due = db.due_watchdogs(T0 + 60).unwrap();
     assert_eq!(due.len(), 1);
     assert!(db.claim_due(&due[0], T0 + 60).unwrap());
-    // The same slot, claimed again (a second tick, or `bn watchdog fire`), loses.
+    // The same slot, claimed again (a second tick, or `workspan watchdog fire`), loses.
     assert!(!db.claim_due(&due[0], T0 + 61).unwrap());
     assert!(db.due_watchdogs(T0 + 61).unwrap().is_empty(), "leased out");
     let _ = w;

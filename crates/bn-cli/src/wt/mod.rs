@@ -1,4 +1,4 @@
-//! `bn wt` — git worktree manager for the bare+worktree layout. A Rust port of the `wt`
+//! `workspan wt` — git worktree manager for the bare+worktree layout. A Rust port of the `wt`
 //! zsh script (`~/.bin/wt`). Bare repos live at `<root>/bare/<repo>.git`, worktrees at
 //! `<root>/worktree/<repo>/<branch>`. `<root>` is `$WT_ROOT` if set (so the `wtw` wrapper can
 //! point this same logic at the Windows filesystem), else bn's configured worktree root.

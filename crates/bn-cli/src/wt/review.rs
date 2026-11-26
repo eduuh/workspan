@@ -1,10 +1,10 @@
-//! Auto-review worktree harness (backing `bn review-pr`): sparse review worktrees,
+//! Auto-review worktree harness (backing `workspan review-pr`): sparse review worktrees,
 //! agent launch, prompt plumbing, and teardown. Moved verbatim from the former
 //! wt.rs god file (issue #351).
 
 use super::*;
 
-// --- auto-review entry points (used by the `bn review-pr` command) ----------
+// --- auto-review entry points (used by the `workspan review-pr` command) ----------
 
 /// Outcome of preparing a review worktree.
 pub(crate) struct PrSetup {
@@ -114,7 +114,7 @@ pub(crate) fn setup_review_worktree(
     let (_, worktree_dir) = layout(cfg);
     let wt_path = worktree_dir.join(key).join(&sanitized);
 
-    // Edge case: the PR branch is already checked out in *another* worktree (a bn pool slot, or
+    // Edge case: the PR branch is already checked out in *another* worktree (a workspan pool slot, or
     // you're working on your own PR there). git refuses a second worktree for the same branch, so
     // rather than failing we review it **in place** — a vertical pane whose cwd is that worktree.
     if let Some(existing) = worktree_for_branch(&bare_s, branch) {
@@ -153,7 +153,7 @@ pub(crate) fn setup_review_worktree(
     }
 
     // 4) Open the worktree's tmux window (same as `wt add`), so the review runs in a real session
-    //    that `bn agent supervise` can watch and the user can attach to.
+    //    that `workspan agent supervise` can watch and the user can attach to.
     open_worktree_window(key, &sanitized, &wt_path, false);
 
     // 5) Trigger the review agent inside that window (copilot folder-trust is handled by the
@@ -205,7 +205,7 @@ fn worktree_path_in_listing(listing: &str, branch: &str) -> Option<PathBuf> {
 
 /// Edge-case launcher for [`setup_review_worktree`]: when the PR branch is already checked out in
 /// another worktree, review it **in place** — split a vertical pane in that worktree's *existing*
-/// tmux window (so it sits beside the branch's session, not wherever `bn` was invoked) and run the
+/// tmux window (so it sits beside the branch's session, not wherever `workspan` was invoked) and run the
 /// review pipeline (the rendered `auto-review-pr` seed) in it. `-h` splits left/right, i.e. a
 /// vertical divider; cwd is the worktree. Returns false when no tmux window hosts the worktree (the
 /// caller then just reports the path). Autonomy is ownership-gated (see below). The full slug flows
@@ -381,7 +381,7 @@ pub(crate) fn launch_review_agent(cfg: &Config, repo: &str, win_branch: &str, nu
 /// to run it (auto / review); when false the command is left staged in the pane for you to review
 /// and run yourself (assist). Pre-trusts the worktree for copilot so a fresh worktree doesn't block
 /// on the first-run folder-trust prompt. Returns whether the paste reached tmux. The harness is
-/// `$BN_REVIEW_HARNESS`, else whatever drives bn, else copilot — a full interactive session (tools
+/// `$BN_REVIEW_HARNESS`, else whatever drives workspan, else copilot — a full interactive session (tools
 /// are approved per-call, not blanket-bypassed), keeping a human able to intervene.
 pub(crate) fn launch_agent_in_window(
     cfg: &Config,
@@ -440,7 +440,7 @@ impl<'a> AgentLaunchOpts<'a> {
 }
 
 /// The review harness to launch: config (`[review].harness` / `$BN_REVIEW_HARNESS`, via
-/// [`Config::review_harness`]), else whatever is driving bn, else copilot.
+/// [`Config::review_harness`]), else whatever is driving workspan, else copilot.
 pub(crate) fn review_harness_name(cfg: &Config) -> String {
     cfg.review_harness
         .clone()

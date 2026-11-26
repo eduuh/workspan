@@ -1,4 +1,4 @@
-//! Proof applied: readiness at a branch's real head, and what `bn done w<N>` does about it.
+//! Proof applied: readiness at a branch's real head, and what `workspan done w<N>` does about it.
 
 use super::{derive, list, verdicts, Freshness, ItemState, Readiness};
 use crate::resolver::{Config, Resolved};

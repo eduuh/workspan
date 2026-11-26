@@ -3,7 +3,7 @@
 use super::shell_word;
 use std::ffi::OsString;
 
-pub(super) fn bn(args: &[&str]) -> Result<String, String> {
+pub(super) fn workspan(args: &[&str]) -> Result<String, String> {
     let argv = std::iter::once("workspan")
         .chain(args.iter().copied())
         .map(OsString::from)
@@ -32,7 +32,7 @@ pub(super) fn skill_read(
     for arg in skill.arguments.iter().filter(|arg| arg.required) {
         args.extend(["--arg".to_owned(), format!("{}=<{}>", arg.name, arg.name)]);
     }
-    bn(&args.iter().map(String::as_str).collect::<Vec<_>>())
+    workspan(&args.iter().map(String::as_str).collect::<Vec<_>>())
 }
 
 #[cfg(test)]
@@ -61,7 +61,7 @@ mod tests {
                 .collect::<Vec<_>>();
             assert_eq!(words[0], "workspan");
             let args = &words[1..];
-            assert_eq!(bn(args).unwrap(), command);
+            assert_eq!(workspan(args).unwrap(), command);
         }
     }
 
@@ -75,10 +75,10 @@ mod tests {
             vec!["skills", "render", "debug", "--obsolete-flag"],
             vec!["fleet", "not-a-command"],
         ] {
-            assert!(bn(&args).is_err(), "invalid hint accepted: {args:?}");
+            assert!(workspan(&args).is_err(), "invalid hint accepted: {args:?}");
         }
-        assert!(bn(&["pipeline", "status"]).is_ok());
-        assert!(bn(&["skills", "render", "quoted skill"]).is_ok());
+        assert!(workspan(&["pipeline", "status"]).is_ok());
+        assert!(workspan(&["skills", "render", "quoted skill"]).is_ok());
     }
 
     #[test]

@@ -1,4 +1,4 @@
-//! `bn findings` — the cron findings store (#576): record + query durable, structured findings.
+//! `workspan findings` — the cron findings store (#576): record + query durable, structured findings.
 use crate::*;
 
 /// `workspan findings record <source>` — append one run's findings from JSON on stdin. Parses the same

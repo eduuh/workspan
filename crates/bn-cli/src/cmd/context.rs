@@ -1,4 +1,4 @@
-//! `bn context` — context profiles for a branch: list them, compose one with its costs, or serve a
+//! `workspan context` — context profiles for a branch: list them, compose one with its costs, or serve a
 //! single piece. The composition itself is [`bn_core::context`].
 
 use crate::cli::coord_group::CompactTarget;

@@ -1,4 +1,4 @@
-//! Per-repo MCP wiring driven by the `bn mcp init` CLI command. Writes the committable counterpart to install.sh's global registration: one or more
+//! Per-repo MCP wiring driven by the `workspan mcp init` CLI command. Writes the committable counterpart to install.sh's global registration: one or more
 //! project-scoped MCP configs (a harness like `copilot` covers two editors that read different
 //! files) plus a harness instruction block. Every write is idempotent — JSON merges into any
 //! existing config, and the instruction block lives between markers so re-running replaces just
@@ -8,8 +8,8 @@
 //! alongside it — see [`EXTRAS`]. Most run through `npx -y` / `uvx`, so the runner fetches (and
 //! caches) the package on first launch; the rest are binaries the machine already has. Either way
 //! the entry carries no machine-local path, so the config stays committable, and bn's job is to
-//! verify the command is on PATH and hand back the exact install line when it isn't (`bn mcp init`
-//! warns, `bn doctor` nags).
+//! verify the command is on PATH and hand back the exact install line when it isn't (`workspan mcp init`
+//! warns, `workspan doctor` nags).
 
 use std::path::{Path, PathBuf};
 
@@ -17,15 +17,15 @@ use serde_json::{json, Map, Value};
 
 use crate::resolver;
 
-const BEGIN: &str = "<!-- BEGIN bn (managed by `bn mcp init`) -->";
-const END: &str = "<!-- END bn -->";
+const BEGIN: &str = "<!-- BEGIN workspan (managed by `workspan mcp init`) -->";
+const END: &str = "<!-- END workspan -->";
 
 const MCP_SESSION_TOOLS: &[&str] = &[
-    "bn_cmd",
-    "bn_links_search",
-    "bn_links_add",
-    "bn_ref",
-    "bn_ref_append",
+    "workspan_cmd",
+    "workspan_links_search",
+    "workspan_links_add",
+    "workspan_ref",
+    "workspan_ref_append",
 ];
 
 /// The agent-facing instructions dropped into the harness's memory file. Mirrors the MCP
@@ -34,7 +34,7 @@ const INSTRUCTIONS: &str = "\
 ## Workspan agent integration
 
 Workspan coordinates workspaces, agents, machines, and execution. Entire handles captured
-agent-session history. The `bn` command and MCP tool names remain compatibility interfaces.
+agent-session history. The `workspan` command and MCP tool names remain compatibility interfaces.
 
 ### Tasks, execution, and references
 
@@ -47,9 +47,9 @@ Entire owns captured session history; do not create a parallel session-memory st
 
 The per-worktree stdio launcher (`workspan mcp serve`) exposes only:
 
-- `bn_cmd` — list or run commands in the current workspace.
-- `bn_links_search` / `bn_links_add` — curated durable links.
-- `bn_ref` / `bn_ref_append` — reusable repository references and standards.
+- `workspan_cmd` — list or run commands in the current workspace.
+- `workspan_links_search` / `workspan_links_add` — curated durable links.
+- `workspan_ref` / `workspan_ref_append` — reusable repository references and standards.
 
 Use the Workspan CLI for tasks, execution, attention, scheduling, and fleet operations.
 MCP workflow prompts remain available from the effective skills.
@@ -63,8 +63,8 @@ Record task completion and execution transitions when they actually happen, not 
 session end. Record only what genuinely occurred.
 
 Prompts are reusable workflows in `config/prompts/`. In Claude Code they are served as MCP prompts
-(`/bn:<name>`); in Copilot CLI they are installed as native skills referred to by their name (not
-`/mcp.bn.<name>` — Copilot does not surface MCP prompts). Every effective skill is served, so a
+(`/workspan:<name>`); in Copilot CLI they are installed as native skills referred to by their name (not
+`/mcp.workspan.<name>` — Copilot does not surface MCP prompts). Every effective skill is served, so a
 prompt exists for each workflow the tiers define; use the CLI for cross-branch workflows, and note
 that some prompts (PR review, orchestration) describe steps whose commands live only in the CLI.
 Reference skills sit in `config/skills/` and are referred to by name from a prompt's body
@@ -187,7 +187,7 @@ const COPILOT_WORKSPACE_MCP_FILES: &[&str] = &[".mcp.json", ".github/mcp.json"];
 /// boots past a failing or auth-requiring repo MCP instead of hanging on it at startup (#384). An
 /// unattended agent can't complete an interactive auth flow, so a project server that blocks the
 /// MCP handshake wedges the whole session before it ever reaches its prompt. workspan's own server
-/// (the conventional name `bn`, or the legacy `bn-mcp` command) is kept — it's the local
+/// (the conventional name `workspan`, or the `workspan-mcp` command) is kept — it's the local
 /// `workspan mcp serve` stdio launcher and the source of the branch-note tools the workflow drives.
 /// The curated [`EXTRAS`] are kept for the same reason: workspan wired them, they are vetted, and none
 /// of them can ask an unattended agent to authenticate.
@@ -214,9 +214,9 @@ fn collect_non_bn_servers(root: &Value, out: &mut std::collections::BTreeSet<Str
         return;
     };
     for (name, entry) in servers {
-        // A curated extra is one bn wired itself (`bn mcp init --with-extras`, or the dispatch
+        // A curated extra is one workspan wired itself (`workspan mcp init --with-extras`, or the dispatch
         // setup path). Suppressing it would switch off, for exactly the unattended agents that
-        // most need them, the servers bn just finished installing — and the failure this
+        // most need them, the servers workspan just finished installing — and the failure this
         // suppression exists to prevent is an unvetted repo server wanting interactive auth,
         // which a vetted one does not do.
         if !is_bn_server(name, entry) && !EXTRAS.iter().any(|e| e.name == name) {
@@ -226,12 +226,12 @@ fn collect_non_bn_servers(root: &Value, out: &mut std::collections::BTreeSet<Str
 }
 
 /// Whether a configured server entry is workspan's own — matched by the conventional server name or,
-/// robustly, by the launched command's basename (`bn-mcp`), so a repo that renames the server
+/// robustly, by the launched command's basename (`workspan-mcp`), so a repo that renames the server
 /// still keeps it instead of suppressing the branch-note tools. workspan's HTTP entry (#640) is always
-/// written under the name `bn`, so the name check covers it; a generic "url ends in /mcp" test is
+/// written under the name `workspan`, so the name check covers it; a generic "url ends in /mcp" test is
 /// deliberately avoided since many third-party servers share that path and must stay suppressed.
 fn is_bn_server(name: &str, entry: &Value) -> bool {
-    if name == "bn" || name == "bn-mcp" {
+    if name == "workspan" || name == "workspan-mcp" {
         return true;
     }
     entry
@@ -239,7 +239,7 @@ fn is_bn_server(name: &str, entry: &Value) -> bool {
         .and_then(Value::as_str)
         .and_then(|c| Path::new(c).file_name())
         .and_then(|f| f.to_str())
-        == Some("bn-mcp")
+        == Some("workspan-mcp")
 }
 
 #[derive(Clone, Copy)]
@@ -251,7 +251,7 @@ pub enum Harness {
 /// Whether `model` is an id the Claude Code CLI accepts as `--model`: a tier alias
 /// (`opus`/`sonnet`/`haiku`/`fable`) or an Anthropic id in native *dashed* form
 /// (`claude-opus-4-8`). workspan's canonical *dotted* ids (`claude-opus-4.8`) and any non-Anthropic id
-/// (`gpt-5.4`) are rejected — Claude Code parks on "model does not exist" for them (bn#963). The
+/// (`gpt-5.4`) are rejected — Claude Code parks on "model does not exist" for them (workspan#963). The
 /// dashed-vs-dotted split is the same digit-separator convention `normalize_model_id` folds.
 fn is_native_claude_model(model: &str) -> bool {
     const ALIASES: [&str; 4] = ["opus", "sonnet", "haiku", "fable"];
@@ -290,7 +290,7 @@ impl Harness {
 
     /// The `--model` value to hand this harness for the configured id `model`, or `None` when that
     /// id is not a valid *native* id for the harness — the caller then omits `--model` entirely and
-    /// lets the harness fall back to its own default (bn#963). The **Copilot CLI** is a multi-model
+    /// lets the harness fall back to its own default (workspan#963). The **Copilot CLI** is a multi-model
     /// gateway that accepts workspan's dotted catalog ids (`gpt-5.4`, `claude-sonnet-4.6`, `auto`), so any
     /// non-empty id passes through unchanged. **Claude Code** accepts only its native *dashed* ids
     /// (`claude-opus-4-8`) or tier aliases (`opus`/`sonnet`/…); workspan's dotted ids (`claude-opus-4.8`)
@@ -311,7 +311,7 @@ impl Harness {
     ///
     /// Effort used to be interpolated raw into the launch command, so a value neither CLI understood
     /// (a typo, or a Copilot-only tier pinned on a Claude stage) reached the harness and **failed the
-    /// launch**. Model has been guarded since bn#963; effort never was. Dropping an unusable level is
+    /// launch**. Model has been guarded since workspan#963; effort never was. Dropping an unusable level is
     /// strictly better: the agent still boots, at the harness's own default.
     ///
     /// The two sets differ, so the difference has to live somewhere: **Claude Code** takes
@@ -403,7 +403,7 @@ impl Harness {
 }
 
 /// The per-worktree stdio launcher an MCP client spawns for the scoped branch-note tools:
-/// `workspan mcp serve`. The child (`bn-mcp`) derives its `(repo, branch)` from the launch cwd, so the
+/// `workspan mcp serve`. The child (`workspan-mcp`) derives its `(repo, branch)` from the launch cwd, so the
 /// committed config stays branch-agnostic and needs no per-call scope headers. `workspan` is resolved off
 /// the client's `PATH` (install.sh puts it there); a from-source checkout can point the generated
 /// entry at an absolute path.
@@ -650,7 +650,9 @@ fn write_server_json<R>(
         .as_object_mut()
         .ok_or_else(|| format!("{}.{server_key} is not a JSON object", path.display()))?;
 
-    servers.insert("bn".to_string(), entry.clone());
+    // Retire the entry older installs wrote under the `workspan` name: it spawns the removed `workspan` binary.
+    servers.remove("bn");
+    servers.insert("workspan".to_string(), entry.clone());
     let merged = merge_more(servers);
 
     let mut out = serde_json::to_string_pretty(&root).map_err(|e| e.to_string())?;
@@ -743,8 +745,15 @@ mod branding_tests {
         let entry = Flavor::Local.bn_entry();
         write_server_json(&path, "mcpServers", &entry, |_| ()).unwrap();
         let config: Value = serde_json::from_str(&std::fs::read_to_string(&path).unwrap()).unwrap();
-        assert_eq!(config["mcpServers"]["bn"]["command"], "workspan");
-        assert_eq!(config["mcpServers"]["bn"]["args"], json!(["mcp", "serve"]));
+        assert!(
+            config["mcpServers"].get("bn").is_none(),
+            "the retired bn entry is removed"
+        );
+        assert_eq!(config["mcpServers"]["workspan"]["command"], "workspan");
+        assert_eq!(
+            config["mcpServers"]["workspan"]["args"],
+            json!(["mcp", "serve"])
+        );
         assert_eq!(config["mcpServers"]["other"]["command"], "custom");
         assert_eq!(
             write_server_json(&path, "mcpServers", &entry, |_| ())
@@ -759,13 +768,13 @@ mod branding_tests {
     fn legacy_instruction_block_is_updated_in_place_with_workspan_commands() {
         let temp = tempfile::tempdir().unwrap();
         let path = temp.path().join("instructions.md");
-        std::fs::write(&path, "before\n<!-- BEGIN bn (managed by `bn mcp init`) -->\nold instructions\n<!-- END bn -->\nafter\n").unwrap();
+        std::fs::write(&path, "before\n<!-- BEGIN workspan (managed by `workspan mcp init`) -->\nold instructions\n<!-- END workspan -->\nafter\n").unwrap();
         write_instructions(&path).unwrap();
         let content = std::fs::read_to_string(&path).unwrap();
         assert!(content.starts_with("before\n"));
         assert!(content.ends_with("after\n"));
         assert!(!content.contains("old instructions"));
-        assert_eq!(content.matches("<!-- BEGIN bn ").count(), 1);
+        assert_eq!(content.matches("<!-- BEGIN workspan ").count(), 1);
         assert!(content.contains("`workspan mcp serve`"));
         assert_eq!(write_instructions(&path).unwrap().action, "unchanged");
     }
@@ -774,7 +783,7 @@ mod branding_tests {
 #[cfg(test)]
 mod harness_arg_tests {
     //! The two launch-argument guards. Both exist because an id or level the harness rejects used to
-    //! reach the CLI, and a launch that dies on "model does not exist" looks like a bn bug from every
+    //! reach the CLI, and a launch that dies on "model does not exist" looks like a workspan bug from every
     //! angle except the command line nobody printed.
     use super::Harness;
 
@@ -877,7 +886,7 @@ mod extra_tests {
     fn dispatch_does_not_suppress_the_servers_bn_wired() {
         let cfg = json!({
             "mcpServers": {
-                "bn": { "command": "bn", "args": ["mcp", "serve"] },
+                "workspan": { "command": "workspan", "args": ["mcp", "serve"] },
                 "nvim": { "command": "nvim-mcp", "args": ["--connect", "auto"] },
                 "sequential-thinking": { "command": "npx", "args": ["-y", "x"] },
                 "some-repo-server": { "command": "npx", "args": ["-y", "needs-auth"] },

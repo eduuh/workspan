@@ -24,8 +24,8 @@
 //! The doc records attachment *names* in its `## Attachments` manifest, not paths. A path is a
 //! property of the machine that wrote it — `<work_root>` differs per host, and the doc itself
 //! moves on pickup — so a path baked into a synced document is a dangling reference waiting to
-//! happen. `bn task attach <id>` resolves the current location on the machine that asks, which is
-//! the same discipline the rest of bn uses: point at the record, let the reader resolve it.
+//! happen. `workspan task attach <id>` resolves the current location on the machine that asks, which is
+//! the same discipline the rest of workspan uses: point at the record, let the reader resolve it.
 //!
 //! # Untrusted by construction
 //!
@@ -227,7 +227,7 @@ pub fn list_dir(dir: &Path) -> Vec<Attachment> {
         .flatten()
         .filter_map(|entry| {
             let meta = entry.metadata().ok()?;
-            // Only files: a nested directory here is not something bn put there.
+            // Only files: a nested directory here is not something workspan put there.
             if !meta.is_file() {
                 return None;
             }

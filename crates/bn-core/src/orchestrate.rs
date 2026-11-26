@@ -1,4 +1,4 @@
-//! `bn orchestrate` — the native, event-driven fleet supervisor (issues #338 / #340).
+//! `workspan orchestrate` — the native, event-driven fleet supervisor (issues #338 / #340).
 //!
 //! This module is the **pure core**: the agent-pane state machine (#340) and the persisted queue
 //! model (#338). It has zero side effects — no tmux, no git, no launchd — so every classification
@@ -484,7 +484,7 @@ pub fn scoped_key(repo: &str, id: &str) -> String {
 //
 // Parallel lanes that edit the same file/registration point (e.g. `crates/bn-cli/src/cli.rs`
 // enums, `main.rs` match arms, `config/crons.toml`) collide and pile up sequential rebases — today
-// only caught at land time by `bn wt merge --all`, after the losing agent has already burned a
+// only caught at land time by `workspan wt merge --all`, after the losing agent has already burned a
 // full run. These functions let the scheduler *predict* that overlap from each item's declared
 // `touches` globs and hold a conflicting candidate rather than co-schedule it — a bn-native
 // per-touch-area lock. Prediction is a pure optimization and can stay coarse: any missed overlap

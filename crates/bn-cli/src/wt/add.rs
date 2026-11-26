@@ -477,7 +477,7 @@ pub(crate) fn cmd_clone_all(cfg: &Config, here: bool) -> bool {
         );
         let self_exe = std::env::current_exe()
             .map(|p| p.to_string_lossy().to_string())
-            .unwrap_or_else(|_| "bn".to_string());
+            .unwrap_or_else(|_| "workspan".to_string());
         let runner = format!(
             "WT_MANIFEST={} {} wt clone-all --here; echo; echo '── clone-all done — press enter to close ──'; read",
             shq(&manifest),

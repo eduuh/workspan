@@ -5,7 +5,7 @@
 //! raised in error), `attn_planned` (promoted to a branch todo), `attn_snooze` (hidden until a
 //! date), or `attn_update` (edit its fields in place). Folded on read exactly like the PR
 //! lifecycle (pr_opened → pr_merged) — an item is *open* unless a later event resolved it or
-//! snoozed it into the future, with the latest `attn_update` fields overlaid. `bn doctor` folds
+//! snoozed it into the future, with the latest `attn_update` fields overlaid. `workspan doctor` folds
 //! the open set into the aggregated attention list; the `notify` job reads it to surface work.
 //! Resolution is *typed* (ack vs remove vs planned) so metrics can tell a finished item from a
 //! cancelled one from one that became tracked work.

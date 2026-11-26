@@ -1,4 +1,4 @@
-//! What the `bn tat` rows *are* — typed for the native picker, and flattened only for fzf.
+//! What the `workspan tat` rows *are* — typed for the native picker, and flattened only for fzf.
 //!
 //! Split out of `tat.rs` rather than grown inside it (the 1000-line ratchet; see
 //! `.file-size-baseline`), along the seam the module already had: `tat.rs` drives the picker,
@@ -313,7 +313,7 @@ pub(super) fn build_sub_rows(
     let now = bn_core::util::now_epoch_secs();
     let mut states = super::commands::command_states(repo, now);
     // The repo's own scripts. Only for an untagged ref: a `repo@win` checkout lives outside the
-    // configured layout that `bn run --repo` will resolve against, so a row there would start work
+    // configured layout that `workspan run --repo` will resolve against, so a row there would start work
     // that runs somewhere else.
     let scripts = if bare && super::ref_tag(name).is_empty() {
         super::commands::scripts::repo_scripts(cfg, repo)

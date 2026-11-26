@@ -151,7 +151,7 @@ pub fn parse_ts(s: &str) -> Option<i64> {
         .map(|dt| dt.timestamp())
 }
 
-/// Identify the agent harness currently driving bn, harness-agnostically.
+/// Identify the agent harness currently driving workspan, harness-agnostically.
 /// `$BN_HARNESS` is the explicit override (covers Copilot and any future harness);
 /// otherwise sniff known environment signatures. `None` outside a known harness
 /// (e.g. a plain shell), so nothing is recorded then.

@@ -468,7 +468,7 @@ impl Config {
         let nodes = crate::hosts::resolve_nodes(&file.and_then(|f| f.nodes()).unwrap_or_default());
 
         // `[repo.<name>]` (#454): per-repo overrides (currently the native verify command). Empty ⇒
-        // every repo falls back to its bn `test`/`build` job (the bn repo's unchanged behavior).
+        // every repo falls back to its workspan `test`/`build` job (the workspan repo's unchanged behavior).
         let repos = file.and_then(|f| f.repos()).unwrap_or_default();
         let pipeline = file.and_then(|f| f.pipeline()).unwrap_or_default();
         let forge_agent = file.and_then(|f| f.forge_agent()).unwrap_or_default();
@@ -668,7 +668,7 @@ impl Config {
     /// then trailing repo name, case-insensitively.
     pub fn pipeline_model(&self, repo: &str, stage: Stage) -> PipelineModel {
         // Config-only view of the full per-stage profile: one layering implementation, so this and
-        // `bn pipeline preview` can never disagree about which model a stage runs.
+        // `workspan pipeline preview` can never disagree about which model a stage runs.
         let profile = crate::pipeline::profile::layer(
             self,
             repo,

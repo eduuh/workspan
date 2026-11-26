@@ -1,8 +1,8 @@
-//! `bn cs connect` / `bn cs disconnect`: a GitHub Codespace as an ordinary ssh host.
+//! `workspan cs connect` / `workspan cs disconnect`: a GitHub Codespace as an ordinary ssh host.
 //!
 //! `gh cs ssh --config -c <name>` prints a Host stanza whose ProxyCommand is `gh cs ssh --stdio`.
-//! bn writes it into `~/.ssh/config` as a managed `# >>> bn codespace <alias> >>>` block, so every
-//! alias-based command (`bn connect`, `bn agent launch --host`, `bn edit remote`, plain `ssh`)
+//! workspan writes it into `~/.ssh/config` as a managed `# >>> bn codespace <alias> >>>` block, so every
+//! alias-based command (`workspan connect`, `workspan agent launch --host`, `workspan edit remote`, plain `ssh`)
 //! works on the codespace. Three changes to gh's stanza:
 //! - the Host is renamed to a short alias (`cs-<word>`);
 //! - the ProxyCommand runs under `GODEBUG=netdns=cgo`, because Go's own resolver can pick a NAT64
@@ -12,7 +12,7 @@
 //!
 //! Connecting never wakes a stopped codespace. Both an ssh and `gh cs ssh --config` start one, so
 //! for a codespace that is not `Available` the block is built from gh's fixed template and no
-//! connection check runs. `bn tunnels` lists these blocks.
+//! connection check runs. `workspan tunnels` lists these blocks.
 
 use std::path::PathBuf;
 use std::process::Command;

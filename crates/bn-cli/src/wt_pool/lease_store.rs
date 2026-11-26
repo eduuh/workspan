@@ -15,8 +15,8 @@ pub(super) struct Leases {
 pub(super) struct Lease {
     pub(super) branch: String,
     pub(super) holder: String,
-    /// PID of the process that took the lease — the *caller* (parent of the `bn` invocation, e.g.
-    /// the agent or shell), not the ephemeral `bn` process which exits immediately. This is what
+    /// PID of the process that took the lease — the *caller* (parent of the `workspan` invocation, e.g.
+    /// the agent or shell), not the ephemeral `workspan` process which exits immediately. This is what
     /// makes the lease durable yet recoverable: a slot is only reclaimable once this process is
     /// gone. See [`super::caller_pid`].
     pub(super) pid: u32,

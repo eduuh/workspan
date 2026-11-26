@@ -1,6 +1,6 @@
 //! Pure GitHub-name ↔ local-name repo resolution (#452).
 //!
-//! `bn dispatch`/`bn orchestrate --repo <name>` historically took only the *local* bare-repo name
+//! `workspan dispatch`/`workspan orchestrate --repo <name>` historically took only the *local* bare-repo name
 //! (the `<name>.git` stem). But the name a human reaches for is the repo's **GitHub name**, which
 //! need not match the local clone dir — e.g. GH `wira360` is cloned locally as `tracker.git`, so
 //! `--repo wira360` found nothing (and, worse, broke `--json` by emitting empty output). This

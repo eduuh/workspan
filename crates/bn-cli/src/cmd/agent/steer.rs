@@ -455,7 +455,7 @@ pub(crate) fn emit_agent_send(
 /// agent can answer without any store telling it who asked.
 pub(crate) fn peer_envelope(sender: &str, text: &str) -> String {
     format!(
-        "[bn msg from {sender}] {} — reply: workspan agent msg {sender} \"<your answer>\"",
+        "[workspan msg from {sender}] {} — reply: workspan agent msg {sender} \"<your answer>\"",
         text.split_whitespace().collect::<Vec<_>>().join(" ")
     )
 }
@@ -693,7 +693,7 @@ mod tests {
         let line = peer_envelope("bn:feat-a", "please bump the schema");
         assert_eq!(
             line,
-            "[bn msg from bn:feat-a] please bump the schema — reply: workspan agent msg bn:feat-a \"<your answer>\""
+            "[workspan msg from bn:feat-a] please bump the schema — reply: workspan agent msg bn:feat-a \"<your answer>\""
         );
         assert!(!line.contains('\n'));
     }

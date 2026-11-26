@@ -4,7 +4,7 @@
 //!
 //! Split out of `dispatch.rs` under the file-size ratchet, which asks for a split rather than
 //! growth. The seam is a real one: everything here is *text assembly* from Markdown prompts, with
-//! no git, tmux, lease or process work — which is also why it is the half `bn agent run` can reuse
+//! no git, tmux, lease or process work — which is also why it is the half `workspan agent run` can reuse
 //! to seed a worktree with something other than a skill.
 //!
 //! `use super::*` is deliberate: these functions were written against `dispatch.rs`'s private
@@ -35,7 +35,7 @@ fn render_workflow_body(skill: &bn_core::skills::Skill, title: &str) -> Result<S
 /// is the authoritative final instruction: the agent writes a plan, registers it with `workspan review
 /// submit` (raising a pending plan-review for `repo`/`branch` under session `sid`), and PAUSES —
 /// polling `workspan review status <id>` — implementing and opening a PR after low-risk agent consensus,
-/// or after explicit human approval for high-risk/no-consensus plans. `verify` folds the `bn
+/// or after explicit human approval for high-risk/no-consensus plans. `verify` folds the `workspan
 /// verify` gate into the post-approval implement step.
 pub(crate) fn plan_gate_seed(
     cfg: &Config,
@@ -145,7 +145,7 @@ pub(super) fn skill_seed_prompt(
         String::new()
     };
     // The verify gate renders at most once per seed: the plan-review gate carries it when one is
-    // appended, and `build-from-plan`/`execute`/`ship-solo` already gate their finish step on `bn verify`
+    // appended, and `build-from-plan`/`execute`/`ship-solo` already gate their finish step on `workspan verify`
     // (rebase re-run included), so only other workflows need the explicit clause.
     let verification = if ctx.verify
         && !ctx.plan_gate

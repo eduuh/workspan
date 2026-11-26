@@ -1,6 +1,6 @@
 //! PATH shims: fake `claude` / `copilot` / `gh` / service-manager binaries.
 //!
-//! bn resolves agent harnesses by bare name — `Command::new("claude")` in
+//! workspan resolves agent harnesses by bare name — `Command::new("claude")` in
 //! `bn-cli/src/cmd/agent/steer.rs` and `bn-cli/src/cmd/staff.rs`, and as a bare word inside the
 //! command line handed to `tmux new-session`. Both resolve through `PATH`, so prepending a shim
 //! directory is enough to replace the real agent with a scripted one. That is what makes the tmux

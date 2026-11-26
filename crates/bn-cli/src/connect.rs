@@ -1,4 +1,4 @@
-//! Native SSH: `bn connect` (the cross-machine `tat`). Hosts come from `~/.ssh/config` enriched by
+//! Native SSH: `workspan connect` (the cross-machine `tat`). Hosts come from `~/.ssh/config` enriched by
 //! config.toml `[hosts]` (see `bn_core::hosts`); this module owns the interactive picker and the
 //! tmux-backed attach.
 //!
@@ -53,7 +53,7 @@ const INTERACTIVE_SSH_OPTIONS: &[&str] = &[
 const PREVIEW_COMMAND_TIMEOUT: Duration = Duration::from_secs(10);
 
 /// The remote session every `workspan connect` attaches to. `new-session -A` re-attaches an existing
-/// `bn` session, so a dropped pipe resumes work instead of killing it.
+/// `workspan` session, so a dropped pipe resumes work instead of killing it.
 const REMOTE_TMUX_SESSION: &str = "bn";
 
 fn ssh_command(options: &[&str]) -> Command {
@@ -317,7 +317,7 @@ fn row(h: &Host) -> String {
     } else if h.registered {
         notes.push("bn:yes".to_string());
     }
-    // `row` and `preview` are both rendered by a `bn connect --pick-stage …` subprocess whose
+    // `row` and `preview` are both rendered by a `workspan connect --pick-stage …` subprocess whose
     // stdout is a pipe into fzf (`--ansi` for the list; preview panes interpret ANSI natively), so
     // they paint unconditionally. `pick_numbered`, the fzf-less degrade, builds its own plain rows.
     let ink = style::Ink::always();
@@ -364,7 +364,7 @@ fn preview(cfg: &Config, alias: &str) {
     let remote_cmd = if h.extra.bn == Some(false) {
         format!("{REMOTE_PATH} uptime")
     } else {
-        format!("{REMOTE_PATH} bn summary 2>/dev/null || uptime")
+        format!("{REMOTE_PATH} workspan summary 2>/dev/null || uptime")
     };
     let mut command = ssh_command(PREVIEW_SSH_OPTIONS);
     command.arg(&h.alias).arg(remote_cmd);
@@ -398,17 +398,19 @@ fn pick(cfg: &Config, window: bool, read_only: bool) {
             "workspan connect: no Host stanzas in ~/.ssh/config — add one (wildcards are skipped)",
         );
     }
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::shq(&exe.display().to_string());
     let child = Command::new("fzf")
         .arg("--reverse")
         .arg("--ansi")
         .arg("--delimiter=\t")
         .arg("--header=Enter: connect (ssh + tmux)")
-        .arg(format!("--preview={bn} connect --pick-stage preview {{1}}"))
+        .arg(format!(
+            "--preview={workspan} connect --pick-stage preview {{1}}"
+        ))
         .arg("--preview-window=right:55%:wrap")
         .arg(format!(
-            "--bind=start:reload({bn} connect --pick-stage list)"
+            "--bind=start:reload({workspan} connect --pick-stage list)"
         ))
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -523,7 +525,7 @@ fn ssh_shell_command(alias: &str, read_only: bool) -> String {
     )
 }
 
-/// `ssh -t <alias>` into `tmux new-session -A -s bn` on the target. One remote command handles
+/// `ssh -t <alias>` into `tmux new-session -A -s workspan` on the target. One remote command handles
 /// both worlds: tmux present → attach/create the persistent session (a dropped pipe re-attaches
 /// on the next connect); tmux absent → degrade to a plain login shell. No probe round-trip.
 ///

@@ -1,6 +1,6 @@
-//! Weekly auto-retro (#244) — mine the telemetry bn already collects into one read-only,
+//! Weekly auto-retro (#244) — mine the telemetry workspan already collects into one read-only,
 //! network-free retrospective. Nothing here writes or fetches: it reads the same stores
-//! `bn track report`, `bn weekly`, and `bn metrics` already parse and folds them into a small
+//! `workspan track report`, `workspan weekly`, and `workspan metrics` already parse and folds them into a small
 //! table of personal-engineering metrics plus **one** heuristic suggestion.
 //!
 //! Sources, all reused (never re-implemented):
@@ -13,11 +13,11 @@
 //!
 //! On top of the retro sits the **scoreboard** (#276): the 2–3 success numbers chosen before the
 //! agent-staff ships (PR cycle time, deep-work ratio) positioned against a fixed baseline anchor
-//! recorded once via `bn insights --set-baseline`, plus the permanent **bn-time guard** — how much
-//! tracked time went to the bn repo itself vs everything else — the honest check against the tool
+//! recorded once via `workspan insights --set-baseline`, plus the permanent **bn-time guard** — how much
+//! tracked time went to the workspan repo itself vs everything else — the honest check against the tool
 //! becoming the hobby. The anchor is the only thing here that writes, and only on `--set-baseline`.
 //!
-//! The window is anchored exactly like `bn weekly` ([`crate::reports::window_start`]); `--since N`
+//! The window is anchored exactly like `workspan weekly` ([`crate::reports::window_start`]); `--since N`
 //! overrides it with a flat N-day window. Every metric degrades to a "not enough data" shape on a
 //! sparse machine rather than erroring, so the run is always total.
 
@@ -205,8 +205,8 @@ pub fn insights(cfg: &Config, today: &str, since: Option<i64>) -> Insights {
     let context_switches = compute_context_switches(cfg, &start, today);
     let deep_work = compute_deep_work(cfg, &start, today, now);
 
-    // PR metrics read the whole-person, repo-visible event view — the same source `bn weekly`
-    // and `bn metrics` use, so the numbers agree across surfaces.
+    // PR metrics read the whole-person, repo-visible event view — the same source `workspan weekly`
+    // and `workspan metrics` use, so the numbers agree across surfaces.
     let evs = metrics::visible_events(cfg, read_events_across(&cfg.metrics_logs_all_machines()));
     let cur = metrics::compute(&evs, now, window_days);
     // The previous window is [boundary - window, boundary). `boundary` is exactly `compute`'s own
@@ -259,7 +259,7 @@ pub fn insights(cfg: &Config, today: &str, since: Option<i64>) -> Insights {
 }
 
 /// True when `repo` names the workspan repo itself, matched on the trailing path segment so both the
-/// bare `bn` name and an `owner/bn` form resolve the same (mirrors [`metrics::is_excluded_repo`]'s
+/// bare `workspan` name and an `owner/bn` form resolve the same (mirrors [`metrics::is_excluded_repo`]'s
 /// basename match). Backs the bn-time meta-trap guard.
 fn is_bn_repo(repo: &str) -> bool {
     repo.rsplit('/')
@@ -718,7 +718,7 @@ fn render_scoreboard(sb: &Scoreboard) -> String {
     let guard = match sb.bn_time.ratio {
         Some(r) => {
             let split = format!(
-                "{}%  ({} of {} on bn)",
+                "{}%  ({} of {} on workspan)",
                 (r * 100.0).round(),
                 fmt_secs(sb.bn_time.bn_secs),
                 fmt_secs(sb.bn_time.tracked_secs)

@@ -1,4 +1,4 @@
-//! Shared subprocess bridge for invoking the installed `bn` CLI from sibling interfaces.
+//! Shared subprocess bridge for invoking the installed `workspan` CLI from sibling interfaces.
 //!
 //! The web and MCP surfaces deliberately compose real CLI subcommands for operations that remain
 //! behind the CLI boundary. This module keeps binary resolution, argv shaping, output capture, and
@@ -98,7 +98,7 @@ pub fn spawn_detached(args: &[&str]) -> std::io::Result<u32> {
     Ok(pid)
 }
 
-/// Resolve `bn` from `$BN_BIN`, beside the current executable, or finally from `PATH`.
+/// Resolve `workspan` from `$BN_BIN`, beside the current executable, or finally from `PATH`.
 fn resolve_bn_bin() -> PathBuf {
     if let Ok(path) = std::env::var("BN_BIN") {
         let path = PathBuf::from(path);
@@ -108,13 +108,13 @@ fn resolve_bn_bin() -> PathBuf {
     }
     if let Ok(exe) = std::env::current_exe() {
         if let Some(dir) = exe.parent() {
-            let sibling = dir.join("bn");
+            let sibling = dir.join("workspan");
             if is_executable(&sibling) {
                 return sibling;
             }
         }
     }
-    PathBuf::from("bn")
+    PathBuf::from("workspan")
 }
 
 fn is_executable(path: &Path) -> bool {

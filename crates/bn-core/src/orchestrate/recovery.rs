@@ -1,4 +1,4 @@
-//! Lane **recovery policy** — the pure half of `bn orchestrate` that decides when a lane needs
+//! Lane **recovery policy** — the pure half of `workspan orchestrate` that decides when a lane needs
 //! rescuing, how to rescue it, and when it is already finished and needs nothing.
 //!
 //! Split out of [`super`] because it is a self-contained decision layer sitting between the

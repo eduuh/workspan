@@ -7,9 +7,9 @@ test reports a failed expectation; the workspace-wide deny targets production co
 //! The agent-send lane: `TmuxTransport` delivering a message to a fake agent pane on a sandboxed
 //! tmux server.
 //!
-//! The transport is driven in-process rather than through `bn agent send`, because what is under
+//! The transport is driven in-process rather than through `workspan agent send`, because what is under
 //! test is the transport's own contract — paste, settle, exactly one CR, and stop at the first
-//! failure — and `bn agent send` deliberately layers a harness-specific confirm-and-retry loop on
+//! failure — and `workspan agent send` deliberately layers a harness-specific confirm-and-retry loop on
 //! top that would resend the CR to a pane that never shows a spinner. The process env is pointed
 //! at the sandbox socket through `EnvGuard`, and the socket is checked before any key is sent.
 //!

@@ -1,9 +1,9 @@
-//! `bn skills` command family — list/find/new/render/edit skills.
+//! `workspan skills` command family — list/find/new/render/edit skills.
 
 use crate::*;
 
 /// List skills across all tiers (text or JSON envelope). Shadowed lower-tier definitions are
-/// tagged so it's clear which file bn-mcp actually serves for each name.
+/// tagged so it's clear which file workspan-mcp actually serves for each name.
 pub(crate) fn emit_skills(cfg: &Config, base: &std::path::Path, json: bool) {
     let skills = bn_core::skills::discover(cfg, base)
         .unwrap_or_else(|error| fail(&format!("workspan skills: {error}")));
@@ -51,7 +51,7 @@ pub(crate) fn emit_skills_find(cfg: &Config, base: &std::path::Path, query: &str
         if let Some(when) = &s.when {
             println!("{:<22}   when: {when}", "");
         }
-        println!("{:<22}   use:  /{} in Copilot CLI, /bn:{} in Claude Code", "", s.name, s.name);
+        println!("{:<22}   use:  /{} in Copilot CLI, /workspan:{} in Claude Code", "", s.name, s.name);
     }
 }
 
@@ -123,7 +123,7 @@ pub(crate) fn emit_skill_edit(
 ) {
     let target: std::path::PathBuf = match name {
         Some(name) => {
-            // Open the *effective* definition — the one bn-mcp actually serves for this name.
+            // Open the *effective* definition — the one workspan-mcp actually serves for this name.
             let skills = bn_core::skills::discover(cfg, base)
                 .unwrap_or_else(|error| fail(&format!("workspan skills edit: {error}")));
             match skills.iter().find(|s| s.effective && s.name == name) {
@@ -182,7 +182,7 @@ pub(crate) fn emit_skill_edit(
 /// the two global workspan skill tiers (the shipped `config/prompts` + the personal `config_dir()/skills`).
 ///
 /// Copilot CLI surfaces workflows only as native `SKILL.md` skills, so it has always needed this.
-/// Claude Code is covered twice over — natively from here and as `/bn:<name>` MCP prompts from
+/// Claude Code is covered twice over — natively from here and as `/workspan:<name>` MCP prompts from
 /// `workspan mcp serve`.
 ///
 /// Run by `install.sh`; idempotent and safe — [`install_native_skills`] refuses to touch non-bn

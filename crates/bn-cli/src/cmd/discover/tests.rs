@@ -297,7 +297,7 @@ fn discover_installed_upstream_skills_deduplicates_and_uses_native_invocations()
         .as_str()
         .unwrap()
         .starts_with("cat -- "));
-    assert!(!render(&data).contains("/bn:resolving"));
+    assert!(!render(&data).contains("/workspan:resolving"));
     assert_eq!(snapshot(dir.path()), before);
 }
 
@@ -325,7 +325,7 @@ fn discover_owned_effective_source_wins_over_generated_native_copies() {
         data["workflows"][0]["description"],
         "Reproduce and fix a crash"
     );
-    assert_eq!(data["workflows"][0]["invoke"]["claude"], "/bn:debug");
+    assert_eq!(data["workflows"][0]["invoke"]["claude"], "/workspan:debug");
     assert_eq!(
         data["workflows"][0]["read_command"],
         "workspan skills render debug"

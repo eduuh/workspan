@@ -1,4 +1,4 @@
-//! `bn pipeline` — the per-worktree stage machine's clap surface.
+//! `workspan pipeline` — the per-worktree stage machine's clap surface.
 //!
 //! Its own file rather than another block in `cli.rs`, which is over the size ratchet and may not
 //! grow.

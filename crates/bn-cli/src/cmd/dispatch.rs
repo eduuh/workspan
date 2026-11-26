@@ -1,4 +1,4 @@
-//! `bn dispatch` — fork a worktree for a todo and launch an agent in it.
+//! `workspan dispatch` — fork a worktree for a todo and launch an agent in it.
 use crate::*;
 
 mod seed;
@@ -359,12 +359,12 @@ pub(crate) fn command_quoting_is_balanced(s: &str) -> bool {
 }
 
 /// The `workspan agent launch` invocation prefix — the native replacement for the old `workflow/bin/agent`
-/// zsh launcher (#683+). Points at the *installed* workspan (`$HOME/.config/bn/bn`, the same stable path
+/// zsh launcher (#683+). Points at the *installed* workspan (`$HOME/.config/bn/workspan`, the same stable path
 /// tmux.conf uses for `workspan jump` / `workspan tmux-cockpit`), because the tmux server's PATH lacks the
 /// bindir, so callers embed an absolute command. Callers append ` {kind} …flags` to this.
 pub(crate) fn agent_launcher_bin() -> String {
     std::env::var("HOME")
-        .map(|h| format!("{h}/.config/bn/bn agent launch"))
+        .map(|h| format!("{h}/.config/bn/workspan agent launch"))
         .unwrap_or_else(|_| "bn agent launch".to_string())
 }
 
@@ -496,7 +496,7 @@ pub(crate) fn run_dispatch(
     // The pipeline stage this dispatch *is*, when the caller knows; `None` infers it.
     stage: Option<bn_core::pipeline::stage::Stage>,
     // A fully composed seed to use verbatim instead of rendering one from a workflow skill.
-    // `bn agent run --worktree` passes the catalog agent's own body; everything else passes
+    // `workspan agent run --worktree` passes the catalog agent's own body; everything else passes
     // `None` and gets the skill-driven seed.
     seed_override: Option<&str>,
     json: bool,
@@ -629,7 +629,7 @@ pub(crate) fn run_dispatch(
     // injection-prone) keeps full per-tool gating — the same guard as the `yolo` narrowing above.
     let launch_yolo = url.is_none();
 
-    // Plan-review gate (#349): a ship agent proposes a plan via `bn review submit` and pauses for
+    // Plan-review gate (#349): a ship agent proposes a plan via `workspan review submit` and pauses for
     // approval before implementing / opening a PR. On by `--plan` or the `[dispatch].plan_review`
     // config default. Trusted `--yolo` lanes still pass through agent consensus so sensitive plans
     // cannot bypass a mandatory human decision; low-risk quorum approval remains unattended.
@@ -637,7 +637,7 @@ pub(crate) fn run_dispatch(
     // The default ship lane is `ship-solo`, which carries no plan artifact — it scopes in-session
     // and asks a human when unclear — so the plan-review gate (and its editor/nvim plan split)
     // never applies, even under `--yolo`. The legacy nine-stage pipeline auto-route is off unless
-    // `$BN_DISPATCH_PIPELINE=1`; the `bn pipeline` machine stays reachable regardless.
+    // `$BN_DISPATCH_PIPELINE=1`; the `workspan pipeline` machine stays reachable regardless.
     let pipeline_opt_in = std::env::var("BN_DISPATCH_PIPELINE")
         .map(|v| v == "1" || v.eq_ignore_ascii_case("true"))
         .unwrap_or(false);
@@ -815,7 +815,7 @@ pub(crate) fn run_dispatch(
 
     if created {
         // A cold worktree pays the post-create install hook; a pooled slot is already warm (deps
-        // installed by `bn wt pool warm`), so it skips the cold install — the whole point of the
+        // installed by `workspan wt pool warm`), so it skips the cold install — the whole point of the
         // pool (#457). MCP-extras wiring is cheap config (no install), so both paths get it.
         if !used_pool {
             run_post_create_hook(cfg, &wt_path, &repo, &branch, &base);
@@ -847,7 +847,7 @@ pub(crate) fn run_dispatch(
 
     // Resolve the workflow skill that will drive the agent (#321): explicit --skill, else
     // ship-solo. Loaded against the fresh worktree so repo-tier
-    // skills apply, falling back to the dispatcher's cwd (where the bn checkout / BN_MCP_SKILLS_DIR
+    // skills apply, falling back to the dispatcher's cwd (where the workspan checkout / BN_MCP_SKILLS_DIR
     // may be visible). Runtime workflows are required: missing defaults fail loudly rather than
     // falling back to a compiled prompt.
     let skill_loaded = if agent_kind.is_some() {
@@ -997,9 +997,9 @@ pub(crate) fn run_dispatch(
             // dispatched agent boots into a "trust this folder?" prompt (the yolo flags don't cover
             // it). Folder trust only silences that dialog; it never grants tool execution (per-tool
             // gating still applies for an untrusted/external seed), so it's safe for every dispatch.
-            // In-process (no dependency on which `bn` the launcher finds).
+            // In-process (no dependency on which `workspan` the launcher finds).
             let _ = apply_folder_trust(&wt_path.to_string_lossy(), kind);
-            // Pin a session id so `bn agent send` can steer this exact agent via `-p --resume`, and
+            // Pin a session id so `workspan agent send` can steer this exact agent via `-p --resume`, and
             // record it after this launch wins the per-worktree lease.
             let sid = gen_uuid();
             let plan_path = if plan_gate && !pipeline_investigate {
@@ -1016,17 +1016,17 @@ pub(crate) fn run_dispatch(
             } else {
                 None
             };
-            // Attribute this run's work-class (#381) so `bn cost` categorizes it once the harness
+            // Attribute this run's work-class (#381) so `workspan cost` categorizes it once the harness
             // session is ingested, and (#500) so the live fleet stamps its role. An
             // `--orchestrator` monitor is orchestration (which the dashboard pins as a
             // distinct fleet tier); every other dispatched ship agent is coding (orchestrated waves
-            // shell out to `bn dispatch`, so they land here as coding too).
+            // shell out to `workspan dispatch`, so they land here as coding too).
             let work_class = if orchestrator {
                 bn_core::cost::WorkClass::Orchestration
             } else {
                 bn_core::cost::WorkClass::Coding
             };
-            // A caller that already composed the whole prompt (`bn agent run --worktree`, seeding a
+            // A caller that already composed the whole prompt (`workspan agent run --worktree`, seeding a
             // *catalog agent* rather than a workflow skill) hands it over verbatim, and the skill
             // machinery is skipped rather than wrapped around a body it knows nothing about — an
             // agent manifest is already self-contained. Everything after this point still applies:
@@ -1073,7 +1073,7 @@ pub(crate) fn run_dispatch(
                 }
             };
             // Fold the coding-standards references (#623) and the branch's standing directives
-            // (`bn agent instruct`) into the seed. See `seed_context::section`.
+            // (`workspan agent instruct`) into the seed. See `seed_context::section`.
             let seed = format!(
                 "{seed}{}",
                 super::seed_context::section(cfg, &repo, &branch, refs)
@@ -1189,7 +1189,7 @@ pub(crate) fn run_dispatch(
             }
             if let Ok(request_id) = std::env::var("BN_WORKER_REQUEST_ID") {
                 let executable =
-                    std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("bn"));
+                    std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("workspan"));
                 cmd = worker_completion_wrapped_command(&cmd, &request_id, &executable);
             }
             // Outermost, so the completion report above runs before the window goes.
@@ -1376,7 +1376,7 @@ pub(crate) fn run_dispatch(
             }
         } else {
             // Same lane-window naming contract as the agent-launch branch above: the sanitized
-            // branch, so `bn orchestrate` can adopt/observe this lane by name.
+            // branch, so `workspan orchestrate` can adopt/observe this lane by name.
             let window_name = bn_core::orchestrate::tmux_window_name(&branch);
             tmux_opened = wt::open_worktree_window_cmd_named(
                 &repo,

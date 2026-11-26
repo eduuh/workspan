@@ -98,7 +98,7 @@ fn populated_config_resolves_every_section() {
 }
 
 /// A real machine's `config.toml` from before settings moved into the notes tree, migrated the way
-/// the first `bn` after the upgrade migrates it, must resolve exactly as it did in place. This is
+/// the first `workspan` after the upgrade migrates it, must resolve exactly as it did in place. This is
 /// the snapshot that proves the move lost nothing.
 #[test]
 fn the_live_config_resolves_the_same_after_migrating() {

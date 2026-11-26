@@ -1,4 +1,4 @@
-//! `bn review-gate` — the adversarial diff-only review gate CLI (#607): the reviewer's `record`
+//! `workspan review-gate` — the adversarial diff-only review gate CLI (#607): the reviewer's `record`
 //! write path, the author/human `resolve`/`waive` of findings, the `status`/`list` reads, and
 //! `prompt` (emit the canonical diff-only reviewer seed). The gate policy + store live in
 //! [`bn_core::review_gate`]; this is the thin CLI shell over it.

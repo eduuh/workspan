@@ -1,4 +1,4 @@
-//! Links worth going back to (`bn links`) — a person-scoped store of URLs, ranked by use.
+//! Links worth going back to (`workspan links`) — a person-scoped store of URLs, ranked by use.
 //!
 //! A PBI, a PR, an Azure portal blade, a docs site, an internal dashboard: things you reach for
 //! again, that today live in browser bookmarks or nowhere. The branch note holds exactly two
@@ -13,7 +13,7 @@
 //!
 //! Storage is fenced-YAML frontmatter over a regenerated body, the same shape as
 //! [`crate::inbox`], so [`crate::markdown::parse_frontmatter`] is reused and the file stays
-//! hand-editable — `bn links edit` is a supported way to fix a name.
+//! hand-editable — `workspan links edit` is a supported way to fix a name.
 
 use crate::fs::StoreError;
 use crate::resolver::Config;
@@ -444,7 +444,7 @@ fn haystack(l: &Link) -> String {
 }
 
 /// True when `q` appears (case-insensitively) in the link's name, tags or URL — the filter
-/// behind `workspan links list <words>` and the MCP `bn_links_search` tool.
+/// behind `workspan links list <words>` and the MCP `workspan_links_search` tool.
 pub fn matches_query(l: &Link, q: &str) -> bool {
     format!("{} {} {}", l.name, l.tags.join(" "), l.url)
         .to_lowercase()
@@ -788,7 +788,7 @@ pub fn harvest(
         }
         let tags = guess_tags(url, &vocab);
         let link = add(cfg, url, None, &tags, repo, branch, today)?;
-        // Saved without anyone choosing it, so it waits in `bn links new` for a look.
+        // Saved without anyone choosing it, so it waits in `workspan links new` for a look.
         saved.push(edit(cfg, &link.id, |l| l.new = true)?);
     }
     Ok(saved)

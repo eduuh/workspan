@@ -19,11 +19,11 @@ fn sandbox() -> anyhow::Result<Sandbox> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn every_add_option_reaches_the_saved_link() -> anyhow::Result<()> {
     let sb = sandbox()?;
 
-    let run = sb.bn([
+    let run = sb.workspan([
         "links",
         "add",
         "https://example.test/guide",
@@ -55,11 +55,11 @@ fn every_add_option_reaches_the_saved_link() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn omitted_options_still_inherit_the_repo_without_expiry() -> anyhow::Result<()> {
     let sb = sandbox()?;
 
-    let run = sb.bn([
+    let run = sb.workspan([
         "links",
         "add",
         "https://example.test/guide",
@@ -77,11 +77,11 @@ fn omitted_options_still_inherit_the_repo_without_expiry() -> anyhow::Result<()>
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn invalid_ttl_fails_before_saving_a_link() -> anyhow::Result<()> {
     let sb = sandbox()?;
 
-    let run = sb.bn([
+    let run = sb.workspan([
         "links",
         "add",
         "https://example.test/guide",
@@ -92,7 +92,7 @@ fn invalid_ttl_fails_before_saving_a_link() -> anyhow::Result<()> {
         "--json",
     ])?;
     let value: Value = serde_json::from_str(&run.stdout)?;
-    let listed = sb.bn(["links", "list", "--json"])?;
+    let listed = sb.workspan(["links", "list", "--json"])?;
     listed.expect_success()?;
     let store: Value = serde_json::from_str(&listed.stdout)?;
 
@@ -104,11 +104,11 @@ fn invalid_ttl_fails_before_saving_a_link() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn the_category_flag_remains_required() -> anyhow::Result<()> {
     let sb = sandbox()?;
 
-    let run = sb.bn(["links", "add", "https://example.test/guide"])?;
+    let run = sb.workspan(["links", "add", "https://example.test/guide"])?;
 
     assert_eq!(run.code, Some(2));
     assert!(run.output().contains("--category"));

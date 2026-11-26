@@ -8,10 +8,10 @@ use bn_core::style;
 // The `wt` commands wrap a whole message in one colour run (`{RED}…{NC}`) rather than calling a
 // helper per fragment, so they need the codes as `const` items. They are derived from the shared
 // palette rather than respelled — these used to be the retired tmux-lib.sh's own `0;3xm` set, a
-// second palette that drifted from `bn`'s.
+// second palette that drifted from `workspan`'s.
 //
 // BLUE is gone: every one of its 27 sites marked a section or action header ("Merging PR for …",
-// "pool metrics — N slots"), and headers are bold-and-uncoloured everywhere else in bn so they
+// "pool metrics — N slots"), and headers are bold-and-uncoloured everywhere else in workspan so they
 // never compete with the rows that are actually red. It now aliases the head tone.
 pub(crate) const RED: &str = style::Tone::Danger.sgr();
 pub(crate) const GREEN: &str = style::Tone::Ok.sgr();
@@ -78,7 +78,7 @@ pub(crate) fn resolve_bare_by_name(
     let bares = bare_repos(&bare_dir);
     if bares.is_empty() {
         return Err(format!(
-            "no bare repos under {} — clone one first (bn wt clone <url>)",
+            "no bare repos under {} — clone one first (workspan wt clone <url>)",
             bare_dir.display()
         ));
     }

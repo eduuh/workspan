@@ -1,6 +1,6 @@
-//! Sizing a plan against the time actually left — the one place bn already respects duration.
+//! Sizing a plan against the time actually left — the one place workspan already respects duration.
 //!
-//! `bn next --fit` hides today's goals that cannot finish before the next meeting. It is the only
+//! `workspan next --fit` hides today's goals that cannot finish before the next meeting. It is the only
 //! fit-to-window logic in the product. These tests pin the two properties that make it safe to
 //! reuse — non-plan work is never filtered, and work that cannot be sized is surfaced rather than
 //! hidden.

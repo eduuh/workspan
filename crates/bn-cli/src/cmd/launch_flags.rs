@@ -1,14 +1,14 @@
 //! The flags a dispatch hands through to the agent harness.
 //!
-//! Two guards live here, and both exist because the same failure happened twice: a value bn had
+//! Two guards live here, and both exist because the same failure happened twice: a value workspan had
 //! configured was one the harness would not accept, it reached the command line anyway, and the agent
-//! died at startup on "model does not exist" — a failure that looks like a bn bug from every angle
+//! died at startup on "model does not exist" — a failure that looks like a workspan bug from every angle
 //! except the command line nobody printed.
 //!
 //! So neither model nor effort is ever passed on trust. Each goes through the harness's own predicate
 //! in [`bn_core::mcp::Harness`], and a value it rejects is **omitted** rather than sent: the agent
 //! then boots on the harness's default, which is worse than the intent and infinitely better than
-//! not booting. The predicates are shared with `bn config set-stage` and the Planning UI, so what the
+//! not booting. The predicates are shared with `workspan config set-stage` and the Planning UI, so what the
 //! launcher will accept and what the operator is allowed to configure cannot drift apart.
 use crate::*;
 
@@ -22,9 +22,9 @@ pub(crate) fn agent_model_suffix(
 ) -> String {
     let mut suffix = String::from(" --");
     // Only pin `--model` when the configured id is one this harness actually accepts; otherwise
-    // omit it and let the harness fall back to its own default. bn stores dotted catalog ids
+    // omit it and let the harness fall back to its own default. workspan stores dotted catalog ids
     // (e.g. claude-opus-4.8) that Claude Code rejects, which parked every dispatched claude agent
-    // on "model does not exist" (bn#963). Copilot accepts the dotted ids, so it is unaffected.
+    // on "model does not exist" (workspan#963). Copilot accepts the dotted ids, so it is unaffected.
     if let Some(model_id) =
         bn_core::mcp::Harness::parse(agent_kind).and_then(|harness| harness.model_arg(&model.model))
     {

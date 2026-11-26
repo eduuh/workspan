@@ -1,11 +1,11 @@
-//! `bn release` — cut a GitHub release end-to-end (#627): pick/bump a semver from the last tag,
+//! `workspan release` — cut a GitHub release end-to-end (#627): pick/bump a semver from the last tag,
 //! roll release notes up from the PRs merged since it, then create + push the tag and
 //! `gh release create` with those notes. The pure planning + gating logic lives in
 //! [`bn_core::release`]; this module owns the side-effects (tag/push/`gh`) and the verify gate.
 //!
 //! The same code powers the orchestrator's idle companion: [`companion_should_attempt`] is the
 //! cheap "is there anything new to release?" pre-check the idle loop runs before spawning
-//! `bn release`, so a green + idle fleet opportunistically ships a release with nobody watching.
+//! `workspan release`, so a green + idle fleet opportunistically ships a release with nobody watching.
 use crate::*;
 use bn_core::release::{self, GateDecision};
 use bn_core::runner::RealRunner;
@@ -149,11 +149,11 @@ fn cut_release(plan: &release::ReleasePlan) -> Result<String, String> {
     }
 }
 
-/// Run the local `workspan verify` gate in `cwd` (as a child `bn` process) and report whether it passed.
+/// Run the local `workspan verify` gate in `cwd` (as a child `workspan` process) and report whether it passed.
 /// This is the "main is green" signal for [`emit_release`]; the orchestrator companion supplies its
 /// own fleet signal instead.
 fn local_verify_passes(cwd: &std::path::Path) -> bool {
-    let bin = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("bn"));
+    let bin = std::env::current_exe().unwrap_or_else(|_| std::path::PathBuf::from("workspan"));
     std::process::Command::new(bin)
         .args(["verify", "--json"])
         .current_dir(cwd)

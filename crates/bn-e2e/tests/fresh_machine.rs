@@ -4,9 +4,9 @@
 test reports a failed expectation; the workspace-wide deny targets production code paths"
 )]
 
-//! The fresh-machine lane: bn on a machine nobody configured.
+//! The fresh-machine lane: workspan on a machine nobody configured.
 //!
-//! A machine used to need a registered machine profile before bn would run anything on it, and a
+//! A machine used to need a registered machine profile before workspan would run anything on it, and a
 //! missing one failed silently: cron registered nothing. On one
 //! real machine that was eight days of a release job never running. This pins the opposite
 //! default: a sandbox whose config names no machine still declares its crons.
@@ -16,7 +16,7 @@ test reports a failed expectation; the workspace-wide deny targets production co
 use bn_e2e::Sandbox;
 
 #[test]
-#[ignore = "e2e: needs a built bn binary"]
+#[ignore = "e2e: needs a built workspan binary"]
 fn review_regression_plan_paths_are_plain_text_unless_json_requested() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     for args in [
@@ -24,7 +24,7 @@ fn review_regression_plan_paths_are_plain_text_unless_json_requested() -> anyhow
         vec!["plan", "path"],
         vec!["plan", "path", "--agent", "draft-session"],
     ] {
-        let plain = sb.bn(&args)?;
+        let plain = sb.workspan(&args)?;
         plain.expect_success()?;
         assert!(
             std::path::Path::new(plain.stdout.trim()).is_file(),
@@ -33,7 +33,7 @@ fn review_regression_plan_paths_are_plain_text_unless_json_requested() -> anyhow
         );
         let mut structured_args = args;
         structured_args.push("--json");
-        let structured = sb.bn(structured_args)?;
+        let structured = sb.workspan(structured_args)?;
         structured.expect_success()?;
         let json: serde_json::Value = serde_json::from_str(&structured.stdout)?;
         assert_eq!(json["data"]["path"], plain.stdout.trim());
@@ -54,12 +54,12 @@ fn unconfigure(sb: &Sandbox) -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn a_machine_with_no_profile_runs_cron() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     unconfigure(&sb)?;
 
-    let cron = sb.bn(["cron", "status"])?.output();
+    let cron = sb.workspan(["cron", "status"])?.output();
     assert!(
         !cron.contains("not enabled") && !cron.contains("switched off"),
         "cron refused an unconfigured machine:\n{cron}"
@@ -73,7 +73,7 @@ fn a_machine_with_no_profile_runs_cron() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn cli_only_install_preserves_agent_commands_and_rejects_web_commands() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     for args in [
@@ -83,14 +83,14 @@ fn cli_only_install_preserves_agent_commands_and_rejects_web_commands() -> anyho
         vec!["verify", "--help"],
         vec!["gate", "--help"],
     ] {
-        sb.bn(args)?.expect_success()?;
+        sb.workspan(args)?.expect_success()?;
     }
     for args in [
         vec!["serve", "--help"],
         vec!["tmux-mcp", "--help"],
         vec!["verify", "--no-ui"],
     ] {
-        let run = sb.bn(args)?;
+        let run = sb.workspan(args)?;
         assert_eq!(
             run.code,
             Some(2),
@@ -98,14 +98,14 @@ fn cli_only_install_preserves_agent_commands_and_rejects_web_commands() -> anyho
             run.output()
         );
     }
-    sb.bn(["task", "add", "CLI-only smoke test"])?
+    sb.workspan(["task", "add", "CLI-only smoke test"])?
         .expect_success()?;
-    sb.bn(["task", "doc", "t1"])?.expect_success()?;
+    sb.workspan(["task", "doc", "t1"])?.expect_success()?;
     Ok(())
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn fresh_task_plan_and_dispatch_create_no_branch_notes() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     std::fs::write(
@@ -113,7 +113,7 @@ fn fresh_task_plan_and_dispatch_create_no_branch_notes() -> anyhow::Result<()> {
         "[machine]\nrepos = [\"repo\", \"atlas\"]\n",
     )?;
     sb.seed_bare_repo("atlas")?;
-    sb.bn([
+    sb.workspan([
         "task",
         "add",
         "Preserve context",
@@ -121,16 +121,16 @@ fn fresh_task_plan_and_dispatch_create_no_branch_notes() -> anyhow::Result<()> {
         "Original task context",
     ])?
     .expect_success()?;
-    let doc = sb.bn(["task", "doc", "t1"])?;
+    let doc = sb.workspan(["task", "doc", "t1"])?;
     doc.expect_success()?;
     let path = doc.stdout.trim();
     assert!(std::fs::read_to_string(path)?.contains("Original task context"));
-    sb.bn([
+    sb.workspan([
         "task", "claim", "t1", "--repo", "repo", "--branch", "rebound",
     ])?
     .expect_success()?;
-    assert_eq!(sb.bn(["task", "doc", "t1"])?.stdout.trim(), path);
-    sb.bn([
+    assert_eq!(sb.workspan(["task", "doc", "t1"])?.stdout.trim(), path);
+    sb.workspan([
         "agent",
         "instruct",
         "repo:rebound",
@@ -138,7 +138,7 @@ fn fresh_task_plan_and_dispatch_create_no_branch_notes() -> anyhow::Result<()> {
         "--no-send",
     ])?
     .expect_success()?;
-    let listed = sb.bn(["agent", "instruct", "repo:rebound", "--list", "--json"])?;
+    let listed = sb.workspan(["agent", "instruct", "repo:rebound", "--list", "--json"])?;
     listed.expect_success()?;
     let directives: serde_json::Value = serde_json::from_str(&listed.stdout)?;
     assert_eq!(
@@ -146,13 +146,13 @@ fn fresh_task_plan_and_dispatch_create_no_branch_notes() -> anyhow::Result<()> {
         "Keep task context"
     );
     let id = directives["data"]["directives"][0]["id"].as_str().unwrap();
-    sb.bn(["agent", "instruct", "repo:rebound", "--drop", id])?
+    sb.workspan(["agent", "instruct", "repo:rebound", "--drop", id])?
         .expect_success()?;
-    sb.bn(["task", "do", "t1"])?.expect_success()?;
-    sb.bn(["plan", "init"])?.expect_success()?;
-    sb.bn(["plan", "status"])?.expect_success()?;
-    sb.bn(["plan", "path"])?.expect_success()?;
-    sb.bn([
+    sb.workspan(["task", "do", "t1"])?.expect_success()?;
+    sb.workspan(["plan", "init"])?.expect_success()?;
+    sb.workspan(["plan", "status"])?.expect_success()?;
+    sb.workspan(["plan", "path"])?.expect_success()?;
+    sb.workspan([
         "dispatch",
         "Implement task context",
         "--repo",
@@ -185,7 +185,7 @@ fn fresh_task_plan_and_dispatch_create_no_branch_notes() -> anyhow::Result<()> {
 }
 
 #[test]
-#[ignore = "e2e: needs a built bn binary (cargo build --workspace)"]
+#[ignore = "e2e: needs a built workspan binary (cargo build --workspace)"]
 fn task_ingest_scopes_ado_keys_to_the_requested_repo_without_a_branch() -> anyhow::Result<()> {
     let sb = Sandbox::new()?;
     let args = [

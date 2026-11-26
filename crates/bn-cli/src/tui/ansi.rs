@@ -5,10 +5,10 @@
 //! cannot reach for `unicode-width`: that crate is not a dependency, and it would be answering a
 //! question this codebase has already settled elsewhere.
 //!
-//! **Every non-escape `char` is one column.** That is exact for the vocabulary bn emits —
+//! **Every non-escape `char` is one column.** That is exact for the vocabulary workspan emits —
 //! ASCII, the single-width Nerd Font PUA glyphs `bn_core::glyph` was built around, and the handful
 //! of geometric/warning symbols in the row builders (`● ◍ ○ ◌ ☁ ✓ ✗ ⚠ ━`). It is wrong for CJK and
-//! emoji, which bn deliberately does not emit — `glyph.rs` says so, and the reason it gives is this
+//! emoji, which workspan deliberately does not emit — `glyph.rs` says so, and the reason it gives is this
 //! exact failure: they "misalign columns in fzf/tmux". If that ever changes, this is the module
 //! that has to grow a width table, and [`display_width`]'s tests are where the change announces
 //! itself.

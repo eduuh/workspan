@@ -1,4 +1,4 @@
-//! `bn worker` subcommands, split out of `cli.rs` to keep it under its size ratchet.
+//! `workspan worker` subcommands, split out of `cli.rs` to keep it under its size ratchet.
 use crate::*;
 
 /// The `workspan worker` subcommands (#719 — the attempt-registry slice of epic #707 M1).

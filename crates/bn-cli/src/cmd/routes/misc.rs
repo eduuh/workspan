@@ -220,7 +220,7 @@ pub(super) fn route(cfg: &Config, action: CmdMisc, json: bool) {
             clap_complete::generate(shell, &mut cmd, name, &mut std::io::stdout());
         }
         CmdMisc::ShellInit { shell } => emit_shell_init(shell),
-        // Bare `bn`: ensure the note exists; print its dir, or the full note JSON with --json.
+        // Bare `workspan`: ensure the note exists; print its dir, or the full note JSON with --json.
     }
 }
 

@@ -6,7 +6,7 @@
 //! wedge the caller.
 //!
 //! Both lived in `cmd/staff.rs` while the staff roster was their only caller. The roster is gone;
-//! the plan-review gate, the task workflow and `bn agent run` still launch harnesses, so this is
+//! the plan-review gate, the task workflow and `workspan agent run` still launch harnesses, so this is
 //! not staff-specific machinery.
 
 /// Soft AI-credit ceiling for headless Copilot runs, opt-in via `BN_MAX_AI_CREDITS` so an
@@ -63,7 +63,7 @@ pub(crate) fn harness_command(
     };
     // Only pass `--model` when the configured id is one this harness accepts; an id it rejects
     // (e.g. bn's dotted claude-opus-4.8 handed to Claude Code) would park the agent on "model does
-    // not exist", so omit it and let the harness use its own default (bn#963).
+    // not exist", so omit it and let the harness use its own default (workspan#963).
     if let Some(m) =
         model.and_then(|m| bn_core::mcp::Harness::parse(harness).and_then(|h| h.model_arg(m)))
     {

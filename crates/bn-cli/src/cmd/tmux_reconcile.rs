@@ -1,15 +1,15 @@
-//! `bn tmux-reconcile` — restore the window → worktree link across every tmux window, and refresh
+//! `workspan tmux-reconcile` — restore the window → worktree link across every tmux window, and refresh
 //! the per-window note badges while we are there.
 //!
 //! `@bn_repo`/`@bn_branch`/`@bn_worktree` are the documented authority for which worktree a window
-//! represents, but they are written exactly once, when `bn wt open` creates the window. tmux-resurrect
+//! represents, but they are written exactly once, when `workspan wt open` creates the window. tmux-resurrect
 //! saves no user options (its `window_format` carries only session/index/name/active/flags/layout),
 //! so every restore wipes them. Measured on a live server: 1 of 29 windows still carried them.
 //! Everything downstream then degrades to matching on the window *name* — and `agent_lease`'s
 //! `observed_agent_windows` drops an unidentified window entirely.
 //!
 //! The badges have the same shape of problem from the other end: `sync_tmux` writes `@bn_todos` /
-//! `@bn_blockers` only to the window bn was invoked in, so a note changed by an agent in another
+//! `@bn_blockers` only to the window workspan was invoked in, so a note changed by an agent in another
 //! window, or by cron, never reaches that window's tab. That is unbounded staleness, not lag —
 //! `status-interval` already repaints every 5s, so a written value shows up promptly; the write is
 //! what never happens.

@@ -1,5 +1,5 @@
 //! Table-driven tests for the pane classifier ([`classify`] / [`decide`]). These two functions
-//! decide whether `bn fleet reap` treats an agent as mid-turn and whether `bn agent dialog` may
+//! decide whether `workspan fleet reap` treats an agent as mid-turn and whether `workspan agent dialog` may
 //! answer a prompt, so every outcome gets a small captured-pane fixture.
 
 use super::*;

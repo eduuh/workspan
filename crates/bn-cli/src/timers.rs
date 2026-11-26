@@ -1,5 +1,5 @@
-//! Reading registered systemd `--user` timers and mapping each to the `bn` job it runs, so
-//! `bn cron` can show what's actually *scheduled* (not just which scripts exist or last ran).
+//! Reading registered systemd `--user` timers and mapping each to the `workspan` job it runs, so
+//! `workspan cron` can show what's actually *scheduled* (not just which scripts exist or last ran).
 //! Linux/systemd-only: every entry point degrades to an empty list when `systemctl` is absent
 //! or the user bus has no timers, so callers never need to special-case the platform.
 
@@ -23,7 +23,7 @@ pub fn registered() -> Vec<RegisteredTimer> {
         return Vec::new();
     };
     // One `systemctl show` for every timer and service, not two per timer: with ~20 timers the
-    // per-unit calls were 41 processes and most of `bn cron`'s wall time.
+    // per-unit calls were 41 processes and most of `workspan cron`'s wall time.
     let units: Vec<&str> = entries
         .iter()
         .flat_map(|e| [e.unit.as_str(), e.activates.as_str()])
@@ -160,12 +160,12 @@ fn us_to_secs(us: u64) -> Option<i64> {
 }
 
 /// Pull the job name out of a systemd `ExecStart` value, which contains an argv field like
-/// `argv[]=/home/you/.bin/bn run refresh-all`. Only `workspan run <job>` services qualify.
+/// `argv[]=/home/you/.bin/workspan run refresh-all`. Only `workspan run <job>` services qualify.
 fn parse_exec_job(exec: &str) -> Option<String> {
     let argv = field(exec, "argv[]=")?;
     let mut toks = argv.split_whitespace();
     let bin = toks.next()?;
-    if bin.rsplit('/').next() != Some("bn") {
+    if bin.rsplit('/').next() != Some("workspan") {
         return None;
     }
     if toks.next()? != "run" {
@@ -197,7 +197,7 @@ mod tests {
             TimersCalendar={ OnCalendar=*-*-* 00/2:40:00 ; next_elapse=Sun 2026-09-27 08:40:00 PDT }\n\
             \n\
             Id=bn-pool-warm.service\n\
-            ExecStart={ path=/home/u/bn ; argv[]=/home/u/bn run pool-warm ; ignore_errors=no }\n\
+            ExecStart={ path=/home/u/workspan ; argv[]=/home/u/workspan run pool-warm ; ignore_errors=no }\n\
             ExecStart={ path=/bin/true ; argv[]=/bin/true ; ignore_errors=no }\n\
             \n\
             Id=gone.service\n";

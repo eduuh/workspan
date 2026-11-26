@@ -1,4 +1,4 @@
-//! The `bn links` fzf picker: rows (links and group rows), the keys that close it, and the
+//! The `workspan links` fzf picker: rows (links and group rows), the keys that close it, and the
 //! edit actions that reopen it.
 
 use super::*;
@@ -287,7 +287,7 @@ pub(super) fn render(l: &Link) -> String {
     } else {
         format!("  {}", ink.meta(&format!("·{}", l.tags.join(" ·"))))
     };
-    // Saved by the session hook and not reviewed yet (`bn links new`).
+    // Saved by the session hook and not reviewed yet (`workspan links new`).
     let new = if l.new {
         format!("  {}", ink.accent("•new"))
     } else {

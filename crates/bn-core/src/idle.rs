@@ -1,4 +1,4 @@
-//! Whether bn is being actively worked on right now — the activity signal the auto-review loop
+//! Whether workspan is being actively worked on right now — the activity signal the auto-review loop
 //! gates on (review PRs only while I'm idle, never mid-session). This is the focused descendant
 //! of the `is_active` helper that backed the old `when_active` cron gate (removed in #176, where
 //! gating *housekeeping* on idleness was backwards). Here idleness is the legitimate trigger, so

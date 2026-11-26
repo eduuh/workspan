@@ -9,7 +9,7 @@
 //! ```
 //!
 //! The `key:value` slots carry what the attention list ([`crate::attention`]) tracks as typed
-//! event fields, so a repo todo folds into `bn doctor` alongside notes, cron, and attn items:
+//! event fields, so a repo todo folds into `workspan doctor` alongside notes, cron, and attn items:
 //!
 //! | token         | attention concept              |
 //! |---------------|--------------------------------|
@@ -1002,9 +1002,9 @@ fn ingest_priority(priority: Option<&str>, severity: Option<&str>) -> Result<Opt
 pub fn save(path: &Path, file: &TodoFile) -> std::io::Result<()> {
     let rendered = file.render();
     // A pid+seq-unique temp ([`crate::fs::atomic_temp_path`]), not the fixed `.tasks.txt.tmp`
-    // this used to write: the task store is a single machine-wide file, so two `bn` processes
+    // this used to write: the task store is a single machine-wide file, so two `workspan` processes
     // saving it at once shared one scratch path and could rename each other's partial bytes into
-    // place. Every other atomic write in bn already uses this helper.
+    // place. Every other atomic write in workspan already uses this helper.
     let tmp = crate::fs::atomic_temp_path(path);
     std::fs::write(&tmp, rendered)?;
     if let Err(e) = std::fs::rename(&tmp, path) {

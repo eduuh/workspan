@@ -1,4 +1,4 @@
-//! Value enums for `bn dispatch`'s arguments.
+//! Value enums for `workspan dispatch`'s arguments.
 //!
 //! bn-core is clap-free, so anything that has to be a `clap::ValueEnum` lives on this side of
 //! the boundary.

@@ -1,8 +1,8 @@
-//! `bn resume`'s two resolution rules: the session must belong to the branch the checkout is on
+//! `workspan resume`'s two resolution rules: the session must belong to the branch the checkout is on
 //! now, and its transcript must still exist.
 //!
 //! Both are pool-slot regressions. `…/_pool/2` hosts a different branch every few hours, so a
-//! worktree path alone identified the slot rather than the work — a bare `bn resume` there restored
+//! worktree path alone identified the slot rather than the work — a bare `workspan resume` there restored
 //! whichever branch held the slot last, against code no longer checked out. And a session id whose
 //! transcript is gone makes the harness start a blank agent while the command reports a resume.
 

@@ -1,6 +1,6 @@
 //! Is anybody working in this slot? — the process-level half of pool occupancy.
 //!
-//! Occupancy is what stops `bn dispatch` from switching a branch into a checkout somebody is
+//! Occupancy is what stops `workspan dispatch` from switching a branch into a checkout somebody is
 //! already working in, so it is the one pool signal that must never guess *idle*. This module
 //! exists because it used to.
 //!
@@ -187,7 +187,7 @@ fn is_bn_tmux_git(command: &str) -> bool {
         (Some(bin), Some("tmux-git")) => bin
             .rsplit('/')
             .next()
-            .is_some_and(|base| base.ends_with("bn")),
+            .is_some_and(|base| base.ends_with("bn") || base == "workspan" || base == "ws"),
         _ => false,
     }
 }
@@ -282,7 +282,7 @@ mod tests {
             10,
             900,
             "ttys004".to_string(),
-            "bn tmux-git /home/me/projects/worktree/BigMono/_pool/2".to_string(),
+            "workspan tmux-git /home/me/projects/worktree/BigMono/_pool/2".to_string(),
         )];
         assert!(!tenants_among(&[10], Some(&kinds)));
     }

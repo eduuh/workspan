@@ -1,6 +1,6 @@
-//! `bn pipeline` — a task's place in the pipeline, two complementary ways.
+//! `workspan pipeline` — a task's place in the pipeline, two complementary ways.
 //!
-//! **Bare `bn pipeline` (read-only inference, #657):** infers which **phase** a task sits in —
+//! **Bare `workspan pipeline` (read-only inference, #657):** infers which **phase** a task sits in —
 //! Plan → Execute → Critique → Done — from existing notes, plan reviews, attention, verify/PR
 //! markers, and live agents. `--all` lists the fleet; `--repo/--branch` targets another worktree.
 //! It emits `phase`/`phases`, never `stage` (#994): both vocabularies contain `"execute"` and

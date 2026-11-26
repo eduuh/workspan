@@ -1,4 +1,4 @@
-//! `bn pr`/`bn link` — attach a PR/issue URL to the note; open/copy URLs.
+//! `workspan pr`/`workspan link` — attach a PR/issue URL to the note; open/copy URLs.
 use crate::*;
 
 /// `workspan pr [url] [--copy|--show]` — record a PR, or resolve the stored/gh-discovered PR and

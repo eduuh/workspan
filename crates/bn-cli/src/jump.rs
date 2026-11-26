@@ -1,16 +1,16 @@
-//! Native `bn jump` — the prefix-`j` attention picker and the prefix-`Tab` fast-jump. Phase 2 of
+//! Native `workspan jump` — the prefix-`j` attention picker and the prefix-`Tab` fast-jump. Phase 2 of
 //! the picker migration: ports `tmux-attention-all.sh` (the unified "everything that needs me"
 //! popup) and `tmux-jump.sh --next` (jump straight to the top-ranked window).
 //!
 //! Like the `doctor` picker it is self-referencing — fzf's `start`/`ctrl-r` reloads and its
-//! `--preview` re-invoke `bn jump --pick-stage <list|preview>`; the row list stacks two native
+//! `--preview` re-invoke `workspan jump --pick-stage <list|preview>`; the row list stacks two native
 //! sources behind one schema (`display \t kind \t target \t title`):
 //!   1. live tmux windows that need you — `waiting (bell) · done (check) · blocker (ban)` Nerd
 //!      Font badges, ranked, target = the
 //!      `window_id`; the preview is a live capture of that window's active pane.
-//!   2. the cross-repo `bn next` queue (read from the warm cache), target = the action link.
+//!   2. the cross-repo `workspan next` queue (read from the warm cache), target = the action link.
 //!
-//! Extends the `bn wt` precedent (native fzf + native tmux dispatch); see `MIGRATION.md`.
+//! Extends the `workspan wt` precedent (native fzf + native tmux dispatch); see `MIGRATION.md`.
 
 use bn_core::next::{Action, ActionKind};
 use bn_core::resolver::Config;
@@ -245,8 +245,8 @@ fn next_rows(cfg: &Config) -> Vec<Row> {
 /// `workspan jump` — the interactive fzf popup. Streams rows in on `start` so the frame draws at once
 /// instead of blocking on the `workspan next` walk; falls back to a plain list when fzf is absent.
 pub fn run(cfg: &Config) {
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::shq(&exe.display().to_string());
 
     // The header (and the "desk is clear" message) fills in on `load`, once fzf knows the count.
     // {2}=kind {3}=target {4}=title. Enter returns the row; we dispatch below. ctrl-r reloads.
@@ -257,12 +257,16 @@ pub fn run(cfg: &Config) {
         .arg("--delimiter=\t")
         .arg("--with-nth=1")
         .arg(format!(
-            "--preview={bn} jump --pick-stage preview {{2}} {{3}} {{4}} {{5}}"
+            "--preview={workspan} jump --pick-stage preview {{2}} {{3}} {{4}} {{5}}"
         ))
         .arg("--preview-window=right:55%:wrap")
-        .arg(format!("--bind=start:reload({bn} jump --pick-stage list)"))
+        .arg(format!(
+            "--bind=start:reload({workspan} jump --pick-stage list)"
+        ))
         .arg(format!("--bind=load:transform-header:{hdr}"))
-        .arg(format!("--bind=ctrl-r:reload({bn} jump --pick-stage list)"))
+        .arg(format!(
+            "--bind=ctrl-r:reload({workspan} jump --pick-stage list)"
+        ))
         .arg("--header=loading…")
         .stdin(Stdio::null())
         .stdout(Stdio::piped())
@@ -303,7 +307,7 @@ pub fn run(cfg: &Config) {
         "window" => goto(target),
         "cron" => {
             let job = title.strip_prefix("fix cron ").unwrap_or(title);
-            let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
+            let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
             let out = Command::new(exe).args(["cron", "show", job]).output();
             crate::picker::page(&out.map(|o| o.stdout).unwrap_or_default());
         }
@@ -312,8 +316,8 @@ pub fn run(cfg: &Config) {
         // it has no locator (a link-only item), `start_attn_item` returns None → fall back to the
         // link. Other attn kinds (review/meeting/email) keep their open-link behaviour.
         "attn" if !id.is_empty() => {
-            // A pending plan-review opens the plan in an nvim popup (`bn review edit`) for
-            // decision-in-place, not a browser link — see `bn review popup` (#651).
+            // A pending plan-review opens the plan in an nvim popup (`workspan review edit`) for
+            // decision-in-place, not a browser link — see `workspan review popup` (#651).
             if crate::cmd::plan_review::open_plan_review_popup(id) {
                 return;
             }
@@ -473,7 +477,7 @@ fn goto(wid: &str) {
     warn_unreachable("jump", tmux_run_try(&["select-window", "-t", wid]));
 }
 
-// ---- bn jump --session : the this-session window picker (prefix `) -------------------------------
+// ---- workspan jump --session : the this-session window picker (prefix `) -------------------------------
 //
 // The session-scoped member of the jump family: `prefix Tab` jumps to whatever needs you next,
 // while this one lists *every* window of the session you are in — worktrees with nothing flagged
@@ -618,8 +622,8 @@ pub fn session() {
         return;
     }
 
-    let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
-    let bn = crate::shq(&exe.display().to_string());
+    let exe = std::env::current_exe().unwrap_or_else(|_| "workspan".into());
+    let workspan = crate::shq(&exe.display().to_string());
     let header = format!(
         "this session · {} window(s) · ↵ jump · ctrl-r reload",
         rows.len()
@@ -634,11 +638,11 @@ pub fn session() {
         .arg("--with-nth=1")
         .arg("--delimiter=\t")
         .arg(format!(
-            "--preview={bn} jump --pick-stage preview window {{2}}"
+            "--preview={workspan} jump --pick-stage preview window {{2}}"
         ))
         .arg("--preview-window=right:55%:wrap")
         .arg(format!(
-            "--bind=ctrl-r:reload({bn} jump --pick-stage session-list)"
+            "--bind=ctrl-r:reload({workspan} jump --pick-stage session-list)"
         ))
         .arg(format!("--header={header}"))
         .stdin(Stdio::piped())
@@ -724,7 +728,7 @@ mod tests {
 
     #[test]
     fn every_window_is_listed_even_with_nothing_flagged() {
-        // The whole point of the session scope: unlike `bn jump`'s needs-you list, a quiet
+        // The whole point of the session scope: unlike `workspan jump`'s needs-you list, a quiet
         // worktree window still shows up, because switching to it is the job.
         let w = R {
             wid: "@4",

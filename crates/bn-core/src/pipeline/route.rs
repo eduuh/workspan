@@ -4,7 +4,7 @@
 //! task, so a one-line fix and an ambiguous rewrite cost the same. This module decides what a task *should* get: which
 //! stages, how many sub-investigators, how many plan reviewers, how many critique rounds.
 //!
-//! **Nothing reads the answer yet.** `bn pipeline route` reports it and stops there, deliberately:
+//! **Nothing reads the answer yet.** `workspan pipeline route` reports it and stops there, deliberately:
 //! the thresholds below are guesses until they have been run over a real store, and a classifier
 //! that changes behaviour before anyone has looked at its output is a classifier nobody can tune.
 //!
@@ -12,13 +12,13 @@
 //!
 //! Signals arrive in two structs, and which one a field lives in decides what it may do:
 //!
-//! - [`Declared`] is what bn itself authored or computed. It may narrow a route as well as widen
+//! - [`Declared`] is what workspan itself authored or computed. It may narrow a route as well as widen
 //!   it, because it cannot be forged: [`crate::todo::neutralize_meta`] strips meta keys out of
 //!   untrusted text, and `task_pull` imports only a neutralized title plus `src:` — never the issue
-//!   body — so an `est:` or a `## Done When` reaching this module was written by bn or by a person.
+//!   body — so an `est:` or a `## Done When` reaching this module was written by workspan or by a person.
 //! - [`Observed`] is derived from text or systems a third party can influence: GitHub labels, the
 //!   shape of a title. It is **widening only**. [`classify`] reads it in no branch that can lower
-//!   the route, so an issue an attacker files can make bn spend *more* and never less.
+//!   the route, so an issue an attacker files can make workspan spend *more* and never less.
 //!
 //! That asymmetry is the same one the gate ratchet enforces for `gate` in
 //! [`super::profile`], and it exists for a reason learned the hard way: a substring match on
@@ -163,7 +163,7 @@ pub fn classify(sig: &Signals) -> RoutePlan {
     let mut route = Route::Standard;
     let mut reasons = Vec::new();
 
-    // --- widen, from what bn declared -----------------------------------------------------
+    // --- widen, from what workspan declared -----------------------------------------------------
     if let Some(est) = sig.declared.est_minutes.filter(|m| *m > DEEP_EST_MINUTES) {
         route = route.max(Route::Deep);
         reasons.push(reason("large_estimate", format!("est is {est}m")));

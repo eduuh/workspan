@@ -1,4 +1,4 @@
-//! `bn build` + target-context resolution helpers.
+//! `workspan build` + target-context resolution helpers.
 use crate::*;
 
 /// `workspan build [name] [--repo R --branch B] [-- <args…>]` — resolve the worktree's `<name>.sh`
@@ -50,7 +50,7 @@ pub(crate) fn run_build_cmd(
             2,
         );
     };
-    // The cron runner's PATH, so tools the script shells out to (yarn, gh, `bn` itself) resolve
+    // The cron runner's PATH, so tools the script shells out to (yarn, gh, `workspan` itself) resolve
     // under a non-login shell.
     let mut cmd = std::process::Command::new("/bin/sh");
     cmd.arg(&script)
