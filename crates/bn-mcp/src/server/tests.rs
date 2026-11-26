@@ -136,7 +136,7 @@ async fn bn_cmd_lists_and_runs_a_branch_command_with_its_args() {
     let server = BnServer::new(cfg, worktree(&worktrees, "repo", "topic"), vec![]);
     let dir = server
         .cfg
-        .note_dir(&server.resolve().expect("scope"))
+        .artifact_dir(&server.resolve().expect("scope"))
         .join("cmds");
     std::fs::create_dir_all(&dir).expect("cmds dir");
     std::fs::write(
@@ -181,7 +181,11 @@ async fn bn_cmd_lists_and_runs_a_branch_command_with_its_args() {
 }
 
 #[tokio::test]
+<<<<<<< HEAD
 async fn links_can_be_searched_by_query_and_tag() {
+=======
+async fn links_can_be_searched_without_session_artifacts() {
+>>>>>>> retire-notes-runtime
     let root = tempfile::tempdir().expect("tempdir");
     let worktrees = root.path().join("worktrees");
     let cfg = Config {
@@ -236,5 +240,29 @@ async fn links_can_be_searched_by_query_and_tag() {
             .unwrap()
             .len(),
         2
+    );
+    let artifacts = server.cfg.artifact_dir(&server.resolve().unwrap());
+    assert!(!artifacts.join("note.md").exists());
+    assert!(!artifacts.join("note.yaml").exists());
+    assert!(!artifacts.join("handoff.json").exists());
+}
+
+#[test]
+fn advertised_tools_exclude_session_note_runtime() {
+    let mut names: Vec<_> = BnServer::all_tools()
+        .list_all()
+        .into_iter()
+        .map(|tool| tool.name.to_string())
+        .collect();
+    names.sort();
+    assert_eq!(
+        names,
+        [
+            "bn_cmd",
+            "bn_links_add",
+            "bn_links_search",
+            "bn_ref",
+            "bn_ref_append"
+        ]
     );
 }

@@ -1,11 +1,25 @@
+<<<<<<< HEAD
 //! Worktree-scoped reference and command tools, person-scoped links, and workflow prompts.
 //! Session history belongs to Entire; this server does not read or write branch notes.
+=======
+//! The MCP server: commands, references and durable links, plus workflow prompts from every skill
+//! tier. Deliberately narrower than the CLI: cross-branch, whole-person, and explicit repo/branch
+//! targeting stay in `bn` so an MCP-connected agent cannot discover or act on unrelated sessions.
+//!
+//! The *tool* surface is what enforces that narrowness. Prompts are inert text — serving one only
+//! puts a workflow's instructions in front of the agent, and every action it then takes still goes
+//! through the same scoped tools. So the prompt list is not a security boundary and is no longer
+//! filtered: an allowlist here only hid skills from discovery while `bn skills` listed them all.
+>>>>>>> retire-notes-runtime
 
 use std::path::PathBuf;
 
 use bn_core::links;
 use bn_core::resolver::{self, Config, Resolved};
+<<<<<<< HEAD
 use bn_core::skills::{load_skill_set, Skill};
+=======
+>>>>>>> retire-notes-runtime
 use bn_core::util::today;
 
 use rmcp::handler::server::wrapper::Parameters;
@@ -28,7 +42,11 @@ pub struct BnServer {
     worktree: PathBuf,
     /// Re-scanned on each prompt list/get so newly added skill files appear without restarting.
     skill_dirs: Vec<PathBuf>,
+<<<<<<< HEAD
     /// Serializes read-modify-write operations on reference docs and links.
+=======
+    /// Serializes reference and link read-modify-write operations within this server.
+>>>>>>> retire-notes-runtime
     write_lock: std::sync::Mutex<()>,
 }
 
@@ -118,6 +136,17 @@ impl BnServer {
         }
     }
 
+<<<<<<< HEAD
+=======
+    /// The retained command, reference and link tool surface.
+    fn all_tools() -> rmcp::handler::server::router::tool::ToolRouter<Self> {
+        Self::tool_router()
+    }
+
+    /// Every effective skill, freshly merged from `skill_dirs` (higher tiers override lower ones
+    /// by name, so each prompt appears once). Re-read per call, so a newly authored skill shows up
+    /// without restarting the server.
+>>>>>>> retire-notes-runtime
     fn skills(&self) -> Result<Vec<Skill>, ErrorData> {
         load_skill_set(&self.skill_dirs)
             .map_err(|error| ErrorData::internal_error(error.to_string(), None))
@@ -341,7 +370,11 @@ impl BnServer {
 
     #[tool(
         name = "bn_ref_append",
+<<<<<<< HEAD
         description = "Record one durable fact in this repo's reference docs. Include its source and verification date. Creates the document if necessary; returns appended:false for an exact duplicate. Session history belongs in Entire, not reference docs."
+=======
+        description = "Record ONE durable fact in this repo's reference notes, as a bullet under a section (facts by default, or gotchas). Use it the moment you learn something that will still be true next month and would save the next session time -- a root cause, a build gotcha, where a subsystem actually lives. Creates the note if it doesn't exist. Include where the fact came from and today's date in the text. Returns appended:false when that exact fact is already recorded. Task-specific context belongs in workspan task doc, not here."
+>>>>>>> retire-notes-runtime
     )]
     async fn bn_ref_append(
         &self,
@@ -379,6 +412,7 @@ impl ServerHandler for BnServer {
         )
         .with_server_info(Implementation::new("bn-mcp", env!("CARGO_PKG_VERSION")))
         .with_instructions(
+<<<<<<< HEAD
             "Workspan MCP serves reference docs, reusable commands, curated links and workflow \
              prompts. Branch notes and their context, item, sync and handoff tools are retired. \
              Entire captures session history; repository onboarding must configure it with an \
@@ -393,6 +427,14 @@ impl ServerHandler for BnServer {
              The default MCP cannot target unrelated worktrees. Use the Workspan CLI for explicit \
              task, machine and agent operations. Every effective skill is served as a prompt; \
              prompts provide instructions and do not grant additional permissions."
+=======
+            "Workspan serves repo references, curated links, user commands and workflow prompts. \
+             Use workspan task doc/task do for task context and execution, workspan plan status/path \
+             for plan artifacts, and workspan pipeline for execution state. Entire owns session history. \
+             Read bn_ref without a name for the reference index; append only durable repo facts. \
+             Search bn_links_search before adding an important, repeatedly useful link with bn_links_add. \
+             bn_cmd lists and runs configured commands."
+>>>>>>> retire-notes-runtime
                 .to_string(),
         )
     }
