@@ -16,7 +16,7 @@ keywords: [subagent-orchestration, subagents, orchestration, guide, guides, suba
    fill roles. There is no fixed agent-count cap.
 
 3. **Use available capabilities.** Discover the harness's actual agent types. Do not require
-   named specialists bn does not ship. Use an available suitable worker with an explicit
+   named specialists workspan does not ship. Use an available suitable worker with an explicit
    brief; preserve any specialist the user specifically requested and report if it is
    unavailable. Use ordinary harness delegation; Copilot fleet does not imply a registered
    dynamic workflow. Start such a workflow only when explicitly requested or instructed.

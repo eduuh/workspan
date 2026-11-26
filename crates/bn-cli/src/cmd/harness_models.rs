@@ -25,7 +25,7 @@ pub(crate) struct HarnessRoster {
     pub(crate) models: Vec<String>,
     /// Reasoning-effort levels this harness accepts.
     pub(crate) efforts: Vec<String>,
-    /// True when the list came from the harness itself rather than bn's built-in fallback. Surfaced
+    /// True when the list came from the harness itself rather than workspan's built-in fallback. Surfaced
     /// so a picker can say "these are the ids Copilot reported" versus "these are the aliases bn
     /// knows" — the difference between an exhaustive list and a safe one.
     pub(crate) discovered: bool,
@@ -70,7 +70,7 @@ fn probe_copilot() -> Option<(Vec<String>, Vec<String>)> {
     (!models.is_empty()).then_some((models, efforts))
 }
 
-/// The roster for `harness`, from cache when fresh, else probed, else bn's built-in fallback.
+/// The roster for `harness`, from cache when fresh, else probed, else workspan's built-in fallback.
 ///
 /// Never fails and never returns an empty model list: an empty picker is indistinguishable from a
 /// broken page, so the floor is always the set [`bn_core::mcp::Harness`] is willing to validate.
@@ -127,7 +127,7 @@ fn default_efforts(harness: &str) -> Vec<String> {
         .unwrap_or_default()
 }
 
-/// The built-in floor: what bn knows without asking anyone.
+/// The built-in floor: what workspan knows without asking anyone.
 fn fallback(harness: &str, now: i64) -> HarnessRoster {
     HarnessRoster {
         harness: harness.to_string(),
@@ -149,14 +149,14 @@ pub(crate) fn all_rosters(now: i64) -> Vec<HarnessRoster> {
         .collect()
 }
 
-/// `bn harness models [--harness X]` — what each harness serves, for a picker or a sanity check.
+/// `workspan harness models [--harness X]` — what each harness serves, for a picker or a sanity check.
 pub(crate) fn emit_harness_models(harness: Option<&str>, as_json: bool) {
     let now = bn_core::util::now_epoch_secs();
     let rosters = match harness {
         Some(h) => match bn_core::harness::normalize(h) {
             Some(canonical) => vec![roster(canonical, now)],
             None => fail(&format!(
-                "bn harness models: unknown harness '{h}' (use copilot | claude)"
+                "workspan harness models: unknown harness '{h}' (use copilot | claude)"
             )),
         },
         None => all_rosters(now),

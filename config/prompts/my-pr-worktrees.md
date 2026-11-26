@@ -10,16 +10,16 @@ arguments:
 ---
 You are finding the user's own active pull requests for the repository containing the current
 worktree and, when requested, materializing them locally. The PR may have been created from another
-laptop. GitHub and Azure DevOps are both supported; `bn wt remote` detects the provider from
+laptop. GitHub and Azure DevOps are both supported; `workspan wt remote` detects the provider from
 `origin`, queries the authenticated identity, favourites limited ADO refs when necessary, fetches
 the exact source branch, and creates an idempotent worktree.
 
-Use the harness to run exactly one `bn wt remote` command from the current repository:
+Use the harness to run exactly one `workspan wt remote` command from the current repository:
 
 1. Interpret the arguments:
-   - If `{{target}}` is non-empty, run `bn wt remote {{target}}`.
-   - Else if `{{all}}` is truthy (`true`/`yes`/`1`), run `bn wt remote --all`.
-   - Otherwise run `bn wt remote` to list active PRs that do not yet have a local worktree. Harness
+   - If `{{target}}` is non-empty, run `workspan wt remote {{target}}`.
+   - Else if `{{all}}` is truthy (`true`/`yes`/`1`), run `workspan wt remote --all`.
+   - Otherwise run `workspan wt remote` to list active PRs that do not yet have a local worktree. Harness
      shell calls are non-interactive, so this prints the candidates instead of opening fzf.
    - Add `--no-tmux` when `{{no_tmux}}` is truthy.
    - `target` wins over `all`; never run both forms.
@@ -35,5 +35,5 @@ Use the harness to run exactly one `bn wt remote` command from the current repos
    - On failure, preserve the actionable authentication/provider error and stop.
 
 This skill is repository-scoped per invocation. To process another repository, run it from any
-worktree of that repository. For an interactive cross-repository view, use `bn tat`; its
+worktree of that repository. For an interactive cross-repository view, use `workspan tat`; its
 per-repository picker shows the same remote-only PRs beside local worktrees.

@@ -719,8 +719,8 @@ impl<'a, R: SshRunner> Transport<'a, R> {
     }
 
     /// Cheap reachability probe: is the worker reachable with key auth and is `bn` present? Runs
-    /// `command -v bn` remotely. `Ok(true)` = reachable + bn present, `Ok(false)` = reachable but
-    /// bn missing; a transport error means unreachable/auth. Retries as a non-mutating read.
+    /// `command -v bn` remotely. `Ok(true)` = reachable + workspan present, `Ok(false)` = reachable but
+    /// workspan missing; a transport error means unreachable/auth. Retries as a non-mutating read.
     pub fn probe(&self) -> Result<bool, TransportError> {
         match self.read(&["command", "-v", "bn"])? {
             ExecOutcome::Completed { exit_status, .. } => Ok(exit_status == 0),

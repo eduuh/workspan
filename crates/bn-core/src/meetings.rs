@@ -16,14 +16,14 @@ use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 
 /// How long a meetings snapshot stays usable, in seconds. The `meetings` cron refreshes ~twice a
-/// day (a morning run on the first bn event of the day + an afternoon run), so half a day
+/// day (a morning run on the first workspan event of the day + an afternoon run), so half a day
 /// comfortably spans the gap between refreshes while a cache from a *prior* working session (e.g.
 /// yesterday afternoon read this morning before the day's first run) falls outside the window and
 /// is treated as no data. Mirrors [`crate::next`]'s attention-cache staleness rule, scaled to the
 /// meetings cadence.
 pub const CACHE_MAX_AGE_SECS: i64 = 12 * 3600;
 
-/// How close (in minutes) the next event must be for `bn next` to surface the gap line in its
+/// How close (in minutes) the next event must be for `workspan next` to surface the gap line in its
 /// header. Beyond this the dead-zone framing doesn't apply — there's real time to start something.
 pub const GAP_HEADER_WINDOW_MINS: i64 = 120;
 
@@ -89,7 +89,7 @@ pub fn read() -> Option<MeetingsCache> {
 }
 
 /// Replace the cache with `events` for `today`, stamped `now`. Creates the state dir on first
-/// write. Called by `bn gap ingest` — the cron's write path.
+/// write. Called by `workspan gap ingest` — the cron's write path.
 pub fn ingest(events: Vec<Meeting>, today: &str, now: i64) -> std::io::Result<usize> {
     let n = events.len();
     let rec = MeetingsCache {
@@ -153,7 +153,7 @@ pub fn current_gap(cache: &MeetingsCache, now: i64) -> Option<Gap> {
         })
 }
 
-/// Read the cache and compute the current gap in one step — the `bn gap` / `bn next` entry point.
+/// Read the cache and compute the current gap in one step — the `workspan gap` / `workspan next` entry point.
 pub fn gap(now: i64) -> Option<Gap> {
     current_gap(&read()?, now)
 }

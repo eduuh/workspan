@@ -47,7 +47,7 @@ pub const COOLDOWN_SECS: i64 = 1800;
 /// The most toasts one day may deliver before the gate falls silent. Past it only the *first*
 /// delivery of a never-seen key still lands, so a genuinely new blocker is never buried, while a
 /// pathological day (a flapping fleet, a sweep dumping fifty urgent rows) degrades to silence
-/// instead of a stream. Roughly one interruption per waking hour. `bn notify status` reports the
+/// instead of a stream. Roughly one interruption per waking hour. `workspan notify status` reports the
 /// overflow.
 pub const DAILY_BUDGET: usize = 12;
 
@@ -141,12 +141,12 @@ pub struct Notification {
     /// describing the same real-world condition MUST use the same key; that is what collapses
     /// the historical double-delivery.
     pub key: String,
-    /// Where it came from, for `bn notify status` attribution and the per-source share
+    /// Where it came from, for `workspan notify status` attribution and the per-source share
     /// (`watch`, `orchestrate`, `routine`).
     pub source: String,
     pub title: String,
     pub body: String,
-    /// A human explicitly asked for *this* toast (`bn agent done --notify`). Clears the class bar
+    /// A human explicitly asked for *this* toast (`workspan agent done --notify`). Clears the class bar
     /// — you asked — but nothing else: a flag typed an hour ago should not punch through a focus
     /// block started ten minutes ago, nor spend more than its share of the day's budget.
     pub user_requested: bool,
@@ -201,7 +201,7 @@ pub enum Suppressed {
 }
 
 impl Suppressed {
-    /// The stable tally key `bn notify status` groups by.
+    /// The stable tally key `workspan notify status` groups by.
     pub fn label(self) -> &'static str {
         match self {
             Self::BelowBar => "below-bar",
@@ -219,7 +219,7 @@ impl Suppressed {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "kebab-case")]
 pub enum Quieted {
-    /// Written by the removed `bn afk`; kept so older notification ledgers still parse.
+    /// Written by the removed `workspan afk`; kept so older notification ledgers still parse.
     Afk,
     Focus,
     ProtectedBlock,
@@ -263,7 +263,7 @@ impl Delivery {
 /// section never breaks an unrelated command, it just leaves the defaults in place.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct NotifyConfig {
-    /// `false` silences every toast (the gate still tallies, so `bn notify status` explains it).
+    /// `false` silences every toast (the gate still tallies, so `workspan notify status` explains it).
     pub enabled: bool,
     pub bar: Bar,
     pub cooldown_secs: i64,
@@ -386,7 +386,7 @@ pub struct Ledger {
     pub sent_today: usize,
 
     /// How many of `sent_today` were carried by the tmux fallback rather than an OS toast — so
-    /// `bn notify status` can say the desktop backend is down without claiming nothing arrived.
+    /// `workspan notify status` can say the desktop backend is down without claiming nothing arrived.
     #[serde(default)]
     pub sent_via_tmux: usize,
     /// Source → toasts it delivered today, for the per-source share.
@@ -444,7 +444,7 @@ impl Ledger {
     ///
     /// Deliberately excludes `below-bar`, which is by-design silence rather than a withheld
     /// interrupt — a lifecycle toast that never fires is the gate working, not a thing to report.
-    /// Counting it here would put a permanent warning on `bn next` from the two-minute cron.
+    /// Counting it here would put a permanent warning on `workspan next` from the two-minute cron.
     pub fn withheld_today(&self) -> usize {
         self.held_today
             .iter()
@@ -457,7 +457,7 @@ impl Ledger {
     ///
     /// Split out of [`Self::withheld_today`] because the two mean opposite things to the reader:
     /// a cooldown or a spent budget is the policy gate working as designed and needs no action,
-    /// while `no-backend` means every interrupt bn raised today was lost and someone has to fix
+    /// while `no-backend` means every interrupt workspan raised today was lost and someone has to fix
     /// the delivery path. Summed together they read as one undifferentiated "held" count.
     pub fn undeliverable(&self) -> usize {
         self.held_today
@@ -473,7 +473,7 @@ impl Ledger {
         self.withheld_today() - self.undeliverable()
     }
 
-    /// Keys still inside their cooldown at `now`, newest delivery first — the `bn notify status`
+    /// Keys still inside their cooldown at `now`, newest delivery first — the `workspan notify status`
     /// "currently quiet" list.
     pub fn in_cooldown(&self, cooldown_secs: i64, now: i64) -> Vec<(String, i64)> {
         let mut out: Vec<(String, i64)> = self
@@ -606,7 +606,7 @@ pub fn deliver_using(
     outcome
 }
 
-/// The `bn watch` shape: decide every candidate independently, then fold the survivors into **one**
+/// The `workspan watch` shape: decide every candidate independently, then fold the survivors into **one**
 /// interrupt rather than firing a toast per item. Five blocked agents are one toast, not five.
 ///
 /// `title` receives the number of survivors so the caller can phrase its own headline, and the
@@ -698,8 +698,8 @@ pub trait Notifier {
 }
 
 /// The production notifier: a [`Class::Digest`] delivery through the gate. Routine reminders are
-/// scheduled summaries, so under the default bar they are pull-only — `bn routine status` and
-/// `bn next` still show the block, and raising `[notify].bar` opts back into the toast.
+/// scheduled summaries, so under the default bar they are pull-only — `workspan routine status` and
+/// `workspan next` still show the block, and raising `[notify].bar` opts back into the toast.
 pub struct RealNotifier;
 
 impl Notifier for RealNotifier {
@@ -711,7 +711,7 @@ impl Notifier for RealNotifier {
     /// to remove. Only [`Suppressed::NoBackend`], where nothing could have been shown, is `false`.
     ///
     /// The consequence worth knowing: `TickOutcome.sent` means "handed to the gate", not "reached
-    /// your screen". `bn notify status` is where a held reminder shows up.
+    /// your screen". `workspan notify status` is where a held reminder shows up.
     fn notify(&self, title: &str, body: &str) -> bool {
         // The routine tick already dedups on its own delivery key (stable block id + resolved
         // instant + event kind), so the gate keys on the message it produced rather than
@@ -786,7 +786,7 @@ mod fallback_tests {
     }
 
     /// A working desktop backend must not touch the fallback, nor be miscounted as a tmux
-    /// delivery — otherwise `bn notify status` would start claiming the backend is down.
+    /// delivery — otherwise `workspan notify status` would start claiming the backend is down.
     #[test]
     fn a_working_desktop_backend_never_reaches_the_fallback() {
         crate::test_support::with_state_dir(|| {
@@ -801,7 +801,7 @@ mod fallback_tests {
         });
     }
 
-    /// `bn watch` folds a burst into ONE interrupt; the fallback inherits that discipline rather
+    /// `workspan watch` folds a burst into ONE interrupt; the fallback inherits that discipline rather
     /// than firing a tmux message per item.
     #[test]
     fn a_burst_falls_back_as_a_single_message() {

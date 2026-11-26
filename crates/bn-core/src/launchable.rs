@@ -111,8 +111,8 @@ impl Launchable {
 /// name.
 ///
 /// Discovery failures **degrade to an empty half rather than failing the call**: a broken skill
-/// file should not make every agent unlaunchable, and vice versa. `bn agents validate` and
-/// `bn skills list` are where a malformed catalog is diagnosed; this is a launcher, and its job
+/// file should not make every agent unlaunchable, and vice versa. `workspan agents validate` and
+/// `workspan skills list` are where a malformed catalog is diagnosed; this is a launcher, and its job
 /// is to still offer what does load. Callers that need the error use the underlying discovery.
 pub fn discover(cfg: &Config, ctx: Option<&Resolved>, base_dir: &Path) -> Vec<Launchable> {
     let agents: Vec<Launchable> = agents::discover(cfg, ctx)

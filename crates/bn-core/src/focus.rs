@@ -50,7 +50,7 @@ pub struct StartOutcome {
 }
 
 /// Parse a human duration like `90m`, `2h`, `1d`, `45`, `1h30m` into seconds. A bare number is
-/// taken as minutes (the common `bn focus start 90` case). Returns `None` for empty / malformed
+/// taken as minutes (the common `workspan focus start 90` case). Returns `None` for empty / malformed
 /// input or a non-positive result, so the CLI can reject it rather than open a zero-length block.
 pub fn parse_duration(s: &str) -> Option<i64> {
     let s = s.trim();
@@ -119,7 +119,7 @@ pub fn end(now: i64) -> std::io::Result<Option<Block>> {
 
 /// The currently active block, or `None`. Active = the most-recently-started block whose end
 /// time is still in the future and which no later `focus_end` has closed. Folding the latest
-/// start (not the first) means a second `bn focus start` cleanly extends the window.
+/// start (not the first) means a second `workspan focus start` cleanly extends the window.
 pub fn active(now: i64) -> Option<Block> {
     // `now` is applied here, not inside the memo: the block list is pure log-derived state and so
     // is cacheable, while "is it running *right now*" changes every second and is not.
@@ -152,7 +152,7 @@ struct OpenBlock {
 /// Open (not early-ended) focus blocks, latest start first — a pure function of the event log, so
 /// it is memoised against that log's identity.
 ///
-/// This matters because [`is_active`] is on the status bar's path (`bn staff feed --badge` gates
+/// This matters because [`is_active`] is on the status bar's path (`workspan staff feed --badge` gates
 /// on it) and its honest answer meant parsing the whole 50 MB log every refresh — measured at
 /// 227 ms, one full parse, several times a minute.
 fn open_blocks() -> Vec<OpenBlock> {
@@ -197,7 +197,7 @@ pub fn is_active(now: i64) -> bool {
 /// in it. A block's realized length is from its `focus_start` to whichever comes first: an early
 /// `focus_end`, its declared expiry (`start + duration_secs`), or the window end `end` (so an
 /// active block only counts the time already elapsed, never its unspent minutes). Pure over the
-/// event slice — the caller picks the source (`events::read_all`) — so `bn insights` can size the
+/// event slice — the caller picks the source (`events::read_all`) — so `workspan insights` can size the
 /// deep-work ratio without a new store. Blocks started outside the window are ignored even if
 /// they overlap it; v1 attributes a block to the window it opened in.
 pub fn secs_in_window(events: &[Event], start: i64, end: i64) -> i64 {

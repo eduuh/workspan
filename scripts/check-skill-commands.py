@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Check that every skill renders and every bn/workspan command it cites still exists.
+"""Check that every skill renders and every workspan/ws/bn command it cites still exists.
 
 Skills (config/prompts/*.md, .bn/skills/*.md) are instructions an agent follows
 literally. When a subcommand or flag is renamed or removed, a skill that still
 cites it fails at run time, long after the change that broke it merged. This
-walks the built binary's --help tree and checks each `bn` invocation found in
+walks the built binary's --help tree and checks each Workspan invocation found in
 inline code spans and fenced code blocks: every subcommand word must exist, and
 every --flag must be accepted by that subcommand (or an ancestor's global flag).
 
@@ -54,7 +54,7 @@ def load(bin_path, path, cache):
             if section == "Usage":
                 node.has_commands |= "COMMAND" in line
             continue
-        if section == "Usage" and line.startswith("       bn"):
+        if section == "Usage" and line.startswith(("       workspan", "       ws", "       bn")):
             node.has_commands |= "COMMAND" in line
         if section == "Commands":
             cm = CMD_LINE.match(line)
@@ -97,7 +97,7 @@ def code_snippets(text):
 # `bn` only where a shell command starts, so "# >>> bn codespace" markers and
 # "for b in bn bn-mcp" lists are not read as invocations.
 INVOCATION = re.compile(
-    r"(?:^\s*|[|;&(]\s*|\$\(\s*|[{!]\s+|\b(?:then|do|else|time|exec|sudo|env|xargs|watch)\s+)(?:bn|workspan)\s+(?=\S)"
+    r"(?:^\s*|[|;&(]\s*|\$\(\s*|[{!]\s+|\b(?:then|do|else|time|exec|sudo|env|xargs|watch)\s+)(?:workspan|ws|bn)\s+(?=\S)"
 )
 
 
@@ -181,7 +181,7 @@ def check(root, snippet):
                         node = routed
                         flags |= routed.flags
                     else:
-                        problems.append(f"`bn {' '.join(node.path)}` has no flag --{name}")
+                        problems.append(f"`workspan {' '.join(node.path)}` has no flag --{name}")
                 continue
             if tok.startswith("-"):
                 continue
@@ -200,7 +200,7 @@ def check(root, snippet):
                 descending = False
                 continue
             if node.has_commands and not node.positional:
-                problems.append(f"`bn {' '.join(node.path)}` has no subcommand '{tok}'")
+                problems.append(f"`workspan {' '.join(node.path)}` has no subcommand '{tok}'")
                 break
             descending = False
     return problems
@@ -220,9 +220,9 @@ def render_failures(bin_path, path, text):
         argv += ["--arg", f"{arg}=X"]
     proc = subprocess.run(argv, capture_output=True, text=True)
     if proc.returncode != 0:
-        return [f"`bn skills render {skill}` failed: {(proc.stderr or proc.stdout).strip().splitlines()[0]}"]
+        return [f"`workspan skills render {skill}` failed: {(proc.stderr or proc.stdout).strip().splitlines()[0]}"]
     left = sorted(set(re.findall(r"\{\{\s*[a-z0-9_]+\s*\}\}", proc.stdout)))
-    return [f"`bn skills render {skill}` left {', '.join(left)} unfilled"] if left else []
+    return [f"`workspan skills render {skill}` left {', '.join(left)} unfilled"] if left else []
 
 
 def main():

@@ -26,7 +26,7 @@ Focused question: {{question}}
 --- END UNTRUSTED TASK DATA ---
 
 Submit answers to the parent with:
-`bn pipeline investigate contribute --repo {{repo}} --branch {{branch}} --token {{token}} --finding "<evidence-backed finding>"`
+`workspan pipeline investigate contribute --repo {{repo}} --branch {{branch}} --token {{token}} --finding "<evidence-backed finding>"`
 
 Repeat `--finding` for multiple findings. If a person is required, use
 `--blocked "<specific input needed>"` instead. Do not edit source files.

@@ -14,7 +14,7 @@ pub struct Snapshot {
 }
 
 /// Persist `card` as the snapshot for `date` (overwrites a same-day snapshot). Returns the path.
-/// The weekly `metrics-snapshot` job calls this via `bn metrics --snapshot`.
+/// The weekly `metrics-snapshot` job calls this via `workspan metrics --snapshot`.
 pub fn write_snapshot(
     cfg: &Config,
     card: &Scorecard,

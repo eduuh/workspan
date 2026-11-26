@@ -18,7 +18,7 @@ use crate::hash::fnv1a64;
 use std::path::{Path, PathBuf};
 
 /// The detached tmux session that holds parked editor panes. Leading `_` marks it as bn-internal
-/// so the pickers skip it (see `bn tat`'s orphan rows and `choose-tree`'s filter).
+/// so the pickers skip it (see `workspan tat`'s orphan rows and `choose-tree`'s filter).
 pub const HOLD_SESSION: &str = "_bn_edit";
 
 /// **Pane** option: the absolute worktree path this nvim serves.
@@ -37,7 +37,7 @@ pub const PANE_HOME_OPT: &str = "@bn_edit_home";
 pub const WINDOW_OPT: &str = "@bn_editor";
 
 /// **Window** option: `shell` | `agent` | `editor` — which shape this worktree window is, so
-/// `bn edit hide` knows whether there is a guest pane to move at all.
+/// `workspan edit hide` knows whether there is a guest pane to move at all.
 pub const SHAPE_OPT: &str = "@bn_shape";
 
 /// Canonicalize a worktree path for identity purposes, falling back to the path as given when it

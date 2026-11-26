@@ -25,7 +25,7 @@ pub use setup_drift::{skill_drift, stow_drift, SetupFinding};
 mod cache;
 pub use cache::*;
 
-/// Default staleness threshold (days) for flagging an untouched note — the `bn doctor --stale-days`
+/// Default staleness threshold (days) for flagging an untouched note — the `workspan doctor --stale-days`
 /// default, shared so the `stale-branches` findings gatherer ([`crate::findings_gather`]) and the
 /// CLI can't drift apart.
 pub const DEFAULT_STALE_DAYS: i64 = 7;
@@ -44,7 +44,7 @@ pub struct WorkspaceFinding {
     pub idle_days: i64,
 }
 
-/// A hand-/script-/agent-raised attention item (see `bn attn`).
+/// A hand-/script-/agent-raised attention item (see `workspan attn`).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct AttnFinding {
     pub id: String,
@@ -59,8 +59,8 @@ pub struct AttnFinding {
     pub detail: Option<String>,
 }
 
-/// A pressing item from the current repo's `TODO.txt` (see `bn task`) — an open todo that is
-/// overdue or priority A. Ordinary open todos stay in `bn task`; only the pressing ones nag here,
+/// A pressing item from the current repo's `TODO.txt` (see `workspan task`) — an open todo that is
+/// overdue or priority A. Ordinary open todos stay in `workspan task`; only the pressing ones nag here,
 /// so doctor keeps signal.
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TodoFinding {
@@ -80,7 +80,7 @@ pub struct TodoFinding {
     pub overdue_days: i64,
 }
 
-/// A `bn q` capture sitting in the inbox past the triage window. The inbox is a landing
+/// A `workspan q` capture sitting in the inbox past the triage window. The inbox is a landing
 /// zone, never a home (same philosophy as stale-note hygiene) — rollover and focus-end
 /// drains are the normal path out, so doctor only nags when draining has stopped.
 #[derive(Debug, Serialize, Deserialize)]
@@ -96,8 +96,8 @@ pub struct InboxFinding {
 }
 
 /// An MCP server configured in the current repo that the agent harness couldn't use: either a
-/// local command PATH can't resolve, or an HTTP endpoint that isn't reachable. The bn server
-/// itself is a stdio launcher (`bn mcp serve`), so it's checked as a PATH command like any other.
+/// local command PATH can't resolve, or an HTTP endpoint that isn't reachable. The workspan server
+/// itself is a stdio launcher (`workspan mcp serve`), so it's checked as a PATH command like any other.
 /// `fix` is the exact one-line remedy (#323, #640).
 #[derive(Debug, Serialize, Deserialize)]
 pub struct McpFinding {
@@ -137,8 +137,8 @@ pub struct NotesLeakFinding {
     pub foreign_machines: Vec<String>,
 }
 
-/// The `claude`/`copilot` shell wrappers from `bn shell-init` are not driving launches here, so a
-/// harness typed in this shell starts outside bn: unleased, unrecorded, and steerable only by
+/// The `claude`/`copilot` shell wrappers from `workspan shell-init` are not driving launches here, so a
+/// harness typed in this shell starts outside workspan: unleased, unrecorded, and steerable only by
 /// whatever the window join can infer. Nothing installs the wrappers automatically (the rc file is
 /// usually a symlink into a dotfiles repo), so the failure is silent by construction — which is
 /// exactly why it belongs on the attention list rather than in a README.
@@ -158,7 +158,7 @@ pub struct ShellInitFinding {
 /// different remedy.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ShellInitProblem {
-    /// The rc never sources `bn shell-init`.
+    /// The rc never sources `workspan shell-init`.
     NotInstalled,
     /// The rc sources it, but this shell predates the change (or the line is inside a guard that
     /// didn't run), so nothing is active right now.
@@ -174,7 +174,7 @@ impl ShellInitProblem {
         match self {
             ShellInitProblem::NotInstalled => (
                 "the claude/copilot wrappers are not installed",
-                format!("add to your rc: source <(bn shell-init {shell})"),
+                format!("add to your rc: source <(workspan shell-init {shell})"),
             ),
             ShellInitProblem::SourcedNotActive => (
                 "sourced in your rc but not active in this shell",
@@ -184,7 +184,7 @@ impl ShellInitProblem {
                 "a later claude/copilot definition in your rc shadows the wrappers",
                 format!(
                     "remove the hand-written claude()/copilot() functions below the \
-                     `bn shell-init {shell}` line"
+                     `workspan shell-init {shell}` line"
                 ),
             ),
         }
@@ -460,11 +460,11 @@ fn notes_leak_findings(cfg: &Config) -> Vec<Finding> {
 /// Pressing open tasks from the global store (`Config::tasks_file`, #996), scoped to the repo
 /// doctor was asked about — those overdue (`due` on/before today) or priority A. Ordinary open
 /// tasks are deliberately excluded so the list stays a signal, not a backlog dump; they remain in
-/// `bn task`. A missing/unreadable store yields nothing.
+/// `workspan task`. A missing/unreadable store yields nothing.
 /// Days a capture may sit in the inbox before doctor nags — the inbox is never a home.
 const INBOX_STALE_DAYS: i64 = 3;
 
-/// Captures that have sat in the `bn q` inbox [`INBOX_STALE_DAYS`]+ days. Fresh captures stay
+/// Captures that have sat in the `workspan q` inbox [`INBOX_STALE_DAYS`]+ days. Fresh captures stay
 /// quiet: rollover and focus-end drains are the normal path out, so a finding here means the
 /// drain has stopped happening.
 fn inbox_findings(cfg: &Config, today: &str) -> Vec<Finding> {
@@ -487,7 +487,7 @@ fn inbox_findings(cfg: &Config, today: &str) -> Vec<Finding> {
         .collect()
 }
 
-/// The per-repo MCP config files `bn mcp init` writes, with the JSON key holding each one's
+/// The per-repo MCP config files `workspan mcp init` writes, with the JSON key holding each one's
 /// server map — the surface doctor verifies.
 const MCP_CONFIGS: &[(&str, &str)] = &[
     (".mcp.json", "mcpServers"),
@@ -495,7 +495,7 @@ const MCP_CONFIGS: &[(&str, &str)] = &[
     (".github/mcp.json", "mcpServers"),
 ];
 
-/// The environment variable `bn shell-init`'s wrappers export. A child process cannot inspect its
+/// The environment variable `workspan shell-init`'s wrappers export. A child process cannot inspect its
 /// parent shell's functions, so this marker is the only honest signal that the wrappers were
 /// actually sourced into the shell that ran `bn`.
 pub const SHELL_WRAPPER_MARKER: &str = "BN_SHELL_WRAPPERS";
@@ -504,14 +504,17 @@ pub const SHELL_WRAPPER_MARKER: &str = "BN_SHELL_WRAPPERS";
 /// are.
 ///
 /// Two inputs, because neither alone is sufficient: `marker` is `$BN_SHELL_WRAPPERS` inherited from
-/// the shell that spawned bn — the only proof of "sourced" — while `rc` is the login file's text,
+/// the shell that spawned workspan — the only proof of "sourced" — while `rc` is the login file's text,
 /// the only place a *shadowing* redefinition is visible at all. A rc that sources the wrappers and
 /// then defines its own `claude()` looks perfectly healthy from the environment; it is the case
 /// this check exists for. Pure.
 pub fn shell_init_problem(rc: &str, marker: Option<&str>) -> Option<ShellInitProblem> {
-    let sourced_at = rc
-        .lines()
-        .position(|l| !is_comment(l) && l.contains("bn shell-init"));
+    let sourced_at = rc.lines().position(|line| {
+        !is_comment(line)
+            && ["workspan shell-init", "ws shell-init", "bn shell-init"]
+                .iter()
+                .any(|command| line.contains(command))
+    });
     let active = marker.is_some_and(|m| !m.trim().is_empty());
     match (sourced_at, active) {
         (None, _) => Some(ShellInitProblem::NotInstalled),
@@ -548,8 +551,8 @@ fn defines_harness_function(line: &str) -> bool {
 /// MCP servers configured in the current repo the agent harness couldn't use: a local `command`
 /// that doesn't resolve against `path_var`, or an HTTP `url` whose endpoint isn't reachable. Each
 /// carries the exact one-line fix — curated extras get their catalog fix, other commands a generic
-/// one, an unreachable endpoint a "start the server" hint. The bn server itself is a stdio launcher
-/// (`bn mcp serve`), so it's validated as a PATH command like any other. A missing/unparseable
+/// one, an unreachable endpoint a "start the server" hint. The workspan server itself is a stdio launcher
+/// (`workspan mcp serve`), so it's validated as a PATH command like any other. A missing/unparseable
 /// config file yields nothing (not doctor's fight); a (server, target) pair configured in several
 /// files surfaces once.
 fn mcp_findings(root: &Path, path_var: &str) -> Vec<Finding> {
@@ -687,4 +690,33 @@ fn attn_findings(today: &str) -> Vec<Finding> {
             })
         })
         .collect()
+}
+
+#[cfg(test)]
+mod shell_init_tests {
+    use super::*;
+
+    #[test]
+    fn primary_and_compatibility_commands_detect_active_and_shadowed_wrappers() {
+        for executable in ["workspan", "ws", "bn"] {
+            let source = format!("source <({executable} shell-init zsh)\n");
+            assert_eq!(shell_init_problem(&source, Some("1")), None);
+            assert!(matches!(
+                shell_init_problem(&source, None),
+                Some(ShellInitProblem::SourcedNotActive)
+            ));
+            assert!(matches!(
+                shell_init_problem(&(source + "claude() { custom; }\n"), Some("1")),
+                Some(ShellInitProblem::Shadowed)
+            ));
+        }
+    }
+
+    #[test]
+    fn commented_primary_shell_init_is_not_installed() {
+        assert!(matches!(
+            shell_init_problem("# source <(workspan shell-init zsh)\n", Some("1")),
+            Some(ShellInitProblem::NotInstalled)
+        ));
+    }
 }

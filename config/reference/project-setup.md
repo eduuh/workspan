@@ -50,7 +50,7 @@
     no gate, say so instead of claiming verification passed.
 11. Run `entire status` and confirm the selected harness and approved private checkpoint
     destination. Rerun the selected MCP setup and inspect the diff for idempotence. Check
-    `workspan skills find setup bn` and the generated native skill file; discovery alone does
+    `workspan skills find setup workspan` and the generated native skill file; discovery alone does
     not prove native installation, and writing files does not prove a running editor reloaded.
     Record verified build facts in repo references with source and date. Put actionable blockers
     on an existing assigned task; Entire owns session history.

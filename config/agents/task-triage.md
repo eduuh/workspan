@@ -3,10 +3,10 @@ name: task-triage
 requires_repo: bn
 kind: command
 on_calendar: "*-*-* 07:30:00"
-run: "bn task triage --agent task-triage"
+run: "workspan task triage --agent task-triage"
 harness: copilot
 network: false
-description: "bn — task triage: rank every open task deterministically, then pick and stamp what is genuinely doable today"
+description: "workspan — task triage: rank every open task deterministically, then pick and stamp what is genuinely doable today"
 arguments:
   - name: packet
     description: Date, optional capacity hint, and deterministic ranked shortlist.
@@ -24,8 +24,8 @@ deterministic pre-score order.
 Required outcome:
 
 - Choose only work that can realistically finish today.
-- Stamp each chosen task with `bn task set <id> day:<YYYY-MM-DD> priority:<A|B|C>`.
+- Stamp each chosen task with `workspan task set <id> day:<YYYY-MM-DD> priority:<A|B|C>`.
 - You may reorder or drop shortlist items, but may not introduce anything outside it.
-- End your reply with one line per decision, `<id>: in|out, <why>`. bn saves your reply as
+- End your reply with one line per decision, `<id>: in|out, <why>`. workspan saves your reply as
   today's triage note.
 - Prefer finishing `@wip` work over starting new work.

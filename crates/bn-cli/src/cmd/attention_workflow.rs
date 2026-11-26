@@ -32,7 +32,7 @@ fn failing_cron_lines(cfg: &Config, ctx: Option<&Resolved>) -> Vec<String> {
 fn repair_prompt(status: &bn_core::events::CronJobStatus, output_tail: Option<&str>) -> String {
     let mut prompt = format!(
         "Fix failing cron job '{}'. It has failed {}/{} recorded runs and the latest exit code was {}. \
-Reproduce it with `bn run {}`, inspect the cron/job implementation, and land a fix so the next run is green.",
+Reproduce it with `workspan run {}`, inspect the cron/job implementation, and land a fix so the next run is green.",
         status.job, status.failures, status.runs, status.last_exit, status.job
     );
     if let Some(tail) = output_tail.map(str::trim).filter(|tail| !tail.is_empty()) {
@@ -236,7 +236,7 @@ fn close_recovered_repairs(
     stale.len()
 }
 
-/// Start the autonomous repair agent for a freshly minted repair task, through `bn dispatch`.
+/// Start the autonomous repair agent for a freshly minted repair task, through `workspan dispatch`.
 fn start_repair_agent(
     status: &bn_core::events::CronJobStatus,
     task_id: &str,
@@ -345,7 +345,7 @@ fn job_cron_health_with_dispatch(
 /// job name as the dedupe key, and — via `replace=true` — auto-acks the alert for any cron that has
 /// since recovered. It also mints one keyed repair task per failing cron and starts one autonomous
 /// repair agent when that task is minted, so the captured error turns into work instead of only a
-/// dashboard row — except for a cron nothing can resolve, where the repair prompt's `bn run <job>`
+/// dashboard row — except for a cron nothing can resolve, where the repair prompt's `workspan run <job>`
 /// has nothing to run. The agent starts once per task, not once per pass: the watchdog runs every
 /// fifteen minutes, and an open repair task already says the work is in hand.
 pub(crate) fn job_cron_health(cfg: &Config, ctx: Option<&Resolved>) -> i32 {
@@ -423,7 +423,7 @@ fn findings_packet_empty(packet: &str) -> bool {
 
 
 
-/// `bn attn gather` — what the local automation noticed today, printed as JSON: the cron findings
+/// `workspan attn gather` — what the local automation noticed today, printed as JSON: the cron findings
 /// packet plus the crons that are currently failing.
 ///
 /// Declines (`{"skip": …}`) when there is nothing at all to look at. That guardrail is the reason
@@ -525,7 +525,7 @@ mod tests {
             let status = failing("renamed-away");
 
             let (_, minted) =
-                ensure_repair_task(&cfg, &status, Some("bn: command not found"), today)
+                ensure_repair_task(&cfg, &status, Some("workspan: command not found"), today)
                     .expect("mint the repair task");
             assert!(minted, "the first pass mints the task");
 

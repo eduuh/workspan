@@ -15,7 +15,7 @@ use std::path::Path;
 // the #96 boundary — handoff never re-mines): it reads the live fleet / recorded sessions and
 // drafts the one-line narrative switch feeds into the handoff. It writes nothing.
 
-/// The session `bn switch` is leaving: a still-running one (preferred — it's the session you're
+/// The session `workspan switch` is leaving: a still-running one (preferred — it's the session you're
 /// abandoning) or, if none is live, the most recently finished one. Serializes into the switch
 /// `--json` envelope.
 #[derive(Debug, Clone, PartialEq, Serialize)]
@@ -63,7 +63,7 @@ pub fn latest_session_for(cfg: &Config, repo: &str, branch: &str) -> Option<Agen
     sessions_for(cfg, repo, branch).into_iter().next()
 }
 
-/// The handoff narrative `bn switch` writes when leaving for `to`, summarizing the outgoing
+/// The handoff narrative `workspan switch` writes when leaving for `to`, summarizing the outgoing
 /// session so the incoming harness lands oriented. Pure: no I/O. `outgoing` is `None` when no
 /// The working-tree change summary captured at switch time — the concrete WIP the outgoing
 /// session leaves behind. Read from git in the worktree (accurate regardless of harness, and of
@@ -95,7 +95,7 @@ pub fn wip_progress_line(wc: &WorkingChanges) -> String {
     )
 }
 
-/// The handoff narrative `bn switch` writes when leaving for `to`. The first sentence summarizes
+/// The handoff narrative `workspan switch` writes when leaving for `to`. The first sentence summarizes
 /// the outgoing session; `wip` (the uncommitted diff) and `last_request` (the session's final user
 /// prompt) append the "what was done / what was asked" context so the incoming harness lands
 /// oriented. Pure: no I/O. `outgoing` is `None` on a cold start into `to`.
@@ -231,7 +231,7 @@ fn truncate_prompt(s: &str, max: usize) -> String {
     }
 }
 
-/// First 8 chars of a session UUID — enough to recognize it in `bn agent` / harness logs.
+/// First 8 chars of a session UUID — enough to recognize it in `workspan agent` / harness logs.
 fn short_id(id: &str) -> &str {
     id.get(..8).unwrap_or(id)
 }

@@ -81,7 +81,7 @@ pub struct AppendOutcome {
     pub heading: String,
 }
 
-/// The scaffold body a fresh reference starts with (via `bn ref add` / an editing `bn ref edit`
+/// The scaffold body a fresh reference starts with (via `workspan ref add` / an editing `workspan ref edit`
 /// of a missing file). A minimal template the user fills in — its first heading doubles as the
 /// list summary.
 ///
@@ -204,7 +204,7 @@ fn collect_md(dir: &Path, out: &mut Vec<PathBuf>) {
 /// Repo notes sit at `<root>/<machine>/<repo>/reference/**.md` — a repo-level directory with no
 /// owning `note.md`, so the note walkers in [`crate::search`] and [`crate::recall`] step straight
 /// past them. Both call this to fold the notes into their corpus; without it the durable knowledge
-/// would be the one thing `bn search` and `bn recall` couldn't find.
+/// would be the one thing `workspan search` and `workspan recall` couldn't find.
 pub fn notes_under_root(root: &Path) -> Vec<(String, PathBuf)> {
     let mut out: Vec<(String, PathBuf)> = Vec::new();
     let Ok(machines) = std::fs::read_dir(root) else {
@@ -364,7 +364,7 @@ pub fn section_of(body: &str, section: &str) -> Option<String> {
 }
 
 /// Ensure a reference file exists for `name` in `scope`, scaffolding it from [`template`] if
-/// missing, and return its path — the create-if-missing target for `bn ref edit` / `bn ref add`.
+/// missing, and return its path — the create-if-missing target for `workspan ref edit` / `workspan ref add`.
 /// A shipped default is copied into the personal store before customization.
 /// `existed` reports whether the file was already there (so `add` can flag a no-op).
 pub fn ensure_file_in(scope: &Scope, name: &str) -> std::io::Result<(PathBuf, bool)> {

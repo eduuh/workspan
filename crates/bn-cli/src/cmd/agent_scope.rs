@@ -21,13 +21,13 @@ pub(crate) fn add_dir_args(harness: bn_core::mcp::Harness, dirs: &[String]) -> V
         .collect()
 }
 
-/// The directories a launch in `cwd` may reach beyond `cwd` itself: bn's own branch-note directory,
+/// The directories a launch in `cwd` may reach beyond `cwd` itself: workspan's own branch-note directory,
 /// plus whatever the caller asked for with `--add-dir`.
 ///
 /// The note directory is not a convenience. `<notes>/<machine>/<repo>/<branch>` holds the branch
 /// note and the plan artifacts under `plans/`, and the plan/execute skills read and write those
 /// files directly rather than through the CLI — so scoping an agent to its worktree without it
-/// would break the workflows bn is built around. It is also narrow: one branch's directory, not
+/// would break the workflows workspan is built around. It is also narrow: one branch's directory, not
 /// the notes repository, and nothing resembling `~/Documents`.
 ///
 /// Deduped and order-stable, so a repeated `--add-dir` (or one naming the note dir itself)
@@ -90,10 +90,10 @@ pub(crate) fn build_claude_args(plan: &LaunchPlan, has_transcripts: bool) -> Vec
     args
 }
 
-/// Copilot's standing shell approval for bn itself, so an agent can follow the AGENTS.md rule to
-/// reap stale worktrees (`bn wt reap --all --yes`) without a prompt. Copilot matches shell rules on
-/// the command name only — `shell(bn wt reap:*)` and `shell(bn wt:*)` never match — so the rule
-/// has to cover every `bn` subcommand. Claude's narrower `Bash(bn wt reap:*)` lives in its stowed
+/// Copilot's standing shell approval for workspan itself, so an agent can follow the AGENTS.md rule to
+/// reap stale worktrees (`workspan wt reap --all --yes`) without a prompt. Copilot matches shell rules on
+/// the command name only — `shell(workspan wt reap:*)` and `shell(workspan wt:*)` never match — so the rule
+/// has to cover every `bn` subcommand. Claude's narrower `Bash(workspan wt reap:*)` lives in its stowed
 /// settings instead.
 const COPILOT_BN_SHELL_RULE: &str = "shell(bn)";
 
@@ -153,7 +153,7 @@ mod tests {
         }
     }
 
-    /// The regression that motivated all of this: an unseeded `claude` through bn's shell wrapper
+    /// The regression that motivated all of this: an unseeded `claude` through workspan's shell wrapper
     /// took `--dangerously-skip-permissions`, which is a *path* bypass as well as a tool one, and
     /// the agent could read `~/Documents`.
     #[test]
@@ -167,7 +167,7 @@ mod tests {
     }
 
     /// `--allow-all-paths` is documented by Copilot as "disable file path verification" — the
-    /// same hole, spelled differently. `--allow-all` is the yolo launch flag bn now uses once the
+    /// same hole, spelled differently. `--allow-all` is the yolo launch flag workspan now uses once the
     /// slot has already been pre-trusted.
     #[test]
     fn an_autonomous_copilot_launch_uses_allow_all_but_not_paths() {
@@ -260,8 +260,8 @@ mod tests {
         assert!(!args.iter().any(|a| a == "-p"), "{args:?}");
     }
 
-    /// The stale-worktree rule asks agents to run `bn wt reap` unprompted, so every Copilot launch —
-    /// fresh, resumed, or without autonomy — carries the bn shell approval.
+    /// The stale-worktree rule asks agents to run `workspan wt reap` unprompted, so every Copilot launch —
+    /// fresh, resumed, or without autonomy — carries the workspan shell approval.
     #[test]
     fn every_copilot_launch_may_run_bn() {
         let mut resumed = plan(None, false);

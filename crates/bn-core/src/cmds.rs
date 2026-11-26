@@ -108,7 +108,7 @@ pub fn parse_header(text: &str) -> (Option<String>, Option<String>) {
     (field("description"), field("usage"))
 }
 
-/// The directory `bn cmd new --scope <scope>` writes into, or `None` when that tier does not exist
+/// The directory `workspan cmd new --scope <scope>` writes into, or `None` when that tier does not exist
 /// for `ctx` (branch on `main`, project/repo/branch outside a worktree). Global means your
 /// private, synced `<personal_root>/cmds`, never the shipped dir.
 pub fn scope_dir(cfg: &Config, ctx: Option<&Resolved>, scope: JobScope) -> Option<PathBuf> {
@@ -132,10 +132,10 @@ pub fn scaffold(dir: &Path, name: &str) -> std::io::Result<PathBuf> {
     let path = dir.join(format!("{name}.sh"));
     let body = format!(
         "#!/bin/sh\n\
-         # description: TODO one line saying what `{name}` does (shown by `bn cmd` and to agents)\n\
+         # description: TODO one line saying what `{name}` does (shown by `workspan cmd` and to agents)\n\
          # usage: {name} [args...]\n\
          #\n\
-         # Run with `bn cmd {name} [args...]`. It runs in the caller's directory; $BN_CMD_REPO and\n\
+         # Run with `workspan cmd {name} [args...]`. It runs in the caller's directory; $BN_CMD_REPO and\n\
          # $BN_CMD_BRANCH name the worktree it was called from (empty outside one), and\n\
          # $BN_CMD_LIB is the shipped shell helpers dir (`. \"$BN_CMD_LIB/<file>.sh\"`).\n\
          set -eu\n\
@@ -178,16 +178,16 @@ pub fn command(
     command
 }
 
-/// The PATH every process bn spawns to run the user's own scripts gets.
+/// The PATH every process workspan spawns to run the user's own scripts gets.
 ///
 /// The leading entry is this executable's own directory, and it is load-bearing: on a stock install
 /// that is the *only* place `bn` exists (`~/.bn/bin`), and a scheduler shell — launchd, systemd,
 /// cron — inherits none of the profile that normally puts it on PATH. A hand-rolled
 /// `~/.local/bin:~/.bin:$PATH` left every `run:` command that called `bn` exiting 127 with
-/// `/bin/sh: bn: command not found`.
+/// `/bin/sh: workspan: command not found`.
 ///
 /// Job scripts, `run:` commands, staff gathers, harness dispatches, the `verify`/`build` gates and
-/// `bn cmd` all take their PATH from here. Re-deriving the prelude at a call site is what produced
+/// `workspan cmd` all take their PATH from here. Re-deriving the prelude at a call site is what produced
 /// that 127, so there is one of these.
 pub fn job_path() -> String {
     let home = dirs::home_dir()

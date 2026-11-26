@@ -1,6 +1,6 @@
 # Cron jobs
 
-Version-controlled scripts that cron triggers via `bn run <job>`. The script is the durable
+Version-controlled scripts that cron triggers via `workspan run <job>`. The script is the durable
 artifact — reviewable, diffable, in git — not an inline crontab command. This is the north
 star in practice: AI authors a script here once; cron runs it forever, for free.
 
@@ -20,22 +20,22 @@ cron = false                     # default true
 registration, and `[nodes.<id>].repos` limits worker placement. A cron may also declare
 `repo = "name"` (or inherit a manifest-level `repo`): it is registered and run only while that
 repository is allowed on the machine and present in the local bare-repository inventory. Setting
-`cron = false` and rerunning `bn cron register` prunes bn-managed timers. Status commands stay available
+`cron = false` and rerunning `workspan cron register` prunes bn-managed timers. Status commands stay available
 and report `not_enabled`.
 
 ## How it works
 
-- Each `*.sh` file is a job. `bn run meetings` executes `meetings.sh`. Many jobs are now native
+- Each `*.sh` file is a job. `workspan run meetings` executes `meetings.sh`. Many jobs are now native
   in-binary handlers instead (the `native_job` registry in `crates/bn-cli/src/cmd/job_registry.rs`);
-  `bn run <job>` checks `native_job` first and only falls back to `<job>.sh` for un-ported jobs.
-- `bn run` records every run (start, duration, exit code, output tail) to the event log
-  (`<personal_root>/<machine>/state/events.jsonl`), so `bn cron status` and `bn next --stale` can surface what
+  `workspan run <job>` checks `native_job` first and only falls back to `<job>.sh` for un-ported jobs.
+- `workspan run` records every run (start, duration, exit code, output tail) to the event log
+  (`<personal_root>/<machine>/state/events.jsonl`), so `workspan cron status` and `workspan next --stale` can surface what
   ran and what failed.
-- `bn cron` (alias `bn cron status`) is the unified view: every job joined with its next
+- `workspan cron` (alias `workspan cron status`) is the unified view: every job joined with its next
   scheduled run and its last-run health. It shows which scheduler drives each job — a systemd
   `--user` timer or a Windows Task Scheduler task (the WSL-wake pattern below). The Windows side
   is queried over interop and cached (~1h) so the dashboard stays instant.
-- `bn cron unregister <job>` stops and unregisters the systemd timer driving a job (the script
+- `workspan cron unregister <job>` stops and unregisters the systemd timer driving a job (the script
   stays). For a Windows-scheduled job it prints the `schtasks.exe … /DISABLE` to run instead.
 
 ## Two kinds of job: action and feed
@@ -46,41 +46,41 @@ A job either **does** work or **surfaces** it:
   every repo, `daily-rollover` advances the day file, `recall-index` (re)builds the local
   semantic-recall index (incremental + offline; it feeds the past-notes hint on a new note). The output is the side effect.
 - **Feed jobs** answer "what should I look at?" — they fetch facts and drop them into the
-  **feed**, an inbox you read with `bn attn feed`. A feed job is just an action job whose action is
-  `bn attn feed ingest <source>`; there's no separate type to declare.
+  **feed**, an inbox you read with `workspan attn feed`. A feed job is just an action job whose action is
+  `workspan attn feed ingest <source>`; there's no separate type to declare.
 
 A feed job's script fetches (via `gh`, `az`, an MCP call, anything) and pipes one item per line
-to `bn attn feed ingest <source>`:
+to `workspan attn feed ingest <source>`:
 
     {"key":"pr-5377937","text":"Fix areaPath — Steph","url":"https://.../pullrequest/5377937"}
 
 `key` is a stable id (for your eye only), `text` is the line shown, `url` is the link. Each run
 **replaces** that source's items, so the feed mirrors the current state — merged PRs and past
-meetings fall off on their own. `bn attn feed` renders every source grouped, newest write first;
-`bn attn feed clear <source>` retires one.
+meetings fall off on their own. `workspan attn feed` renders every source grouped, newest write first;
+`workspan attn feed clear <source>` retires one.
 
-    bn attn feed                    # render the inbox
-    bn attn feed ingest <source>    # replace a source from JSON on stdin (the write path)
-    bn attn feed clear  <source>    # forget a source
+    workspan attn feed                    # render the inbox
+    workspan attn feed ingest <source>    # replace a source from JSON on stdin (the write path)
+    workspan attn feed clear  <source>    # forget a source
 
-When a job should interrupt the `bn next` / attention list directly, pipe the same JSON/JSONL
-shape into `bn attn ingest` instead of building a quoted command line:
+When a job should interrupt the `workspan next` / attention list directly, pipe the same JSON/JSONL
+shape into `workspan attn ingest` instead of building a quoted command line:
 
     jq -c '.[] | {key:.id, title:.title, link:.url, severity:"warn"}' \
-      | bn attn ingest --source <job> --replace
+      | workspan attn ingest --source <job> --replace
 
 `--replace` makes the batch the source's current truth: keyed items no longer emitted by the job
 are resolved automatically, while repeated keys are skipped instead of duplicated.
 
-Crons never open a tmux **session** or window. launchd/systemd fires `bn run <job>`, which executes
+Crons never open a tmux **session** or window. launchd/systemd fires `workspan run <job>`, which executes
 the job inline in its own process and records the outcome, so a firing cron cannot steal your focus.
 Pool warming runs the same way, straight from the `pool-warm` cron.
 
-A command you start from the `bn tat` picker (a verb or a repo script row, such as a pool warm or a
+A command you start from the `workspan tat` picker (a verb or a repo script row, such as a pool warm or a
 release build) runs at once in a window, because minutes of build deserve somewhere to be watched.
 That window opens **in the session of the repository the command serves**, which must already be a
-repo's: bn creates no tmux session that is not named after a repository it manages, and work that
-names no repo of its own lands in bn's session. The window is created detached, so it never takes
+repo's: workspan creates no tmux session that is not named after a repository it manages, and work that
+names no repo of its own lands in workspan's session. The window is created detached, so it never takes
 your cursor, and it closes itself when the command succeeds. Only a failed run leaves its pane
 behind to be read, and the next run of that command clears it, so a repo's session cannot silently
 fill up.
@@ -88,8 +88,8 @@ fill up.
 Read a run's result from the event log rather than from a terminal — the pane is a live view, never
 the record:
 
-- `bn cron` — every scheduled job with its last-run health (ok/FAIL, duration, run + failure counts).
-- `bn run <job>` by hand — the job's output goes straight to your stdout.
+- `workspan cron` — every scheduled job with its last-run health (ok/FAIL, duration, run + failure counts).
+- `workspan run <job>` by hand — the job's output goes straight to your stdout.
 
 The `class` field on a `[[cron]]` entry (`info` / `housekeeping`) is a descriptive dashboard label
 only; it no longer changes how or where a job runs.
@@ -99,47 +99,47 @@ scripts live in a private notes `jobs/` dir, never here — see **Resolution** b
 of the shape (kept private on the machines that run them):
 
 - **`ado-reviews`** / **`pr-queue`** — `az repos pr list --creator <alias>` (or `gh pr list`) for a
-  set of followed authors → the review queue cache at `<state>/reviews.json`, so `bn review queue` and
-  `bn next` are instant and offline. Each PR object is:
+  set of followed authors → the review queue cache at `<state>/reviews.json`, so `workspan review queue` and
+  `workspan next` are instant and offline. Each PR object is:
 
       {"repo","number","title","author","url","updated_at","created_at",
        "tag":"review"|"learning","reviewDecision":"APPROVED"|"CHANGES_REQUESTED"|"COMMENTED"|null}
 
   `reviewDecision` is **your** latest review state on the PR (from GitHub's `reviewDecision` /
-  the viewer's latest review). bn uses it to drop PRs you've already approved or requested
+  the viewer's latest review). workspan uses it to drop PRs you've already approved or requested
   changes on from the "awaiting your review" action queue — stamp it, or leave it `null` and bn
   treats the PR as still awaiting you. Combined with `BN_GITHUB_LOGIN`, your own PRs and ones
   you've already actioned stay out of the queue; only PRs genuinely waiting on you become actions.
 - **`meetings`** — today's meetings (from the workIQ / M365 Copilot CLI) → the feed, plus the
-  single most-important one onto the **attention list** so it rides in `bn next`, plus a normalized
-  **gap cache** (`<state>/meetings.json`) that `bn gap` and `bn next --fit` read offline (#247).
+  single most-important one onto the **attention list** so it rides in `workspan next`, plus a normalized
+  **gap cache** (`<state>/meetings.json`) that `workspan gap` and `workspan next --fit` read offline (#247).
   workIQ judges which meetings are skippable; a local Copilot pass coerces its prose into JSON; jq
   fans it to the three surfaces. Shipped as `meetings.sh` here (it shells out to `workiq`, holds no
   private data — it's a clean no-op where `workiq` is absent). The feed + gap contracts are jq → bn:
 
       <query that returns today's meetings as JSON> \
         | jq -c '.[] | {key:.id, text:(.start + "  " + .subject), url:.joinUrl}' \
-        | bn attn feed ingest meetings
-      # and, for the gap cache `bn gap` / `bn next --fit` size against:
-      <same JSON> | jq -c '.[] | {start, title:.subject, url:.joinUrl}' | bn gap ingest
+        | workspan attn feed ingest meetings
+      # and, for the gap cache `workspan gap` / `workspan next --fit` size against:
+      <same JSON> | jq -c '.[] | {start, title:.subject, url:.joinUrl}' | workspan gap ingest
 
   Scheduled weekdays at 14:50 by its agent manifest (config/agents/meetings.md, `catch_up: true` —
-  the morning re-fire on the day's first bn stats event). When a meeting is upcoming it also
+  the morning re-fire on the day's first workspan stats event). When a meeting is upcoming it also
   writes a `meeting-prep` feed source — a few bullets (agenda, your role, the latest relevant
   thread, a doc to skim) — one extra workIQ call, cleared when nothing's upcoming.
-- **`m365-sweep`** — one batched workIQ pass for everything that needs you, routed to bn's
+- **`m365-sweep`** — one batched workIQ pass for everything that needs you, routed to workspan's
   surfaces (the meetings pipeline, four signals at once so workIQ's latency is paid once):
   urgent **emails** → attention (reply-needed) + feed `email`; Teams **@-mentions** → attention +
   feed `teams`; today's **commitments** → daily goals; **owed replies** → feed `owe`. Each section
   is best-effort and timeout-bounded — a stall on one leaves that surface as-is and the rest run.
   **Conservative loudness:** an attention item is `--severity urgent` (and so toasts) ONLY when
   workIQ is confident it's high-stakes (manager/skip-level wrote, a deadline today, a direct
-  question to you); everything else is `warn` — visible in `bn next`, silent. Like `meetings.sh`
+  question to you); everything else is `warn` — visible in `workspan next`, silent. Like `meetings.sh`
   it ships here (shells out to `workiq`, no private data) and no-ops where `workiq` is absent.
 
 ### How the attention list groups it
 
-`bn next` folds all of this into one ranked list, grouped into four sections so a mixed pile stays
+`workspan next` folds all of this into one ranked list, grouped into four sections so a mixed pile stays
 scannable — ordered by what they demand of you:
 
     BREAKING         failing cron jobs, urgent flagged items
@@ -152,11 +152,11 @@ scannable — ordered by what they demand of you:
 
 The section is derived from the `--source` a feed/attn job stamps (`email`/`teams`/`meetings` get
 their own glyph and land in the right section), so a new workIQ signal slots in just by choosing
-its source. `bn next --json` carries the `category` per action for the prefix-J picker.
+its source. `workspan next --json` carries the `category` per action for the prefix-J picker.
 
 ## Resolution
 
-`bn run <job>` resolves `<job>.sh` across tiers, first match wins (like PATH):
+`workspan run <job>` resolves `<job>.sh` across tiers, first match wins (like PATH):
 
 1. **workspace** — the workspace artifact directory's `jobs/`
 2. **repo** — the shared repo-specific jobs directory
@@ -201,8 +201,8 @@ Agent resolution is first-match-wins by name:
 Overrides replace the whole manifest; they are not partial merges. To change a shipped prompt or
 schedule, copy that agent into a higher-precedence tier with the same `name` and edit the copy.
 
-Use `bn agents validate` after editing a manifest, `bn agents` to inspect effective kinds and
-schedules, and `bn agents render <name> --args '{"key":"value"}'` to diagnose strict templates.
+Use `workspan agents validate` after editing a manifest, `workspan agents` to inspect effective kinds and
+schedules, and `workspan agents render <name> --args '{"key":"value"}'` to diagnose strict templates.
 
 ## Scheduling
 
@@ -219,26 +219,26 @@ three **tick** crons — one timer each — that fan out to their cluster in ord
 
 **Scheduled agents are disabled**, ahead of removing the feature. `crons.toml` has no
 `agent-scheduler` entry and first-activity catch-up skips agents, so nothing fires the
-`on_calendar` declared in `config/agents/*.md`. `bn run <agent>` still runs one by hand. The rest
+`on_calendar` declared in `config/agents/*.md`. `workspan run <agent>` still runs one by hand. The rest
 of this section describes how the scheduler behaved when enabled. Agent schedules do not belong in
 `crons.toml`.
 
 Every scheduled agent must also declare `requires_repo: <name>`. The scheduler, first-activity
-catch-up, and direct `bn run <agent>` path all skip it unless that repository is assigned to the
+catch-up, and direct `workspan run <agent>` path all skip it unless that repository is assigned to the
 current machine and present in the local bare-repository inventory. This is independent of the
 specialist-only `repo:` field, which selects native review-agent compilation rather than runtime
 availability.
 
-Each child still runs through the normal `bn run` path, so it records its **own** `cron_run`
-event. `bn cron` nests each schedule and its due/retry state beneath `agent-scheduler`; `bn next --stale`
+Each child still runs through the normal `workspan run` path, so it records its **own** `cron_run`
+event. `workspan cron` nests each schedule and its due/retry state beneath `agent-scheduler`; `workspan next --stale`
 still sees each child's own failure history. A failing child never blocks its siblings, and the
 scheduler records its own catalog/loop health separately.
 
 Children have no `[[cron]]` entry of their own (that would schedule them twice) but remain
-runnable by hand — `bn run notify` works exactly as before. A tick's `persistent` / `network`
+runnable by hand — `workspan run notify` works exactly as before. A tick's `persistent` / `network`
 flags are the OR of its children's.
 
-Run a whole cluster on demand with `bn run tick-5m`.
+Run a whole cluster on demand with `workspan run tick-5m`.
 
 ### Keeping WSL awake
 
@@ -252,8 +252,8 @@ job** inside the now-always-up instance. Two installers recreate the whole thing
 
        pwsh -File config/jobs/windows/install.ps1 -Distro Ubuntu-22.04 -WslUser you
 
-   It registers `BN WSL Keepalive` → `wsl.exe … bn run ensure-tmux`, triggered **at logon + every
-   30 min**. `ensure-tmux` opens a repository's own tmux session — bn's, or `$BN_TMUX_SESSION`
+   It registers `BN WSL Keepalive` → `wsl.exe … workspan run ensure-tmux`, triggered **at logon + every
+   30 min**. `ensure-tmux` opens a repository's own tmux session — workspan's, or `$BN_TMUX_SESSION`
    read as a **repo name** — which boots WSL and keeps it alive afterwards. It is a no-op when that
    session is already open, and on a machine with no bn-managed clone it does nothing and says so
    (a fresh box is `setup-bn`'s job, not a cron failure); WSL then idles between the half-hourly
@@ -264,8 +264,8 @@ job** inside the now-always-up instance. Two installers recreate the whole thing
 
        sh config/jobs/systemd/install.sh
 
-   This is a thin bootstrap: it finds the installed `bn` and runs **`bn cron register`**, the
-   single source of truth on every platform. `bn cron register` strictly validates the Markdown
+   This is a thin bootstrap: it finds the installed `bn` and runs **`workspan cron register`**, the
+   single source of truth on every platform. `workspan cron register` strictly validates the Markdown
    agent catalog, then reads `config/crons.toml` (+ any per-repo `crons.toml`) and generates +
    `daemon-reload`s + `enable --now`s a `.service`/`.timer` into
    `~/.config/systemd/user/` for every declared cron whose required repository is registered and
@@ -276,41 +276,41 @@ job** inside the now-always-up instance. Two installers recreate the whole thing
    goals forward and drain due follow-ups. Attention toasts are owned by the `watch` cron
    (`notify` stays runnable by hand but is not on a tick). `agent-observe`
    fires every 30 min — fold finished Claude + Copilot sessions into the metrics log. Most runs
-   are no-ops.) The top-level `install.sh` already runs `bn cron register` for you, so this script
+   are no-ops.) The top-level `install.sh` already runs `workspan cron register` for you, so this script
    is only needed to bootstrap timers on a host where you didn't run the full installer.
 
-`bn cron` then shows every job with its next fire time and last-run health — systemd timers and
+`workspan cron` then shows every job with its next fire time and last-run health — systemd timers and
 the keepalive Windows task alike. It warns if the keepalive task is missing or disabled, since
 that silently halts every downstream systemd job. Unregister a systemd timer with
-`bn cron unregister <job>`.
+`workspan cron unregister <job>`.
 
 ### First-event catch-up
 
 `Persistent=true` catches up a run missed while the machine was *off* — but some refreshes are
 tied to *when you start work*, which varies day to day and rarely lands on a fixed timer slot.
-For those, mark the manifest entry `catch_up = true`: on the **first bn event of the day** (any
-bn command — a SessionStart discovery, `bn next`, or another command), bn fires `bn run <job>
+For those, mark the manifest entry `catch_up = true`: on the **first workspan event of the day** (any
+workspan command — a SessionStart discovery, `workspan next`, or another command), workspan fires `workspan run <job>
 --if-stale` for each such job, detached. It's gated to once per day by a sentinel in the state
 dir, and `--if-stale` is a no-op when the job's timer already ran it today — so the job runs once
 a day at the earlier of *your first activity* or its `on_calendar` time, never twice. Both
 manifest kinds can opt in: `catch_up = true` on a `[[cron]]` entry, or `catch_up: true` in an
 agent's frontmatter (meetings and m365-sweep use the latter).
 
-`bn run <job> --if-stale` is the primitive on its own — call it from any hook to get
+`workspan run <job> --if-stale` is the primitive on its own — call it from any hook to get
 "refresh-on-first-touch" idempotency against the event log.
 
 ### macOS: launchd
 
 macOS has no systemd. Use `launchd` — the installer ships in `launchd/`:
 
-    config/jobs/launchd/install.sh        # bootstraps bn, then runs `bn cron register`
+    config/jobs/launchd/install.sh        # bootstraps bn, then runs `workspan cron register`
 
-Like the systemd bootstrap, this is a thin wrapper that defers to **`bn cron register`** — the
+Like the systemd bootstrap, this is a thin wrapper that defers to **`workspan cron register`** — the
 single source of truth on every platform. It renders + (re)bootstraps a `com.bn.<job>` user-agent
 plist into `~/Library/LaunchAgents` for **every** declared job (a `StartInterval` or
 `StartCalendarInterval` translated from the manifest's `OnCalendar`; macOS runs a missed calendar
 job when the machine wakes), then prunes any `com.bn.*` agent no longer in the manifest — so a
-fresh macOS host gets all jobs, not a hand-picked pair. Same `bn run` underneath, so `bn cron` and
+fresh macOS host gets all jobs, not a hand-picked pair. Same `workspan run` underneath, so `workspan cron` and
 the event log work identically. (launchd can't express `RandomizedDelaySec` or a network-online
 gate, so those manifest fields are dropped on macOS; every shipped schedule is verified
 launchd-translatable by the `every_shipped_cron_translates_for_launchd` test.)
@@ -318,12 +318,12 @@ launchd-translatable by the `every_shipped_cron_translates_for_launchd` test.)
 ## Conventions
 
 - Scripts must be idempotent — they may run repeatedly.
-- Exit non-zero on failure so `bn cron status` / `bn next --stale` flag it.
-- Keep them POSIX-`sh` compatible (`bn run` invokes them with `/bin/sh`).
+- Exit non-zero on failure so `workspan cron status` / `workspan next --stale` flag it.
+- Keep them POSIX-`sh` compatible (`workspan run` invokes them with `/bin/sh`).
 
 ## Findings store (morning planning)
 
-`bn attn findings` (#576) is an **append-only** history store — one durable run per source per day —
+`workspan attn findings` (#576) is an **append-only** history store — one durable run per source per day —
 that feeds `today-agent` (#577) and the later planner slices (#898–#899). It is distinct from the
 feed (which mirrors *current* state with replace semantics): findings **accumulate**, so a
 run-over-run diff can tell "same item as yesterday" from a new one.
@@ -331,10 +331,10 @@ run-over-run diff can tell "same item as yesterday" from a new one.
 The **shipped** `gather-findings` cron (weekday 08:15, before `today-agent` at 08:30) snapshots the
 already-local morning-planning caches into the store; the same work runs on demand with:
 
-    bn attn findings gather            # snapshot every source (records only non-empty ones)
-    bn attn findings gather --json     # machine-readable {source,tier,items,recorded,run_id}[]
-    bn attn findings sources           # which sources have recorded runs
-    bn attn findings query [--source s] [--since d] [--limit n]   # durable runs, newest first
+    workspan attn findings gather            # snapshot every source (records only non-empty ones)
+    workspan attn findings gather --json     # machine-readable {source,tier,items,recorded,run_id}[]
+    workspan attn findings sources           # which sources have recorded runs
+    workspan attn findings query [--source s] [--since d] [--limit n]   # durable runs, newest first
 
 Each adapter is a pure, **offline** read of a cache some other job already fills — additive (no
 feed/attention/daily side effect), DRY (no duplicate fetch, no network), and Rust-only
@@ -366,11 +366,11 @@ is keyed by `(source, run_id)`.
 
 ## Feeding the metrics scorecard
 
-`bn stats metrics` reads the **synced** productivity event log at
+`workspan stats metrics` reads the **synced** productivity event log at
 `<personal_root>/<machine>/metrics/events.jsonl` (durable across resets; the whole-person view
 unions every machine's copy). Jobs append to it with one stable contract:
 
-    bn stats event <kind> --field k=v --field k=v [--ts <epoch>]
+    workspan stats event <kind> --field k=v --field k=v [--ts <epoch>]
 
 All-digit values become JSON numbers (so `--field number=52` joins with PR metrics). `bn` itself
 already emits `activity`/`note_closed` events on every mutation — those drive close-out lag, WIP,
@@ -386,10 +386,10 @@ window truthfully:
 | `pr_merged` | `repo`, `number`, `lead_secs` | completion, cycle + **change lead time** (merge − first commit) |
 | `pr_closed` | `repo`, `number` | completion rate |
 | `pr_review` | `repo`, `number` | **time-to-first-review** + median review-latency metric (first non-author review) |
-| `deploy` | `repo` | deployment frequency *(engine: planned; emit via `bn stats event`)* |
+| `deploy` | `repo` | deployment frequency *(engine: planned; emit via `workspan stats event`)* |
 
 The weekly **shipped** `metrics-snapshot` job captures the scorecard so trends accrue over time.
-The weekly **shipped** `weekly-insights` job renders `bn stats insights` (the auto-retro) into
+The weekly **shipped** `weekly-insights` job renders `workspan stats insights` (the auto-retro) into
 `<notes>/<machine>/insights/<YYYY-Www>.md`, so each week's retrospective accumulates and syncs.
 
 ### Learning-dojo card mining (`dojo-cards`)
@@ -402,8 +402,8 @@ The weekly **shipped** `weekly-insights` job renders `bn stats insights` (the au
 
 The shipped `agent-observe` job folds finished Claude Code + GitHub Copilot CLI sessions into the
 same metrics log as `agent_session` events — one per session — powering the `Agents` block of
-`bn stats metrics` (sessions, agent-hours, model mix, Copilot AIU cost) and the per-branch recall view
-`bn agent`. Unlike the `pr-*` jobs it writes via a **native** command, `bn agent ingest` (the
+`workspan stats metrics` (sessions, agent-hours, model mix, Copilot AIU cost) and the per-branch recall view
+`workspan agent`. Unlike the `pr-*` jobs it writes via a **native** command, `workspan agent ingest` (the
 parsing spans two harness schemas and must dedup by session id), so the script is a one-line
 wrapper. It's **per-machine** (each host reads only its own `~/.copilot` + `~/.claude`); the synced
 log unions them, and the session-id dedup makes that safe with no `[jobs.only_on]` gating.
@@ -420,20 +420,20 @@ The `tick-10m` cluster fires `agent-supervise` every 10 minutes: read each runni
 session's last tool-activity timestamp, classify its health (active / idle / stuck against the
 5-/15-minute defaults), and report the fleet. It's **read-only by default** (no surprise keystrokes
 into a pane you're watching); set `BN_SUPERVISE_NUDGE=1` to also send a continue-nudge to each
-stuck agent's tmux pane via `bn agent send`. The stuck detection + fleet shape live in the native
-`bn agent supervise` (tested), so the script just decides whether to act. Per-machine like
+stuck agent's tmux pane via `workspan agent send`. The stuck detection + fleet shape live in the native
+`workspan agent supervise` (tested), so the script just decides whether to act. Per-machine like
 `agent-observe` (reads only the host's own `~/.claude`); no `[jobs.only_on]` gating needed.
 
-The same fleet surfaces in the cockpit **FLEET** panel and `bn agent supervise --json`. Two more
-commands round out the loop: `bn agent checkin <mins> "<note>"` self-schedules a nudge via a
+The same fleet surfaces in the cockpit **FLEET** panel and `workspan agent supervise --json`. Two more
+commands round out the loop: `workspan agent checkin <mins> "<note>"` self-schedules a nudge via a
 transient systemd `--user` timer (the `schedule_with_note.sh` analogue), and
-`bn agent send <repo:branch> "<msg>"` delivers a message to a running agent's tmux pane
+`workspan agent send <repo:branch> "<msg>"` delivers a message to a running agent's tmux pane
 (send-keys — the `send-claude-message.sh` analogue).
 
 Actionable transitions (`waiting`, `blocked`, `stuck`, `failed`, completion, and urgent attention)
 are classified into the machine-local `wake-queue.json`; routine progress is absorbed. The queue
 keeps per-consumer acknowledgements for `watch`, controller ids, and orchestrator repos, then
-touches `wake-queue.signal`. Resident `bn fleet watch`, `bn fleet control watch`, and `bn orchestrate` processes
+touches `wake-queue.signal`. Resident `workspan fleet watch`, `workspan fleet control watch`, and `workspan orchestrate` processes
 sleep on that signal instead of polling; their existing intervals remain fallback deadlines for
 quiet agents becoming stuck or platforms where filesystem notifications are unavailable.
 
@@ -444,22 +444,22 @@ Tunnel. Nothing is exposed anonymously, and no port is opened on the host's netw
 
 | where | run | what it does |
 |---|---|---|
-| the machine you connect **to** | `bn run tunnel-host` | starts a key-only, user-level `sshd` on a loopback port derived from the machine name (2300-2999, so hosts never clash), authorizes the SSH keys on a GitHub account (`github.com/<user>.keys`), and hosts a tunnel labelled `bn-host` in window `tunnel` of the tmux session `bn-tunnels` |
-| the machine you connect **from** | `bn run tunnel-connect` | picks an SSH key that is on that GitHub account (or creates `~/.ssh/bn_tunnel_ed25519` and adds it with `gh ssh-key add`), then for every bn host on the account runs `devtunnel connect` in `bn-tunnels` and writes a managed `Host <machine>` block in `~/.ssh/config` |
+| the machine you connect **to** | `workspan run tunnel-host` | starts a key-only, user-level `sshd` on a loopback port derived from the machine name (2300-2999, so hosts never clash), authorizes the SSH keys on a GitHub account (`github.com/<user>.keys`), and hosts a tunnel labelled `bn-host` in window `tunnel` of the tmux session `bn-tunnels` |
+| the machine you connect **from** | `workspan run tunnel-connect` | picks an SSH key that is on that GitHub account (or creates `~/.ssh/bn_tunnel_ed25519` and adds it with `gh ssh-key add`), then for every workspan host on the account runs `devtunnel connect` in `bn-tunnels` and writes a managed `Host <machine>` block in `~/.ssh/config` |
 
 That is the whole setup: one command on each machine. Both sign in to Dev Tunnels with the same
 account, so the client finds every host by its `bn-host` label and reads the host's port from its
 tunnel; there is no shared config to keep in sync. `BN_TUNNEL_TO=<machine>` limits the client to
 one host.
 
-**A new machine takes one command.** `bn run tunnel-setup` installs what is missing (sshd, tmux,
+**A new machine takes one command.** `workspan run tunnel-setup` installs what is missing (sshd, tmux,
 nc, curl, ss and gh through apt-get, and the devtunnel CLI), runs the Dev Tunnels sign-in, turns on
 linger, the timers and the WSL keeper, then hosts and connects. Each step prints ok, done or NEEDS
 YOU with the command to run, so re-running it is also how you check a machine.
-`BN_TUNNEL_LAN=1 bn run tunnel-setup` also turns on local network mode for that machine.
+`BN_TUNNEL_LAN=1 workspan run tunnel-setup` also turns on local network mode for that machine.
 
 **A signed-in machine enrols itself.** Signing the devtunnel CLI in to the shared account is the
-opt-in: `tunnel-auto` (every 5 minutes on every bn machine) then hosts the machine when the `sshd`
+opt-in: `tunnel-auto` (every 5 minutes on every workspan machine) then hosts the machine when the `sshd`
 binary is installed and connects it to every other host, so a new machine shows up on the others
 within minutes and nobody has to run `tunnel-host` on it. A new host also gets what keeps it up:
 linger and, on WSL, the keeper below. `git config --global bn.tunnelAuto off` turns this off for a
@@ -467,13 +467,13 @@ machine, which then only repeats what was run on it by hand. A machine with no d
 signed-out one, is left alone.
 
 **A machine nobody needs to reach** can connect without hosting:
-`git config --global bn.tunnelHost off` (or `BN_TUNNEL_HOST=0 bn run tunnel-setup`, which also
+`git config --global bn.tunnelHost off` (or `BN_TUNNEL_HOST=0 workspan run tunnel-setup`, which also
 skips installing sshd). The next tunnel-auto pass stops its sshd and deletes its tunnel, and the
 other machines drop its ssh config on their next pass, so it no longer shows as down anywhere.
 Unset it to host again; the port and host key stay the same.
 
 **Local network mode.** Two machines on the same network need not go through the relay. On a
-host, `git config --global bn.tunnelLan on` (then `bn run tunnel-host`, or wait for tunnel-auto)
+host, `git config --global bn.tunnelLan on` (then `workspan run tunnel-host`, or wait for tunnel-auto)
 makes its sshd listen on every interface, still key-only, and puts its LAN address on the tunnel as
 a `bn-lan-<address>` label. A client that can reach that address gets a `Match ... exec` probe in
 front of the host's block in `~/.ssh/config`: `ssh <machine>` then connects straight to the host,
@@ -483,7 +483,7 @@ laptop on public wifi exposes nothing. A WSL host with mirrored networking also 
 allowed through Windows once; `tunnel-host` prints the command. A WSL host with NAT networking is
 not reachable from the LAN, so clients stay on the tunnel.
 
-**Seeing the mesh.** `bn machine tunnels` lists every host on the Dev Tunnels account, not only the ones
+**Seeing the mesh.** `workspan machine tunnels` lists every host on the Dev Tunnels account, not only the ones
 this machine already connects to, with the route ssh takes (LAN or tunnel), whether anything is
 hosting its tunnel, and a reason for each one that is down. It also says whether this machine
 hosts and when the watchdog last checked. It takes about ten seconds, most of it the account
@@ -494,7 +494,7 @@ regardless, tunnel-auto publishes a few lines about this machine (role, host hea
 when broken, such as "devtunnel is signed out") to the work-notes repo as
 `refs/heads/bn-status/<machine>`: a one-commit ref that only that machine writes and replaces
 (force-pushed, so it never grows a history), made with git plumbing so the notes checkout is never
-touched. `bn machine tunnels` fetches them into `refs/bn-status/*` and prefers a host's own words to a
+touched. `workspan machine tunnels` fetches them into `refs/bn-status/*` and prefers a host's own words to a
 guess from outside. A report older than 25 minutes reads as "silent since <time>", which is how an
 off or sleeping machine shows. Git rather than the Dev Tunnels account, because a signed-out
 machine cannot write to the account, and signed out is the failure most worth reporting.
@@ -505,9 +505,9 @@ managed block of `~/.ssh/authorized_keys` that each `tunnel-host` run rewrites, 
 GitHub stops working at the next run. Every key on that account can log in, so prune old ones on
 GitHub. The first `tunnel-connect` on a new machine asks gh for the `admin:public_key` scope (a
 browser code) to add its key. That is the only trust mechanism: no notes repo or key files are
-involved, so a machine needs nothing but bn and a sign-in.
+involved, so a machine needs nothing but workspan and a sign-in.
 
-**WSL itself stays up.** On Windows, run `bn run wsl-keepalive` once per machine: it registers a
+**WSL itself stays up.** On Windows, run `workspan run wsl-keepalive` once per machine: it registers a
 hidden Windows sign-in task (`bn-wsl-keepalive`) that holds the distro open with a `wsl.exe` that
 never exits, and inside WSL starts tunnel-auto and a `main` tmux session. Without it, Windows stops
 the distro, and tmux and the tunnels with it, once the last WSL terminal closes. It also stops
@@ -522,7 +522,7 @@ never ran), since S4U needs a domain controller to vouch for the account. `tunne
 on a host at a terminal.
 (`sh wsl-keepalive.sh status|remove`.)
 
-**It comes back by itself.** bn's tmux config runs `tunnel-auto` once at server start: a machine
+**It comes back by itself.** workspan's tmux config runs `tunnel-auto` once at server start: a machine
 that has hosted re-runs `tunnel-host`, and one that has connected re-runs `tunnel-connect`, and it leaves a watchdog
 window `bn-tunnels:tunnel-watch` repeating those checks every 5 minutes. A reboot, a WSL restart,
 `tmux kill-server`, an sshd that stopped listening, a host whose tunnel lost its relay connection
@@ -538,7 +538,7 @@ command instead of prompting. On the host, install the `sshd` binary once yourse
 `sudo apt-get install -y openssh-server` (the system service is not needed). Settings are env vars documented at the top of
 each script (`BN_TUNNEL_TO`, `BN_TUNNEL_SSH_PORT`, `BN_TUNNEL_GITHUB_USER`, `BN_TUNNEL_USER`, `BN_TUNNEL_KEY`).
 
-`BN_TUNNEL_FORWARD_AGENT=1 bn run tunnel-connect` adds `ForwardAgent yes` to the `Host` block
+`BN_TUNNEL_FORWARD_AGENT=1 workspan run tunnel-connect` adds `ForwardAgent yes` to the `Host` block
 (opt-in). Use it when the target must reach GitHub with a key only this machine has, e.g. to
 sync a notes repo owned by another account: with an `ssh-agent` holding that key, the target
 borrows it while you are connected. The key never leaves this machine, but anyone with root on the
@@ -548,8 +548,8 @@ target can use it during the session.
 
 | run (on the client) | what it does |
 |---|---|
-| `BN_TUNNEL_TO=<machine> bn run tunnel-attach` | attaches to (or creates) tmux session `bn` on the host and re-attaches after a drop (5s, backing off to 30s); detaching normally ends it |
-| `BN_TUNNEL_TO=<machine> BN_TUNNEL_PORTS=3000,3001 bn run tunnel-forward` | keeps those host ports forwarded to the same local ports, reconnecting on drops, in a tmux window `fwd-<machine>` |
+| `BN_TUNNEL_TO=<machine> workspan run tunnel-attach` | attaches to (or creates) tmux session `bn` on the host and re-attaches after a drop (5s, backing off to 30s); detaching normally ends it |
+| `BN_TUNNEL_TO=<machine> BN_TUNNEL_PORTS=3000,3001 workspan run tunnel-forward` | keeps those host ports forwarded to the same local ports, reconnecting on drops, in a tmux window `fwd-<machine>` |
 | `sh remote-job.sh <machine> start <name> <command...>` then `follow <name>` | runs a long command detached in the host's tmux session `bn-jobs` with a log, and follows it from here; `follow` resumes after a drop and exits with the job's exit code |
 
 `BN_TUNNEL_PORTS` on `tunnel-connect` instead adds `LocalForward` lines, so every `ssh <machine>`

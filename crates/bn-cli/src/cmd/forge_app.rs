@@ -175,7 +175,7 @@ fn report_error(json: bool, command: &str, code: &str, message: &str) -> i32 {
             Envelope::failure(command, code, message).to_json()
         );
     } else {
-        eprintln!("bn {command}: {message}");
+        eprintln!("workspan {command}: {message}");
     }
     1
 }
@@ -227,7 +227,7 @@ fn set_echo(on: bool) -> bool {
         .is_ok_and(|s| s.success())
 }
 
-/// What `bn forge status` found, as data first so the human and JSON renderings agree.
+/// What `workspan forge status` found, as data first so the human and JSON renderings agree.
 #[derive(Debug, Default, serde::Serialize)]
 struct StatusReport {
     provider: String,
@@ -256,7 +256,7 @@ fn status(cfg: &Config, json: bool) -> i32 {
             println!("{}", Envelope::failure("forge status", "no_token", msg).to_json());
         } else {
             print_status(&report);
-            eprintln!("bn forge status: {msg}");
+            eprintln!("workspan forge status: {msg}");
         }
         return 1;
     };
@@ -382,7 +382,7 @@ fn print_status(r: &StatusReport) {
     }
     match (&r.members_error, r.agents.is_empty()) {
         (Some(e), _) => println!("agent      error: {e}"),
-        (None, true) => println!("agent      none: add one with `bn forge login` or Forge Settings"),
+        (None, true) => println!("agent      none: add one with `workspan forge login` or Forge Settings"),
         (None, false) => println!("agent      {}", r.agents.join(", ")),
     }
     if let Some(e) = &r.tasks_error {

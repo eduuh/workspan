@@ -61,7 +61,7 @@ pub fn node_labels() -> Vec<String> {
     labels
 }
 
-/// The versioned `bn worker status --json` payload (epic #707 v4): schema version, node identity +
+/// The versioned `workspan worker status --json` payload (epic #707 v4): schema version, node identity +
 /// derived admission status, a capacity snapshot, and the durable attempt registry.
 pub mod status {
     use super::{capacity, node_id, node_labels, registry};

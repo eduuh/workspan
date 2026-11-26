@@ -244,7 +244,7 @@ pub fn append(kind: &str, fields: Map<String, Value>) -> std::io::Result<()> {
 
 /// Append a productivity event to the **synced** metrics log at `path` (typically
 /// `cfg.metrics_log_path()`). Stamped at `ts`; pass [`now_epoch_secs`] for "now". This is the
-/// write path behind `bn event` and the per-mutation activity events.
+/// write path behind `workspan event` and the per-mutation activity events.
 pub fn append_metric_at(
     path: &Path,
     kind: &str,
@@ -294,7 +294,7 @@ fn running_dir() -> PathBuf {
 }
 
 /// RAII marker that a job is currently running. While alive, a file `running/<job>` (content:
-/// start epoch) exists; dropping the guard removes it. This is what lets `bn cron running`
+/// start epoch) exists; dropping the guard removes it. This is what lets `workspan cron running`
 /// show a live "a cron is firing" badge in the tmux bar. Drop runs on every normal return from
 /// the job runner; a crash leaves a stale file that [`running_jobs`] ages out.
 pub struct RunningGuard {
@@ -329,7 +329,7 @@ pub fn running_since(job: &str) -> Option<i64> {
 }
 
 /// Jobs currently marked running (oldest-started first), skipping stale markers from a crashed
-/// runner. Empty when nothing is running. Backs `bn cron running`.
+/// runner. Empty when nothing is running. Backs `workspan cron running`.
 pub fn running_jobs() -> Vec<String> {
     let now = now_epoch_secs();
     let Ok(entries) = std::fs::read_dir(running_dir()) else {
@@ -373,7 +373,7 @@ pub struct CronJobStatus {
 }
 
 /// Per-job cron status from the event log: latest run, its exit, and run/failure counts.
-/// Most-recently-run first. The machine-health view (vs `bn doctor`, the attention view).
+/// Most-recently-run first. The machine-health view (vs `workspan doctor`, the attention view).
 pub fn cron_status() -> Vec<CronJobStatus> {
     // key by (job, repo, branch) so per-branch jobs of the same name stay distinct
     let mut by_key: HashMap<(String, String, String), Vec<Event>> = HashMap::new();
@@ -420,7 +420,7 @@ pub fn cron_status() -> Vec<CronJobStatus> {
 }
 
 /// One cron run's detail, including its captured output tail — the substrate for
-/// `bn cron show` and the failure listing.
+/// `workspan cron show` and the failure listing.
 #[derive(Debug, Clone, Serialize)]
 pub struct CronRunDetail {
     pub job: String,
@@ -445,7 +445,7 @@ fn run_detail(e: &Event) -> CronRunDetail {
 }
 
 /// The most recent run of `job` (any scope) with its captured output tail. `None` if it has
-/// never run. Backs `bn cron show <job>` — how you read what a job last produced, including the
+/// never run. Backs `workspan cron show <job>` — how you read what a job last produced, including the
 /// error output of a failed run.
 pub fn last_run(job: &str) -> Option<CronRunDetail> {
     read_all()
@@ -522,7 +522,7 @@ pub fn retired_crons() -> HashMap<String, i64> {
 }
 
 /// The most recent failed (`exit_code != 0`) cron runs, newest first, capped at `limit`. Backs
-/// `bn cron failures` — the detail behind the failure counts in `bn cron status`.
+/// `workspan cron failures` — the detail behind the failure counts in `workspan cron status`.
 pub fn recent_failures(limit: usize) -> Vec<CronRunDetail> {
     let mut fails: Vec<CronRunDetail> = read_all()
         .iter()

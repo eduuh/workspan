@@ -37,10 +37,10 @@ struct TaskAgentRun {
 fn run_task_agent(cfg: &Config, label: &str, packet: &str, dry_run: bool) -> TaskAgentRun {
     let ctx = target_ctx(cfg, None, None);
     let catalog = bn_core::agents::discover(cfg, ctx.as_ref())
-        .unwrap_or_else(|error| fail(&format!("bn task {label}: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan task {label}: {error}")));
     let agent = catalog
         .require(label)
-        .unwrap_or_else(|error| fail(&format!("bn task {label}: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan task {label}: {error}")));
     let mut args = serde_json::Map::new();
     args.insert(
         "packet".into(),
@@ -48,7 +48,7 @@ fn run_task_agent(cfg: &Config, label: &str, packet: &str, dry_run: bool) -> Tas
     );
     let prompt = agent
         .render(Some(&args))
-        .unwrap_or_else(|error| fail(&format!("bn task {label}: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan task {label}: {error}")));
     if dry_run {
         return TaskAgentRun {
             prompt,
@@ -62,7 +62,7 @@ fn run_task_agent(cfg: &Config, label: &str, packet: &str, dry_run: bool) -> Tas
         crate::harness_dispatch::harness_command(harness, &prompt, agent.model.as_deref(), None)
     else {
         fail(&format!(
-            "bn task {label}: unknown harness '{harness}' (use copilot | claude)"
+            "workspan task {label}: unknown harness '{harness}' (use copilot | claude)"
         ));
     };
     let session = agent.requires_repo.as_deref().unwrap_or("bn");
@@ -73,7 +73,7 @@ fn run_task_agent(cfg: &Config, label: &str, packet: &str, dry_run: bool) -> Tas
     );
     if !success {
         fail(&format!(
-            "bn task {label}: harness failed: {}",
+            "workspan task {label}: harness failed: {}",
             bn_core::run_status::failure_detail(&combined)
         ));
     }
@@ -97,7 +97,7 @@ fn scheduled_line(stamped: usize) -> String {
     }
 }
 
-/// `bn task enhance <id>` — make one task executable.
+/// `workspan task enhance <id>` — make one task executable.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_task_enhance(
     cfg: &Config,
@@ -124,14 +124,14 @@ pub(crate) fn emit_task_enhance(
     let store = task_store(cfg);
     let file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
 
     let task = match (id, due) {
         (Some(id), _) => file
             .tasks()
             .find(|t| t.id() == Some(id))
             .cloned()
-            .unwrap_or_else(|| fail(&format!("bn task enhance: no task {id}"))),
+            .unwrap_or_else(|| fail(&format!("workspan task enhance: no task {id}"))),
         // `--due` picks the work the gate actually rejected, highest-ranked first — the queue the
         // idle loop drains. A `stuck` task is excluded: three agents already failed at it, so it
         // is waiting on a person, not on another attempt.
@@ -160,7 +160,7 @@ pub(crate) fn emit_task_enhance(
                 }
             }
         }
-        (None, false) => fail("bn task enhance: pass a task id, or --due for the next one"),
+        (None, false) => fail("workspan task enhance: pass a task id, or --due for the next one"),
     };
 
     let task_id = task.id().unwrap_or("?").to_string();
@@ -270,7 +270,7 @@ pub(crate) fn emit_task_enhance(
     }
 }
 
-/// `bn task triage` — decide what is doable today.
+/// `workspan task triage` — decide what is doable today.
 pub(crate) fn emit_task_triage(
     cfg: &Config,
     day: Option<&str>,
@@ -280,19 +280,19 @@ pub(crate) fn emit_task_triage(
 ) {
     if !dry_run && !triage_allowed_here(cfg) {
         fail(&format!(
-            "bn task triage: this machine is not the staff home ({}); triage rewrites the shared store, so it runs in one place",
+            "workspan task triage: this machine is not the staff home ({}); triage rewrites the shared store, so it runs in one place",
             cfg.staff_home.as_deref().unwrap_or("?")
         ));
     }
     let day = day.map(str::to_string).unwrap_or_else(today);
     if bn_core::util::epoch_day(&day).is_none() {
-        fail("bn task triage: --day must be YYYY-MM-DD");
+        fail("workspan task triage: --day must be YYYY-MM-DD");
     }
 
     let store = task_store(cfg);
     let file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     // Machine bookkeeping is never triaged onto a person's day. Without this the ranking agent
     // stamps `day:` on cron chores — `pre_score` even boosts them, since the gate auto-admits
     // machine tasks as `smart:ok` — and the store accretes dated `auto:1` rows forever after.
@@ -301,7 +301,7 @@ pub(crate) fn emit_task_triage(
         .filter(|t| t.is_open(&day) && !bn_core::task_owner::is_machine(t))
         .collect();
     if open.is_empty() {
-        println!("No open tasks to triage — `bn task pull` to refill.");
+        println!("No open tasks to triage — `workspan task pull` to refill.");
         return;
     }
     let ranked = bn_core::task_priority::rank(&open, &day);
@@ -342,7 +342,7 @@ pub(crate) fn emit_task_triage(
             &bn_core::util::clock_hm(bn_core::util::now_epoch_secs()),
             &run.output,
         )
-        .map_err(|e| eprintln!("bn task triage: could not write {}: {e}", note_file.display()))
+        .map_err(|e| eprintln!("workspan task triage: could not write {}: {e}", note_file.display()))
         .is_ok();
     if as_json {
         let data = serde_json::json!({

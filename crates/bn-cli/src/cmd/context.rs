@@ -47,7 +47,7 @@ pub(crate) fn emit_context(cfg: &Config, action: Option<ContextCmd>, json: bool)
                 let digest = served(cfg, &ctx, &name, &atoms, &text);
                 print!("{text}");
                 if let Some(d) = digest {
-                    eprintln!("(served {d} — `bn context ack {d}` once read)");
+                    eprintln!("(served {d} — `workspan context ack {d}` once read)");
                 }
             } else if json {
                 println!("{}", Envelope::success(CMD, json!(c)).to_json());

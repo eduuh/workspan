@@ -5,14 +5,14 @@
 <div class="wrap">
 
 <aside class="rail">
-  <a class="rail__brand" href="index.html"><b>bn</b> workflow notes</a>
+  <a class="rail__brand" href="index.html"><b>Workspan</b> workflow notes</a>
   <p class="rail__tag">How the machine actually runs</p>
   <nav>
     <ol>
       <li><a href="index.html">Overview</a></li>
       <li><a href="01-pipeline.html">The pipeline &amp; its gates</a></li>
       <li><a href="02-dispatch.html">Dispatch &amp; isolation</a></li>
-      <li><a href="03-state.html">What bn writes down</a></li>
+      <li><a href="03-state.html">What workspan writes down</a></li>
       <li><a href="04-catalog.html" aria-current="page">The prompt catalog</a></li>
       <li><a href="05-surfaces.html">Surfaces</a></li>
     </ol>
@@ -25,7 +25,7 @@
 <h1>The Markdown that drives the machine</h1>
 
 <p class="standfirst">
-The behaviour of every agent bn launches is authored in Markdown, not Rust. Three kinds of
+The behaviour of every agent workspan launches is authored in Markdown, not Rust. Three kinds of
 file do it, they live in three directories, and the naming is actively misleading: the thing
 Rust calls a "skill" lives in <code>config/prompts/</code>, while <code>config/skills/</code>
 is empty.
@@ -105,7 +105,7 @@ a workflow.
 <tr><td><code>plan</code></td><td><code>investigate-and-plan.md</code> (composes <code>plan.md</code>)</td><td><code>pipeline-plan-envelope.md</code></td></tr>
 <tr><td><code>consensus</code></td><td><em>none</em> — reviewer votes</td><td><code>plan-review-critic.md</code> per critic</td></tr>
 <tr><td><code>execute</code></td><td><code>execute.md</code></td><td><code>dispatch-ship.md</code></td></tr>
-<tr><td><code>validate</code></td><td><em>none</em> — <code>bn verify</code></td><td><code>dispatch-verify-gate.md</code></td></tr>
+<tr><td><code>validate</code></td><td><em>none</em> — <code>workspan verify</code></td><td><code>dispatch-verify-gate.md</code></td></tr>
 <tr><td><code>critique</code></td><td><code>critique-fresh.md</code></td><td><code>pipeline-critic-envelope.md</code></td></tr>
 <tr><td><code>ship</code></td><td><em>none</em> — hands to orchestrator</td><td><code>auto-review-envelope.md</code></td></tr>
 <tr><td><code>learn</code></td><td><code>evolve-skills.md</code></td><td>Task outcomes, verified references, and workflow reflections</td></tr>
@@ -118,7 +118,7 @@ a workflow.
 <div class="note note--gap">
 <span class="note__label">Ad-hoc dispatch answers a different question</span>
 <p>
-<code>bn dispatch</code> defaults to <code>ship-solo</code>, or <code>investigate</code> with
+<code>workspan dispatch</code> defaults to <code>ship-solo</code>, or <code>investigate</code> with
 <code>--scout</code> — not to the stage's prompt. The code says so outright: "Both are right;
 they are not the same question."
 <span class="src">stage.rs:96-102 · cmd/dispatch/seed.rs:109-111</span>
@@ -218,8 +218,8 @@ is solo's whole point.
 </p>
 
 <p>
-The plan-review gate owns the plan lifecycle end to end: write → <code>bn review submit</code>
-→ <code>bn review agents</code> → poll → <code>bn plan promote</code>.
+The plan-review gate owns the plan lifecycle end to end: write → <code>workspan review submit</code>
+→ <code>workspan review agents</code> → poll → <code>workspan plan promote</code>.
 </p>
 
 <h2>Agent definitions</h2>
@@ -260,10 +260,10 @@ its archive.
 <p>It closes mechanically rather than by anyone remembering to do it.</p>
 
 <ol>
-<li>Every dispatch envelope ends with <code>bn reflect "skill:&lt;name&gt; — …"</code>. It is
+<li>Every dispatch envelope ends with <code>workspan reflect "skill:&lt;name&gt; — …"</code>. It is
 appended <em>by the machine</em>, not written by the workflow author.</li>
 <li><code>learnings.rs</code> parses the <code>skill:</code> prefix into a typed field, so
-<code>bn stats learnings --skill &lt;name&gt;</code> aggregates them.
+<code>workspan stats learnings --skill &lt;name&gt;</code> aggregates them.
 <span class="src">learnings.rs:175-178</span></li>
 <li><code>Stage::Learn</code> dispatches <code>evolve-skills</code>.</li>
 <li><code>evolve-skills.md</code> requires <em>repeated</em> evidence — "a one-off gripe is
@@ -298,7 +298,7 @@ uses <code>skills:</code>, <code>mcps:</code>, <code>references:</code>, <code>w
 unexercised by the current roster.</li>
 
 <li><strong><code>config/workflow/</code> is not part of this catalog at all</strong> — it is
-the tmux and worktree layer, largely migrated into native <code>bn</code> subcommands.</li>
+the tmux and worktree layer, largely migrated into native <code>workspan</code> subcommands.</li>
 </ul>
 
 <h2>Not verified</h2>
@@ -314,14 +314,14 @@ agent, so <code>evolve-skills</code> may in practice only run by hand.</li>
 <code>{{verdict_commands}}</code>) — pipeline-internal, not covered by this slice.</li>
 <li>That <code>task-enhance</code>, <code>task-triage</code> and <code>quarter-review</code>
 skills are genuinely shadowed by same-named agents. It follows from
-<code>launchable.rs</code>'s documented rule, but <code>bn agent list</code> was not run to
+<code>launchable.rs</code>'s documented rule, but <code>workspan agent list</code> was not run to
 observe it.</li>
 <li>House style rules cited come from <code>evolve-skills.md</code> step 4; there is no
 <code>config/prompts/README.md</code>.</li>
 </ul>
 
 <div class="foot">
-  <a href="03-state.html">← What bn writes down</a>
+  <a href="03-state.html">← What workspan writes down</a>
   <a href="05-surfaces.html">Next: surfaces →</a>
 </div>
 

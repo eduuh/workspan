@@ -27,4 +27,4 @@ items:
 Keep actionable progress on the governing task; Entire owns session history.
 
 Before finishing, record one workflow reflection with
-`bn reflect "skill:plan — <what worked or what to change>"`.
+`workspan reflect "skill:plan — <what worked or what to change>"`.

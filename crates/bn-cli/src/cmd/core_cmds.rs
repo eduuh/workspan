@@ -10,7 +10,7 @@ pub(crate) fn resolve_or_exit(cfg: &Config) -> Resolved {
     }
 }
 
-/// Validate a `--est` duration against the `bn focus start` grammar, returning the trimmed
+/// Validate a `--est` duration against the `workspan focus start` grammar, returning the trimmed
 /// string to persist. Exits with a usage error on a malformed/empty value so a bad estimate
 /// never lands on an item. `None` passes through untouched (no estimate given).
 pub(crate) fn parse_est_or_exit(cmd: &str, est: Option<&str>) -> Option<String> {

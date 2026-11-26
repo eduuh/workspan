@@ -16,7 +16,7 @@ pub(super) fn keepalive_status(wintasks: &[winsched::WinTask]) -> Option<&'stati
 
 /// The compact running-job badge — `⟳ <job>` / `⟳ <job>+N`, `None` when this machine runs no cron
 /// or nothing is in flight. A read_dir of `state_dir()/running`: no subprocess, no network. Split
-/// out of `emit_cron_running` so `bn tat`'s status header can reuse it in-process (#1349).
+/// out of `emit_cron_running` so `workspan tat`'s status header can reuse it in-process (#1349).
 pub(crate) fn running_badge(cfg: &Config) -> Option<String> {
     if !cfg.cron_enabled_here() {
         return None;
@@ -41,7 +41,7 @@ pub(super) fn run_enabled(cfg: &Config) -> bool {
         return true;
     }
     eprintln!(
-        "bn run: cron is not enabled on this machine ('{}')",
+        "workspan run: cron is not enabled on this machine ('{}')",
         cfg.machine()
     );
     false

@@ -33,7 +33,7 @@ pub(crate) fn resolve_dispatch_item(
     let tasks = bn_core::task_store::task_store(cfg)
         .load()
         .unwrap_or_else(|error| {
-            eprintln!("bn dispatch: cannot load configured task provider: {error}");
+            eprintln!("workspan dispatch: cannot load configured task provider: {error}");
             std::process::exit(1);
         });
     let found = if is_dispatch_todo_id(raw) {

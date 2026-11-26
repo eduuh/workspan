@@ -292,7 +292,7 @@ pub(super) fn issue_decompose(
                 Envelope::failure("orchestrate", code, message).to_json()
             );
         } else {
-            eprintln!("bn orchestrate decompose: {message}");
+            eprintln!("workspan orchestrate decompose: {message}");
         }
         false
     };
@@ -430,7 +430,7 @@ pub(super) fn issue_decompose(
     let parent_comment_linked = comment_output.success;
     if !parent_comment_linked && !json {
         eprintln!(
-            "bn orchestrate decompose: warning: children link to the parent, but its checklist comment failed: {}",
+            "workspan orchestrate decompose: warning: children link to the parent, but its checklist comment failed: {}",
             comment_output.stderr.trim()
         );
     }
@@ -494,7 +494,7 @@ pub(super) fn issue_decompose(
         }
         for failure in &not_started {
             eprintln!(
-                "bn orchestrate decompose: could not start #{}: {}",
+                "workspan orchestrate decompose: could not start #{}: {}",
                 failure["number"],
                 failure["error"].as_str().unwrap_or_default()
             );

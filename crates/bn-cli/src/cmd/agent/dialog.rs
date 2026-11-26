@@ -27,7 +27,7 @@ use bn_core::agent::{AgentTransport as _, Key, PendingPrompt, PromptSemantic, PR
 const ANSWER_SETTLE_MS: u64 = 250;
 
 /// How many times to re-send the submitting return before giving up. A first return is often eaten
-/// dismissing an autocomplete popup — the same behaviour `bn agent send --keys` compensates for.
+/// dismissing an autocomplete popup — the same behaviour `workspan agent send --keys` compensates for.
 const ANSWER_ATTEMPTS: usize = 3;
 
 /// Validate the `repo:branch` shape. The value reaches tmux as a distinct argv element (never a
@@ -46,7 +46,7 @@ fn emit_failure(cmd: &str, code: &str, msg: &str, as_json: bool) {
     if as_json {
         println!("{}", Envelope::failure(cmd, code, msg).to_json());
     } else {
-        eprintln!("bn agent {}: {msg}", cmd.trim_start_matches("agent_"));
+        eprintln!("workspan agent {}: {msg}", cmd.trim_start_matches("agent_"));
     }
     std::process::exit(1);
 }
@@ -89,7 +89,7 @@ pub(crate) fn pane_state(cfg: &Config, target: &str) -> Option<bn_core::orchestr
     ))
 }
 
-/// `bn agent prompt <target>` — the read half of supervision.
+/// `workspan agent prompt <target>` — the read half of supervision.
 pub(crate) fn emit_prompt(cfg: &Config, target: &str, lines: usize, as_json: bool) {
     let cmd = "agent_prompt";
     let target = target.trim();
@@ -128,13 +128,13 @@ fn print_prompt(target: &str, p: &PendingPrompt) {
     println!(
         "  {}",
         style::meta(&format!(
-            "fingerprint {} — pass as `--expect` to bn agent answer",
+            "fingerprint {} — pass as `--expect` to workspan agent answer",
             p.fingerprint
         ))
     );
 }
 
-/// `bn agent answer <target>` — the write half.
+/// `workspan agent answer <target>` — the write half.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_answer(
     cfg: &Config,
@@ -184,7 +184,7 @@ pub(crate) fn emit_answer(
     if let Some(expected) = expect {
         if expected != prompt.fingerprint {
             let msg = format!(
-                "the pane moved since you read it (expected fingerprint {expected}, now {}) — re-read with `bn agent prompt {target}`",
+                "the pane moved since you read it (expected fingerprint {expected}, now {}) — re-read with `workspan agent prompt {target}`",
                 prompt.fingerprint
             );
             if as_json {
@@ -243,7 +243,7 @@ pub(crate) fn emit_answer(
         // that redraws into *another* dialog (a second permission in the same turn) is the common
         // case. Say what is true rather than claiming success.
         eprintln!(
-            "bn agent answer: sent {chosen} to {target} but the dialog is still up — re-read with `bn agent prompt {target}`"
+            "workspan agent answer: sent {chosen} to {target} but the dialog is still up — re-read with `workspan agent prompt {target}`"
         );
         std::process::exit(1);
     }

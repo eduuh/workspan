@@ -3,11 +3,11 @@
 Your own commands: the thing you do over and over, written once as `<name>.sh` and run with
 arguments by you or by an agent.
 
-    bn cmd                       # list them, with each one's `# description:` line
-    bn cmd <name> [args...]      # run one in the current directory
-    bn cmd <name> --which        # print its path
-    bn cmd --pick                # fzf picker with a preview of each script (tmux prefix c)
-    bn cmd --new <name>          # scaffold one (--scope global|repo|project|branch)
+    workspan cmd                       # list them, with each one's `# description:` line
+    workspan cmd <name> [args...]      # run one in the current directory
+    workspan cmd <name> --which        # print its path
+    workspan cmd --pick                # fzf picker with a preview of each script (tmux prefix c)
+    workspan cmd --new <name>          # scaffold one (--scope global|repo|project|branch)
 
 Agents get the same thing as one MCP tool, `bn_cmd`: no name lists, a name runs it and returns
 the exit code, stdout and stderr (120s timeout by default).
@@ -22,10 +22,10 @@ Like jobs, highest precedence first: the workspace artifact directory's `cmds/`,
 
 Plain `sh`. The leading comments describe it:
 
-    # description: One line, shown by `bn cmd` and to agents
+    # description: One line, shown by `workspan cmd` and to agents
     # usage: name [-f] [args...]
 
-It runs in the caller's directory with bn's job PATH, plus `$BN_CMD_REPO` and `$BN_CMD_BRANCH`
+It runs in the caller's directory with workspan's job PATH, plus `$BN_CMD_REPO` and `$BN_CMD_BRANCH`
 (the worktree it was called from, empty outside one) and `$BN_CMD_LIB` (the shared shell helpers
 in `config/jobs/lib`). Unlike a job, a run is not recorded to the cron ledger.
 
@@ -37,8 +37,8 @@ in `config/jobs/lib`). Unlike a job, a run is not recorded to the cron ledger.
 
 ## Long batch commands
 
-    bn cmd run -- cargo clippy --workspace
-    bn cmd run -- --label tests -- cargo test --workspace
+    workspan cmd run -- cargo clippy --workspace
+    workspan cmd run -- --label tests -- cargo test --workspace
 
 `run` reports its start, elapsed time every 60 seconds, and final exit status. After 180 seconds
 without output it warns that progress is unknown, not that the process is stuck. `--label` names
@@ -59,13 +59,13 @@ The runner emits heartbeats; the agent does not poll. Check with
 
 Wrap a build or test with `run` to record its real result:
 
-    bn cmd run -- --label build -- bn build
-    bn cmd run -- --label tests -- cargo test -p bn-core
-    bn cmd runs                         # list this worktree's runs, newest first
-    bn cmd runs -- --pick                # inspect logs or confirm a rerun (tmux prefix B)
-    bn cmd runs -- --json                # structured results
-    bn cmd runs -- --logs <id>           # original stdout/stderr, without runner messages
-    bn cmd runs -- --rerun <id>          # explicit rerun of original argv and working directory
+    workspan cmd run -- --label build -- workspan build
+    workspan cmd run -- --label tests -- cargo test -p bn-core
+    workspan cmd runs                         # list this worktree's runs, newest first
+    workspan cmd runs -- --pick                # inspect logs or confirm a rerun (tmux prefix B)
+    workspan cmd runs -- --json                # structured results
+    workspan cmd runs -- --logs <id>           # original stdout/stderr, without runner messages
+    workspan cmd runs -- --rerun <id>          # explicit rerun of original argv and working directory
 
 The tmux bar shows the selected worktree's label, result, and running duration, for example
 `build RUN 42s`, `tests FAIL 37`, or `build PASS`. Every window tab has a short result badge.

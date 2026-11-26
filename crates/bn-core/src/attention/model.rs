@@ -15,10 +15,10 @@ pub fn severity_rank(severity: &str) -> u8 {
 
 /// The accepted severity values, in ascending order — for CLI validation and help text. Note
 /// [`DONE_SEVERITY`] is deliberately absent: a completion is not something a person raises, so
-/// `bn attn raise --severity done` stays rejected.
+/// `workspan attn raise --severity done` stays rejected.
 pub const SEVERITIES: [&str; 3] = ["info", "warn", "urgent"];
 
-/// The severity a *completion push* (an agent's `bn agent done`) carries. A completion is an
+/// The severity a *completion push* (an agent's `workspan agent done`) carries. A completion is an
 /// outcome, not an actionable item — it never belongs in the attention list, only the review
 /// inbox. Kept out of [`SEVERITIES`] so it's an internal marker, not a user-raisable level.
 pub const DONE_SEVERITY: &str = "done";
@@ -101,7 +101,7 @@ impl AttnItem {
 }
 
 /// Outcome of [`add`]: the item's id, and whether the add was skipped because an open item
-/// already carried the same `key` (idempotent script pulls). Mirrors the `bn add` shape.
+/// already carried the same `key` (idempotent script pulls). Mirrors the `workspan add` shape.
 #[derive(Debug, Serialize)]
 pub struct AddOutcome {
     pub id: String,

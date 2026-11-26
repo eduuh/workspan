@@ -11,7 +11,7 @@ Apply this skill only to an explicitly requested writing artifact, never to ordi
 progress updates, explanations, code output, completion summaries, or internal planning.
 Topic: {{topic}}. Kind: {{kind}} (use the requested format).
 
-1. Render `bn skills render write-like-me-workflow`, passing topic and kind through `--arg`,
+1. Render `workspan skills render write-like-me-workflow`, passing topic and kind through `--arg`,
    and follow its detailed writing and checking steps.
 2. Use verified facts and saved writing preferences; invent neither personal preferences
    nor measurements. Match the requested artifact's format.

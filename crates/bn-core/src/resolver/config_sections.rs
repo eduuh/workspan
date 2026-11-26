@@ -39,10 +39,10 @@ fn on() -> bool {
 }
 
 /// `[mcp]`: MCP wiring options (#323). `extras` is the opt-in list of curated
-/// planning/productivity MCP servers (`crate::mcp::EXTRAS` names) that `bn mcp init` — and the
-/// dispatch setup path — wire alongside bn's own server into a *repo*. Empty/absent = bn only.
+/// planning/productivity MCP servers (`crate::mcp::EXTRAS` names) that `workspan mcp init` — and the
+/// dispatch setup path — wire alongside workspan's own server into a *repo*. Empty/absent = workspan only.
 ///
-/// `servers` is the separate, *user*-scoped list: personal MCP servers `bn mcp sync-user` writes
+/// `servers` is the separate, *user*-scoped list: personal MCP servers `workspan mcp sync-user` writes
 /// into every MCP client on this machine. Declared here rather than in the curated catalog because
 /// they are yours, not vetted-for-everyone, and never land in a committed file — see
 /// [`crate::mcp_user`].
@@ -52,8 +52,8 @@ pub(super) struct McpSection {
     pub(super) servers: Option<HashMap<String, crate::mcp_user::UserServer>>,
 }
 
-/// `[managed_repos]`: repos bn keeps cloned + refreshed under the bn home (`~/.bn/repos`). Each
-/// entry is a clone URL; the refresh-all job clones it bare+worktree (via `bn wt`, WT_ROOT pinned
+/// `[managed_repos]`: repos workspan keeps cloned + refreshed under the workspan home (`~/.bn/repos`). Each
+/// entry is a clone URL; the refresh-all job clones it bare+worktree (via `workspan wt`, WT_ROOT pinned
 /// to the managed root) if absent, then fetches/fast-forwards it. This is how dotfiles and other
 /// always-checked-out repos travel onto a machine without manual `git clone`.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
@@ -61,7 +61,7 @@ pub(super) struct ManagedReposSection {
     pub(super) repos: Option<Vec<String>>,
 }
 
-/// `[links]`: the tag vocabulary for `bn links`. A small, curated set of terms you actually file
+/// `[links]`: the tag vocabulary for `workspan links`. A small, curated set of terms you actually file
 /// links under. Absent/empty means no vocabulary, which makes every tag "unlisted" — allowed, just
 /// unremarked. An unlisted tag warns and still saves; this is a habit, not a schema.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
@@ -80,7 +80,7 @@ pub(super) struct TasksSection {
 }
 
 /// `[log]`: the opt-in verbose/debug **action log** (structured JSONL of every high-value action
-/// bn performs, for after-the-fact debugging). All optional — absent/false ⇒ off. Env
+/// workspan performs, for after-the-fact debugging). All optional — absent/false ⇒ off. Env
 /// `BN_VERBOSE`/`BN_LOG` and the global `--verbose/--debug` flag override this at higher
 /// precedence. `dir` overrides the default `<state_dir>/logs` location; `retain_days` bounds how
 /// many daily files are kept. See [`super::LogConfig`].
@@ -96,7 +96,7 @@ pub(super) struct LogSection {
     pub(super) retain_days: Option<i64>,
 }
 
-/// `[dispatch]`: defaults for `bn dispatch`. `plan_review` (#349) makes the plan-review gate the
+/// `[dispatch]`: defaults for `workspan dispatch`. `plan_review` (#349) makes the plan-review gate the
 /// default — a dispatched ship agent proposes a plan, registers a plan-review, and pauses until
 /// consensus approves before implementing / opening a PR. Off by default; `--plan` opts in
 /// per-dispatch. `--yolo` uses agent consensus rather than bypassing sensitive-plan review.
@@ -202,7 +202,7 @@ pub(super) struct WorkSection {
 
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub(super) struct ReviewSection {
-    /// Weekday the `bn weekly` 1-1 window anchors to (name or `0..6`).
+    /// Weekday the `workspan weekly` 1-1 window anchors to (name or `0..6`).
     pub(super) weekly_anchor: Option<String>,
     /// Review SLA: hours-to-first-review target (default 4).
     pub(super) sla_first_review_hours: Option<f64>,
@@ -221,9 +221,9 @@ pub(super) struct ReviewSection {
 pub(super) struct ProofSection {
     /// `exact` | `ancestor` | `any`: how current accepted evidence must be.
     pub(super) freshness: Option<String>,
-    /// `off` | `warn` | `refuse`: what `bn done w<N>` does without accepted evidence.
+    /// `off` | `warn` | `refuse`: what `workspan done w<N>` does without accepted evidence.
     pub(super) done_requires: Option<String>,
-    /// Keep `bn verify` / `bn gate` runs as proof.
+    /// Keep `workspan verify` / `workspan gate` runs as proof.
     pub(super) capture: Option<bool>,
 }
 
@@ -239,7 +239,7 @@ pub(super) struct HarnessSection {
     pub(super) default: Option<String>,
 }
 
-/// `[attention]`: the `bn next` attention list. `max_age_hours` is the recency cutoff —
+/// `[attention]`: the `workspan next` attention list. `max_age_hours` is the recency cutoff —
 /// time-aged actions older than it drop off (widened over the weekend on Mondays). Default 24.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub(super) struct AttentionSection {
@@ -247,7 +247,7 @@ pub(super) struct AttentionSection {
 }
 
 /// `[calib]`: coarse t-shirt-size estimate durations for `--est S|M|L` (see
-/// [`crate::calib::CoarseSizes`]). Each is a human duration in the `bn focus start` grammar
+/// [`crate::calib::CoarseSizes`]). Each is a human duration in the `workspan focus start` grammar
 /// (`30m`, `1h30m`, `3h`); a missing/garbage value falls back to the built-in default.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub(super) struct CalibSection {
@@ -258,8 +258,8 @@ pub(super) struct CalibSection {
 
 #[derive(Debug, Clone, Default, serde::Deserialize)]
 pub(super) struct CaptureSection {
-    /// Folder new screenshots land in (WSL: a `/mnt/c/...` path). `bn shot` grabs from here.
+    /// Folder new screenshots land in (WSL: a `/mnt/c/...` path). `workspan shot` grabs from here.
     pub(super) screenshot_dir: Option<String>,
-    /// Folder the GIF recorder saves into. `bn shot --gif` grabs from here.
+    /// Folder the GIF recorder saves into. `workspan shot --gif` grabs from here.
     pub(super) gif_dir: Option<String>,
 }

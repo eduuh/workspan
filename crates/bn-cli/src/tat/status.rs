@@ -32,7 +32,7 @@ pub(super) fn header(cfg: &Config) -> String {
     format!("{}\n{HEADER_KEYS}", status_line(cfg))
 }
 
-/// `bn tat --pick-stage statusline` — the `transform-header` feed.
+/// `workspan tat --pick-stage statusline` — the `transform-header` feed.
 pub(super) fn emit_status_line(cfg: &Config) {
     println!("{}", header(cfg));
 }
@@ -59,7 +59,7 @@ pub(super) fn status_line(cfg: &Config) -> String {
 /// Drop a trailing `#[fg=…]· ` from a bar fragment, and the directive that only existed to colour
 /// it. The attention badge ends with one because it was the last thing on `status-format[0]` and
 /// that divider closed its run against the screen edge; this header draws its own separators, so
-/// keeping it would print two in a row. Trimming at the consumer leaves `bn attn badge`'s output —
+/// keeping it would print two in a row. Trimming at the consumer leaves `workspan attn badge`'s output —
 /// and the test pinning it — byte-for-byte what it was.
 fn trim_trailing_divider(markup: &str) -> &str {
     let trimmed = markup.trim_end();
@@ -79,7 +79,7 @@ fn trim_trailing_divider(markup: &str) -> &str {
 /// can paint an fzf header unchanged.
 ///
 /// Colours map onto [`Tone`] rather than onto truecolor escapes: the bar's hexes are hardcoded
-/// tokyonight while the rest of bn paints through `bn_core::style`, and copying the hexes here
+/// tokyonight while the rest of workspan paints through `bn_core::style`, and copying the hexes here
 /// would make this the fourth palette in one workflow. `bg=`, `bold` and every other directive are
 /// dropped — a header is one line of text, not a powerline.
 fn tmux_to_ansi(markup: &str, ink: Ink) -> String {

@@ -5,7 +5,7 @@
 use crate::*;
 use bn_core::worker::{self, registry, spawn};
 
-/// Dispatch a `bn worker <sub>` command. Returns the process exit code.
+/// Dispatch a `workspan worker <sub>` command. Returns the process exit code.
 pub(crate) fn emit_worker(cfg: &Config, action: WorkerCmd, json: bool) -> i32 {
     match action {
         WorkerCmd::Status => status(json),
@@ -179,7 +179,7 @@ fn agent_session(request_id: &str) -> String {
 }
 
 /// Read `MemAvailable` (MB) from `/proc/meminfo`. `None` off Linux or when unreadable — admission
-/// then fails open on the memory gate (matching bn's other guards).
+/// then fails open on the memory gate (matching workspan's other guards).
 fn read_mem_available_mb() -> Option<u64> {
     #[cfg(target_os = "linux")]
     {
@@ -344,7 +344,7 @@ fn dispatch_agent_launched(stdout: &[u8]) -> bool {
         .unwrap_or(false)
 }
 
-/// `bn worker start` — atomic, worker-authoritative admission (#720). Exit codes: 0 accepted or
+/// `workspan worker start` — atomic, worker-authoritative admission (#720). Exit codes: 0 accepted or
 /// already_exists, 1 rejected_capacity, 2 internal error.
 fn start(
     request_id: &str,
@@ -513,7 +513,7 @@ fn run(
     }
 }
 
-/// `bn worker reconcile` — clear orphaned RUNNING reservations (dead tmux session/pid).
+/// `workspan worker reconcile` — clear orphaned RUNNING reservations (dead tmux session/pid).
 fn reconcile(json: bool) -> i32 {
     let mut reg = match registry::Registry::open(&worker::registry_path()) {
         Ok(reg) => reg,
@@ -541,7 +541,7 @@ fn reconcile(json: bool) -> i32 {
 }
 
 /// Emit the failure envelope (or a stderr line) and return exit code 2 (internal error) — distinct
-/// from `rejected_capacity`'s exit 1, per the `bn worker start` contract.
+/// from `rejected_capacity`'s exit 1, per the `workspan worker start` contract.
 fn internal_error(json: bool, code: &str, msg: &str) -> i32 {
     if json {
         println!(

@@ -253,7 +253,7 @@ fn foreach(
             json,
             "repos-foreach",
             "no_repos",
-            "No repos matched. `bn repos list` shows the fleet.",
+            "No repos matched. `workspan repos list` shows the fleet.",
         );
     }
     // Hand each worker a contiguous slice of the fleet. `jobs` is clamped to at least one so

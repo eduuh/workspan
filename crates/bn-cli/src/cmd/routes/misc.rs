@@ -194,7 +194,7 @@ pub(super) fn route(cfg: &Config, action: CmdMisc, json: bool) {
                             json,
                             "critic",
                             "bad-verdict",
-                            "bn critic verdict: pass exactly one of --pass / --fail",
+                            "workspan critic verdict: pass exactly one of --pass / --fail",
                         );
                     }
                     let findings_text = findings_file
@@ -224,19 +224,19 @@ pub(super) fn route(cfg: &Config, action: CmdMisc, json: bool) {
     }
 }
 
-/// The wrapper script emitted by `bn shell-init` (bash and zsh share this POSIX function syntax
+/// The wrapper script emitted by `workspan shell-init` (bash and zsh share this POSIX function syntax
 /// verbatim).
 ///
 /// `claude` and `copilot` **are** shadowed here: that is the point. The placement rule — main hosts
 /// no agents, one agent per worktree — can only be enforced if the bare commands people actually
-/// type are routed through `bn agent launch`, where the guard lives. The launcher refuses outside a
+/// type are routed through `workspan agent launch`, where the guard lives. The launcher refuses outside a
 /// git worktree, so every session — including planning — has a repository branch behind it.
 ///
 /// `agency <claude|copilot>` is kept as the explicit form of the same thing. `command` (and the
 /// `execvp` the harness launcher uses) bypass shell functions, so neither wrapper recurses.
 ///
-/// A **leading `@`** on the first argument names a bn agent or skill and routes to
-/// `bn agent run` instead: `claude @debug "panic in resolver"`. The sigil is what makes that
+/// A **leading `@`** on the first argument names a workspan agent or skill and routes to
+/// `workspan agent run` instead: `claude @debug "panic in resolver"`. The sigil is what makes that
 /// safe to add to a command people already type — every other argument shape is passed through
 /// untouched, so `claude --resume <id>` and `claude "just a prompt"` cannot change meaning, and a
 /// future catalog entry named like a real harness flag or a file cannot silently capture one.

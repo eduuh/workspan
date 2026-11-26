@@ -15,7 +15,7 @@ parent and do not dispatch it whole.
    arbitrary size: one child should have one coherent outcome and one non-overlapping set of path
    globs. Shared registration files belong to one child rather than being repeated across siblings.
 3. For a decomposition-only request, run
-   `bn issue decompose {{issue}} --dry-run --part "<shippable title>::<glob>[,<glob>]" ...`.
+   `workspan issue decompose {{issue}} --dry-run --part "<shippable title>::<glob>[,<glob>]" ...`.
    Use at least two parts. This validates and previews the children without creating issues or
    starting agents. Remove `--dry-run` only when the user or dispatch packet explicitly authorizes
    both creating the children and dispatching their workers: that command creates or reuses

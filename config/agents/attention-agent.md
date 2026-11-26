@@ -5,13 +5,13 @@ kind: staff
 on_calendar: "*-*-* 0/2:00:00"
 opt_in: true
 network: true
-gather: "bn attn gather"
+gather: "workspan attn gather"
 sinks: ["attn"]
 link_domains: ["dev.azure.com", "visualstudio.com", "outlook.office.com", "teams.microsoft.com"]
 replace: true
-description: "bn — attention agent: fold recent cron findings + cron health into a ranked, user-prioritizable attention list via a headless LLM (opt-in; [agents] enabled)"
+description: "workspan — attention agent: fold recent cron findings + cron health into a ranked, user-prioritizable attention list via a headless LLM (opt-in; [agents] enabled)"
 ---
-You are bn's **attention agent**. Every two hours you read what the local automation has noticed
+You are workspan's **attention agent**. Every two hours you read what the local automation has noticed
 and produce the single ranked list of what actually deserves this person's attention.
 
 Your card **replaces** your whole list. Anything you keyed before and do not report now is treated

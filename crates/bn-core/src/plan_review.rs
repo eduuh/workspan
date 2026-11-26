@@ -408,7 +408,7 @@ fn mutate<R>(f: impl FnOnce(&mut ReviewStore) -> (bool, R)) -> std::io::Result<R
 /// Submit (or re-submit) a plan for review. If an open review already exists for this repo+branch —
 /// the change-request revise loop — its plan is replaced and it cycles back to `pending`; otherwise
 /// a fresh `pending` review is created. Either way the mirrored attention item is (re-)raised so the
-/// plan surfaces in `bn attn` and the dashboard. Returns the stored record.
+/// plan surfaces in `workspan attn` and the dashboard. Returns the stored record.
 pub fn submit(
     repo: &str,
     branch: &str,
@@ -756,7 +756,7 @@ pub fn decide(
 }
 
 /// Replace the plan text of an *open* review (pending or changes-requested) — the human's
-/// edit-in-place from `bn review edit`. Keeps the review `pending` (so the human still decides) and
+/// edit-in-place from `workspan review edit`. Keeps the review `pending` (so the human still decides) and
 /// re-syncs the mirrored attention item's detail to the new plan. Errors if the id is unknown, the
 /// review is terminal (approved/rejected), or the new plan is empty.
 pub fn update_plan(id: &str, plan: &str, now: i64) -> Result<Review, DecideError> {
@@ -811,7 +811,7 @@ pub fn get(id: &str) -> Option<Review> {
     ReviewStore::load(&store_path()).get(id).cloned()
 }
 
-/// Every review, newest-submitted first — the `bn review list` / dashboard feed.
+/// Every review, newest-submitted first — the `workspan review list` / dashboard feed.
 pub fn list() -> Vec<Review> {
     let mut all = ReviewStore::load(&store_path()).reviews;
     all.sort_by_key(|r| std::cmp::Reverse(r.created));
@@ -841,7 +841,7 @@ pub fn pending_for<'a>(reviews: &'a [Review], repo: &str, branch: &str) -> Optio
 
 /// Raise (or reuse) the attention item mirroring a pending review. `mode = "review"` is the signal
 /// the #394 dashboard panel keys on; the plan rides in `detail` and the item is tagged
-/// `task_type = "planning"` so it surfaces under `bn attn --type planning` (#649 Phase 2). Keyed by
+/// `task_type = "planning"` so it surfaces under `workspan attn --type planning` (#649 Phase 2). Keyed by
 /// review id so a re-submit
 /// after a prior ack raises a fresh item rather than duplicating an open one. Best-effort: returns
 /// the (new or existing) attention id, or `None` if the append failed.

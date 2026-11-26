@@ -40,8 +40,8 @@ needs() { echo "  NEEDS YOU  $*"; left="$left
 left=""
 [ -n "$REPO" ] || { echo "build-machine-setup: set BN_SETUP_REPO (e.g. myrepo)" >&2; exit 2; }
 case "$REPO$BRANCH" in *[!A-Za-z0-9_.-]*) echo "build-machine-setup: bad repo or branch name" >&2; exit 2 ;; esac
-command -v bn >/dev/null 2>&1 || { echo "build-machine-setup: bn is not installed (run dotfiles setup first)" >&2; exit 1; }
-command -v python3 >/dev/null 2>&1 || { echo "build-machine-setup: python3 is needed to edit bn's config" >&2; exit 1; }
+command -v bn >/dev/null 2>&1 || { echo "build-machine-setup: workspan is not installed (run dotfiles setup first)" >&2; exit 1; }
+command -v python3 >/dev/null 2>&1 || { echo "build-machine-setup: python3 is needed to edit workspan's config" >&2; exit 1; }
 echo "build-machine-setup: $ME for $REPO"
 
 # --- 1. config --------------------------------------------------------------------
@@ -150,7 +150,7 @@ else
 fi
 
 if [ -z "$left" ]; then
-  echo "build-machine-setup: $ME is ready. Pool builds run on its schedule; check with: bn run fleet (on the laptop)"
+  echo "build-machine-setup: $ME is ready. Pool builds run on its schedule; check with: workspan run fleet (on the laptop)"
 else
   echo "build-machine-setup: $ME needs you for:$left"
   exit 1

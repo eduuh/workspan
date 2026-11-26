@@ -11,7 +11,7 @@ pub trait Clock {
     fn today(&self) -> String;
     /// Current wall-clock time as Unix epoch seconds.
     fn now_epoch_secs(&self) -> i64;
-    /// Local wall-clock as `YYYY-MM-DD HH:MM` (the `bn log-progress` stamp).
+    /// Local wall-clock as `YYYY-MM-DD HH:MM` (the `workspan log-progress` stamp).
     fn now_stamp(&self) -> String;
     /// A filename-safe local timestamp (`YYYYMMDD-HHMMSS`) for grabbed captures.
     fn now_filestamp(&self) -> String;

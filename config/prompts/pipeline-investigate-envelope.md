@@ -29,4 +29,4 @@ revision in the evidence the Plan stage inherits.
 --- END WORKFLOW ---
 
 Before finishing, record one workflow reflection with
-`bn reflect "skill:investigate — <what worked or what to change>"`.
+`workspan reflect "skill:investigate — <what worked or what to change>"`.

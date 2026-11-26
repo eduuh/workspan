@@ -1,12 +1,12 @@
-//! `bn doctor`/`bn next`/`bn gap`/`bn wrap`/`bn rate` — health, next-action, day close.
+//! `bn doctor`/`bn next`/`bn gap`/`workspan wrap`/`bn rate` — health, next-action, day close.
 use crate::*;
 
-/// Is `bn shell-init`'s `claude`/`copilot` wrapper actually driving launches in this shell?
+/// Is `workspan shell-init`'s `claude`/`copilot` wrapper actually driving launches in this shell?
 ///
 /// Reads the two signals only a live process has: `$BN_SHELL_WRAPPERS`, exported by the wrappers
 /// themselves (a child cannot see its parent's shell functions, so this is the sole proof they were
 /// sourced), and the login rc's text, the only place a *shadowing* redefinition after the source
-/// line is visible. Quiet for a shell bn ships no wrappers for — `bn shell-init` emits bash and zsh
+/// line is visible. Quiet for a shell workspan ships no wrappers for — `workspan shell-init` emits bash and zsh
 /// only. The classification itself is pure ([`bn_core::doctor::shell_init_problem`]).
 fn shell_init_finding() -> Option<bn_core::doctor::Finding> {
     use bn_core::doctor::{Finding, ShellInitFinding, SHELL_WRAPPER_MARKER};
@@ -120,7 +120,7 @@ pub(crate) fn emit_doctor(cfg: &Config, stale_days: i64, brief: bool, as_json: b
         // fleet is a machine-setup problem worth fixing before the per-note items.
         if !drift.is_empty() {
             println!(
-                "⚠ {} cron(s) declared but not registered — run `bn cron register`{}",
+                "⚠ {} cron(s) declared but not registered — run `workspan cron register`{}",
                 drift.len(),
                 findings
                     .first()
@@ -152,7 +152,7 @@ pub(crate) fn emit_doctor(cfg: &Config, stale_days: i64, brief: bool, as_json: b
     }
     if !drift.is_empty() {
         println!(
-            "⚠ {} cron(s) declared but not registered on this machine — run `bn cron register`:",
+            "⚠ {} cron(s) declared but not registered on this machine — run `workspan cron register`:",
             drift.len()
         );
         println!("  {}", drift.join(", "));
@@ -162,7 +162,7 @@ pub(crate) fn emit_doctor(cfg: &Config, stale_days: i64, brief: bool, as_json: b
     print_cron_disabled_notice(cfg, None);
     if !lease_violations.is_empty() {
         println!(
-            "⚠ {} agent lease(s) break the main↔control invariant — run `bn control stop` / reap the offender:",
+            "⚠ {} agent lease(s) break the main↔control invariant — run `workspan control stop` / reap the offender:",
             lease_violations.len()
         );
         for violation in &lease_violations {
@@ -251,7 +251,7 @@ pub(crate) fn emit_doctor(cfg: &Config, stale_days: i64, brief: bool, as_json: b
                 };
                 let tag = style::meta(&format!("[inbox:{}d]", i.idle_days));
                 println!("{}  {tag} {}", style::meta(&i.id), i.text);
-                let detail = format!("captured {}{} — bn q drain", i.created, loc);
+                let detail = format!("captured {}{} — workspan q drain", i.created, loc);
                 println!("  {}", style::meta(&detail));
             }
             Finding::Setup(s) => {
@@ -296,7 +296,7 @@ pub(crate) fn emit_doctor(cfg: &Config, stale_days: i64, brief: bool, as_json: b
     }
 }
 
-/// `bn next` — the ranked action list. Human view shows the top `limit` with a "+N more" tail
+/// `workspan next` — the ranked action list. Human view shows the top `limit` with a "+N more" tail
 /// and a pointer to the views that own the overflow; `--json` returns the full list (matching the
 /// MCP tool) so an agent can plan over everything. Momentum-aware by default (#246): actions on
 /// the currently-punched-in repo/branch rank first within their priority band; `--no-momentum`
@@ -346,7 +346,7 @@ pub(crate) fn emit_next(
                         Envelope::failure("next_clear_cache", "io", e.to_string()).to_json()
                     );
                 } else {
-                    eprintln!("bn: could not clear attention cache: {e}");
+                    eprintln!("workspan: could not clear attention cache: {e}");
                 }
                 std::process::exit(1);
             }
@@ -357,14 +357,14 @@ pub(crate) fn emit_next(
     // `--refresh` is the cron's write-only path: recompute, rewrite the cache, say nothing.
     if refresh {
         if let Err(e) = bn_core::next::refresh_cache(cfg, &today, now) {
-            eprintln!("bn: could not refresh attention cache: {e}");
+            eprintln!("workspan: could not refresh attention cache: {e}");
         }
         // Warm the doctor picker's snapshot on the same `attention-sync` tick, so prefix-J
         // (`bn doctor --pick`) opens instantly too instead of re-walking every branch note.
         if let Err(e) =
             bn_core::doctor::refresh_cache(cfg, &today, bn_core::doctor::DEFAULT_STALE_DAYS, now)
         {
-            eprintln!("bn: could not refresh doctor attention cache: {e}");
+            eprintln!("workspan: could not refresh doctor attention cache: {e}");
         }
         return;
     }
@@ -454,13 +454,13 @@ pub(crate) fn emit_next(
         let undeliverable = ledger.undeliverable();
         if undeliverable > 0 {
             println!(
-                "{} {undeliverable} notification(s) could not be delivered today — no working toast backend — bn notify status\n",
+                "{} {undeliverable} notification(s) could not be delivered today — no working toast backend — workspan notify status\n",
                 bn_core::glyph::BELL_SLASH
             );
         }
         let withheld = ledger.withheld_by_policy();
         if withheld > 0 {
-            println!("{} {withheld} notification(s) held back today — bn notify status\n", bn_core::glyph::BELL);
+            println!("{} {withheld} notification(s) held back today — workspan notify status\n", bn_core::glyph::BELL);
         }
     }
 
@@ -503,7 +503,7 @@ pub(crate) fn emit_next(
     }
     let extra = actions.len().saturating_sub(limit);
     if extra > 0 {
-        let tail = format!("… +{extra} more — see `bn doctor`, `bn reviews`, `bn daily`");
+        let tail = format!("… +{extra} more — see `workspan doctor`, `workspan reviews`, `workspan daily`");
         println!("\n{}", style::meta(&tail));
     }
 
@@ -530,7 +530,7 @@ pub(crate) fn emit_next(
     }
 }
 
-/// `bn gap` (#247) — print the gap to your next meeting from the offline meetings cache, or
+/// `workspan gap` (#247) — print the gap to your next meeting from the offline meetings cache, or
 /// "no upcoming events" when there's no fresh upcoming event. Read-only, no network. `--json`
 /// returns `{ "gap": Gap | null }`.
 pub(crate) fn emit_gap(as_json: bool) {
@@ -547,7 +547,7 @@ pub(crate) fn emit_gap(as_json: bool) {
     println!("{}", bn_core::meetings::render_gap(gap.as_ref()));
 }
 
-/// `bn gap ingest` (#247) — the `meetings` cron's write path: read JSON/JSONL meetings from stdin
+/// `workspan gap ingest` (#247) — the `meetings` cron's write path: read JSON/JSONL meetings from stdin
 /// and REPLACE the cache for `date` (default today). Prints the count ingested; `--json` returns
 /// `{ "count", "date" }`. A garbage line in the pipe is skipped, never fatal.
 pub(crate) fn gap_ingest(date: Option<String>, as_json: bool) {
@@ -558,7 +558,7 @@ pub(crate) fn gap_ingest(date: Option<String>, as_json: bool) {
     let now = clock.now_epoch_secs();
     let mut input = String::new();
     if std::io::stdin().read_to_string(&mut input).is_err() {
-        eprintln!("bn gap ingest: failed to read stdin");
+        eprintln!("workspan gap ingest: failed to read stdin");
         std::process::exit(1);
     }
     let events = bn_core::meetings::parse_items(&input);
@@ -587,7 +587,7 @@ pub(crate) fn gap_ingest(date: Option<String>, as_json: bool) {
                     Envelope::failure("gap_ingest", "io", e.to_string()).to_json()
                 );
             } else {
-                eprintln!("bn gap ingest: {e}");
+                eprintln!("workspan gap ingest: {e}");
             }
             std::process::exit(1);
         }

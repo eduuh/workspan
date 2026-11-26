@@ -1,18 +1,18 @@
 <meta charset="utf-8">
-<title>bn Workflow Notes</title>
+<title>Workspan Workflow Notes</title>
 <link rel="stylesheet" href="assets/bn-docs.css">
 
 <div class="wrap">
 
 <aside class="rail">
-  <a class="rail__brand" href="index.html"><b>bn</b> workflow notes</a>
+  <a class="rail__brand" href="index.html"><b>Workspan</b> workflow notes</a>
   <p class="rail__tag">How the machine actually runs</p>
   <nav>
     <ol>
       <li><a href="index.html" aria-current="page">Overview</a></li>
       <li><a href="01-pipeline.html">The pipeline &amp; its gates</a></li>
       <li><a href="02-dispatch.html">Dispatch &amp; isolation</a></li>
-      <li><a href="03-state.html">What bn writes down</a></li>
+      <li><a href="03-state.html">What workspan writes down</a></li>
       <li><a href="04-catalog.html">The prompt catalog</a></li>
       <li><a href="05-surfaces.html">Surfaces</a></li>
     </ol>
@@ -22,10 +22,10 @@
 <main>
 
 <p class="eyebrow">Overview</p>
-<h1>bn's workflow, as built rather than as designed</h1>
+<h1>workspan's workflow, as built rather than as designed</h1>
 
 <p class="standfirst">
-bn describes a nine-stage pipeline that carries a task from pickup to learn. One of
+workspan describes a nine-stage pipeline that carries a task from pickup to learn. One of
 those stages is driven by code. The gap between the two is not decay — it is the most
 useful thing to understand about the system, and this set of notes is organised around
 it.
@@ -133,7 +133,7 @@ move it.
 </svg>
 <figcaption>
 Stages 1, 4, 6, 8 and 9 appear nowhere outside <code>stage.rs</code> except one attention-type
-mapping. They are reachable only by a hand-typed <code>bn pipeline set</code>.
+mapping. They are reachable only by a hand-typed <code>workspan pipeline set</code>.
 </figcaption>
 </figure>
 
@@ -150,7 +150,7 @@ stage agent.
 <h2>And the default lane is not the pipeline at all</h2>
 
 <p>
-A second gap sits underneath the first. <code>bn dispatch</code> — the command that actually
+A second gap sits underneath the first. <code>workspan dispatch</code> — the command that actually
 starts work — does not enter the nine-stage pipeline by default. Its default lane is
 <code>ship-solo</code>, a single-session workflow; the pipeline is behind an environment
 variable, <code>$BN_DISPATCH_PIPELINE=1</code>.
@@ -180,7 +180,7 @@ answer different questions, and "both are right; they are not the same question.
       <p class="eyebrow">03</p>
       <h3>Dispatch &amp; isolation</h3>
       <p>Two different leases over one checkout, the worktree pool's decision ladder, and
-      how bn tells a working agent from a stuck one without writing a heartbeat.</p>
+      how workspan tells a working agent from a stuck one without writing a heartbeat.</p>
     </a>
   </li>
   <li>
@@ -229,7 +229,7 @@ relying on a number in a decision.
 </div>
 
 <div class="foot">
-  <span>bn workflow notes · built from the code, not from memory</span>
+  <span>workspan workflow notes · built from the code, not from memory</span>
   <a href="01-pipeline.html">Next: the pipeline &amp; its gates →</a>
 </div>
 

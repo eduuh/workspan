@@ -214,7 +214,7 @@ impl Task {
     /// Stamping here rather than at each call site is deliberate: `mod:` is what
     /// [`TodoFile::dedupe_by_uid`] uses to pick the winner after a union merge, so a mutation that
     /// forgot to stamp would lose to an older copy of itself. The clock honors `$BN_NOW`
-    /// ([`crate::util::now_epoch_secs`]), so tests pin it the same way the rest of bn does.
+    /// ([`crate::util::now_epoch_secs`]), so tests pin it the same way the rest of workspan does.
     ///
     /// Use [`Task::set_meta_raw`] for writes that are *not* user edits — id healing on read, and
     /// the identity fields themselves.
@@ -1019,7 +1019,7 @@ pub fn save(path: &Path, file: &TodoFile) -> std::io::Result<()> {
 /// This is the write that makes "which task is this agent on?" answerable. The join itself already
 /// existed in two places — [`crate::pipeline::gate::governing_task`] and the pipeline-stages API
 /// both key on `(repo, branch)` — but nothing ever *wrote* `branch:` except [`Task::new_todo`], and
-/// only when `bn task add` happened to run inside that worktree. So the join almost never fired,
+/// only when `workspan task add` happened to run inside that worktree. So the join almost never fired,
 /// and a running agent could not say what it was working on.
 ///
 /// Idempotent, and locked like every other task-store mutation. `set_meta` (not `set_meta_raw`)

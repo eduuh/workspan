@@ -78,7 +78,7 @@ pub(crate) fn row_date<'a>(hhmm: &str, now_hhmm: &str, today: &'a str, yesterday
     }
 }
 
-/// `bn run tmux-keylog`: append the key presses logged since the last run. Silent and successful
+/// `workspan run tmux-keylog`: append the key presses logged since the last run. Silent and successful
 /// when no tmux server is running, because there is nothing to lose.
 pub(crate) fn job_tmux_keylog(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
     let (Some(pid), Some(raw)) = (
@@ -169,17 +169,17 @@ fn is_mouse(key: &str) -> bool {
     ["Mouse", "Wheel", "DoubleClick", "TripleClick", "SecondClick"].iter().any(|p| key.starts_with(p))
 }
 
-/// `bn tmux-keys [--since 7d]`: every curated binding (a `Section · description` note) in the
+/// `workspan tmux-keys [--since 7d]`: every curated binding (a `Section · description` note) in the
 /// prefix and copy-mode tables with how often it was pressed, zeros included — the zeros are the
 /// point.
 pub(crate) fn emit_tmux_keys(since: Option<String>) {
     let secs = since.as_deref().map_or(Some(7 * 86_400), bn_core::focus::parse_duration);
     let Some(secs) = secs else {
-        eprintln!("bn: --since wants a duration like 7d, 36h or 90m");
+        eprintln!("workspan: --since wants a duration like 7d, 36h or 90m");
         std::process::exit(2);
     };
     let Some(raw) = crate::proc::tmux_raw(&["list-keys", "-F", BINDING_FORMAT]) else {
-        eprintln!("bn: tmux is not reachable — no key table to read");
+        eprintln!("workspan: tmux is not reachable — no key table to read");
         std::process::exit(1);
     };
     let bindings = parse_bindings(&raw);
@@ -211,7 +211,7 @@ pub(crate) fn emit_tmux_keys(since: Option<String>) {
     let gap_note = if gaps > 0 { format!(" · {gaps} gap(s), counts are a floor") } else { String::new() };
     println!("{hd}tmux key usage{n}  {d}since {cutoff} · {presses} presses logged{gap_note}{n}");
     if log.is_empty() {
-        println!("{d}No key log yet. `bn run tmux-keylog` records presses every 5 minutes (tick-5m).{n}");
+        println!("{d}No key log yet. `workspan run tmux-keylog` records presses every 5 minutes (tick-5m).{n}");
     }
 
     let (mut curated, mut unused) = (0usize, 0usize);

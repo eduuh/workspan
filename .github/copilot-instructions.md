@@ -14,7 +14,7 @@ Use `workspan plan status` / `workspan plan path` for the execution contract and
 `workspan pipeline status` / `workspan pipeline set <stage>` for execution state.
 Entire owns captured session history; do not create a parallel session-memory store.
 
-The per-worktree stdio launcher (`bn mcp serve`) exposes only:
+The per-worktree stdio launcher (`workspan mcp serve`) exposes only:
 
 - `bn_cmd` — list or run commands in the current workspace.
 - `bn_links_search` / `bn_links_add` — curated durable links.
@@ -23,10 +23,10 @@ The per-worktree stdio launcher (`bn mcp serve`) exposes only:
 Use the Workspan CLI for tasks, execution, attention, scheduling, and fleet operations.
 MCP workflow prompts remain available from the effective skills.
 
-Fleet orchestration is driven natively from the `bn` CLI — no tmux dashboard required. Drive and
-monitor agents across repos with `bn orchestrate` (`status`, `supervise [--all-repos]`,
-`scale`, `add`, `--queue`, `ask` / `answers`, `backlog --all-repos`) alongside `bn next` and
-`bn doctor`.
+Fleet orchestration is driven natively from the `workspan` CLI — no tmux dashboard required. Drive and
+monitor agents across repos with `workspan orchestrate` (`status`, `supervise [--all-repos]`,
+`scale`, `add`, `--queue`, `ask` / `answers`, `backlog --all-repos`) alongside `workspan next` and
+`workspan doctor`.
 
 Record task completion and execution transitions when they actually happen, not batched at
 session end. Record only what genuinely occurred.

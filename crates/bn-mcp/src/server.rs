@@ -152,7 +152,7 @@ impl BnServer {
     fn resolve(&self) -> Result<Resolved, ErrorData> {
         resolver::resolve(&self.cfg, &self.worktree).map_err(|_| {
             ErrorData::invalid_params(
-                "no branch scope -- run `bn mcp serve` from inside a git worktree",
+                "no branch scope -- run `workspan mcp serve` from inside a git worktree",
                 None,
             )
         })

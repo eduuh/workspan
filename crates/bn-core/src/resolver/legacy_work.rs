@@ -208,7 +208,7 @@ mod tests {
         assert!(!root.exists());
     }
 
-    /// An older bn that still writes to the legacy path recreates it; that copy is merged too.
+    /// An older workspan that still writes to the legacy path recreates it; that copy is merged too.
     #[test]
     fn a_recreated_legacy_dir_is_merged_again() {
         let tmp = tempfile::tempdir().unwrap();

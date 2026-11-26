@@ -106,7 +106,7 @@ impl AgentRole {
     }
 }
 
-/// One live agent session under supervision, attributed to a bn note key. Serializes straight
+/// One live agent session under supervision, attributed to a workspan note key. Serializes straight
 /// into the fleet JSON; `target` is the `repo:branch` tmux window a nudge would be sent to.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct LiveAgent {
@@ -114,8 +114,8 @@ pub struct LiveAgent {
     pub harness: String,
     pub repo: String,
     pub branch: String,
-    /// `repo:branch` — the public identity every bn surface addresses this agent by
-    /// (`bn agent send`), which is *not* necessarily what the hosting tmux window is called.
+    /// `repo:branch` — the public identity every workspan surface addresses this agent by
+    /// (`workspan agent send`), which is *not* necessarily what the hosting tmux window is called.
     pub target: String,
     /// The exact `session:window` hosting this agent, resolved by [`crate::agent::resolve_channels`]
     /// — the target a send-keys or kill actually has to use, since a window may be named after a
@@ -136,12 +136,12 @@ pub struct LiveAgent {
     /// fleet JSON without the field valid — it reads as [`AgentRole::Worker`].
     #[serde(default)]
     pub role: AgentRole,
-    /// Launch-path work class, when bn launched or adopted this session. This is distinct from
+    /// Launch-path work class, when workspan launched or adopted this session. This is distinct from
     /// [`role`]: role says whether an agent supervises the fleet, while work class says what kind
     /// of work the session is doing.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub work_class: Option<WorkClass>,
-    /// Readable task/workflow name recorded at launch (`bn dispatch --name`, controller name, etc.).
+    /// Readable task/workflow name recorded at launch (`workspan dispatch --name`, controller name, etc.).
     /// Fleet consumers use this for workflow-specific chips such as repo setup without guessing
     /// from branch names.
     #[serde(default, skip_serializing_if = "Option::is_none")]
@@ -159,12 +159,12 @@ pub struct LiveAgent {
     pub cache_read_tokens: i64,
     /// Prompt tokens written into the cache so far, both TTLs together — the live counterpart of
     /// [`crate::agent::session::AgentSession`]'s split pair. Undivided because nothing live prices
-    /// it: `bn cost --live` reports tokens only, and the $ lands at ingest from the split fields.
+    /// it: `workspan cost --live` reports tokens only, and the $ lands at ingest from the split fields.
     /// `#[serde(default)]` keeps fleet JSON written before the field existed readable.
     #[serde(default)]
     pub cache_write_tokens: i64,
-    /// How — or whether — bn can drive this agent. Supervision *observes* every running session on
-    /// the machine, including ones bn never launched, so being in the fleet does not imply being
+    /// How — or whether — workspan can drive this agent. Supervision *observes* every running session on
+    /// the machine, including ones workspan never launched, so being in the fleet does not imply being
     /// steerable. Surfacing that lets a client disable steer/relaunch/kill up front instead of
     /// failing after the click. `#[serde(default)]` keeps older fleet JSON valid — it reads as
     /// [`ControlChannel::None`].
@@ -173,8 +173,8 @@ pub struct LiveAgent {
     /// The task this agent is working on, when one is bound to its `(repo, branch)`.
     ///
     /// The fleet could always say an agent was *running*; it could not say what it was running.
-    /// Bound by [`crate::task_store::TaskStore::claim`] (which `bn dispatch --task` and
-    /// `bn task claim` call), and absent — rendered as nothing, never as an error — for an agent
+    /// Bound by [`crate::task_store::TaskStore::claim`] (which `workspan dispatch --task` and
+    /// `workspan task claim` call), and absent — rendered as nothing, never as an error — for an agent
     /// whose worktree no task governs. `#[serde(default)]` keeps older fleet JSON valid.
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub task: Option<AgentTask>,
@@ -200,7 +200,7 @@ pub struct AgentTask {
     pub smart: Option<String>,
 }
 
-/// The channel `bn agent send` would reach an agent through, in the order it tries them.
+/// The channel `workspan agent send` would reach an agent through, in the order it tries them.
 #[derive(Debug, Clone, Copy, Default, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum ControlChannel {
@@ -213,8 +213,8 @@ pub enum ControlChannel {
     /// keyed by branch, not session. Refusing is the only safe answer — a `kill` that might hit
     /// either of two sessions is worse than no kill button at all.
     Ambiguous,
-    /// Neither. Observed only: bn can read this agent's transcript but cannot steer, relaunch or
-    /// kill it. The common case is a session started outside bn (a plain `claude` in a terminal).
+    /// Neither. Observed only: workspan can read this agent's transcript but cannot steer, relaunch or
+    /// kill it. The common case is a session started outside workspan (a plain `claude` in a terminal).
     #[default]
     None,
 }
@@ -323,7 +323,7 @@ pub fn supervise(cfg: &Config, idle_mins: i64, stuck_mins: i64) -> Fleet {
 
 /// Retire every agent whose hosting window says `@bn_agent=done`.
 ///
-/// The idle thresholds cannot see this. A Copilot that ran `bn agent done` and is sitting at its
+/// The idle thresholds cannot see this. A Copilot that ran `workspan agent done` and is sitting at its
 /// prompt keeps a live process, a live window and a readable transcript, so by idle time alone it
 /// ages into `Stuck` and stays there until someone closes the window — and `Stuck` is running, so
 /// it holds a coding lane. Five of those on one box read as "coding 5/6 in flight" with one agent
@@ -348,7 +348,7 @@ fn mark_done(agents: &mut [LiveAgent], windows: &[crate::agent::TmuxWindowRow]) 
 ///
 /// Both halves of the test carry weight. No hosting window means nothing is running the session:
 /// after [`crate::agent::resolve_channels`] stopped taking a stale lease's word for it, that is a
-/// statement about live tmux rather than about a file bn wrote down once. The silence is what keeps
+/// statement about live tmux rather than about a file workspan wrote down once. The silence is what keeps
 /// the rule honest for a session started outside tmux, which has no window either — a *running* one
 /// is still writing its transcript, so it never reaches the threshold.
 ///
@@ -425,7 +425,7 @@ pub fn supervision_roots() -> (PathBuf, PathBuf) {
     )
 }
 
-/// Stamp each live agent with launch-path metadata, keyed on the harness session id `bn dispatch`
+/// Stamp each live agent with launch-path metadata, keyed on the harness session id `workspan dispatch`
 /// pins. Latest launch record wins, matching [`crate::cost::launch_records`]' chronological feed.
 fn stamp_launch_metadata(agents: &mut [LiveAgent], launches: &[LaunchRecord]) {
     let mut by_session: BTreeMap<String, &LaunchRecord> = BTreeMap::new();
@@ -447,7 +447,7 @@ fn stamp_launch_metadata(agents: &mut [LiveAgent], launches: &[LaunchRecord]) {
     }
 }
 
-/// Stamp each agent's [`ControlChannel`] — whether bn has a way to write to it at all — along with
+/// Stamp each agent's [`ControlChannel`] — whether workspan has a way to write to it at all — along with
 /// the exact window and checkout the join found.
 ///
 /// tmux is enumerated **once** for the whole pass rather than probed per agent, because the fleet

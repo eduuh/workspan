@@ -80,7 +80,7 @@ pub fn pick_built_slot(size: usize, leased: &BTreeSet<u32>, built: &BTreeSet<u32
         .or_else(|| pick_slot(size, leased))
 }
 
-/// The reserved main slot, or `None` when it is already leased. `bn control start` is the only
+/// The reserved main slot, or `None` when it is already leased. `workspan control start` is the only
 /// caller: the controller never rotates through the worker range, so this is a fixed-slot
 /// availability check rather than a search.
 pub fn pick_controller_slot(leased: &BTreeSet<u32>) -> Option<u32> {
@@ -211,10 +211,10 @@ pub fn lease_abandoned(facts: LeaseFacts, grace_secs: i64) -> bool {
     !facts.holder_alive || facts.age_secs > grace_secs
 }
 
-/// Whether a `bn dispatch` should lease a warm pool slot or cut a cold worktree.
+/// Whether a `workspan dispatch` should lease a warm pool slot or cut a cold worktree.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum WorktreeMode {
-    /// Lease a warm `bn wt pool` slot (deps/build cache intact) — skips the cold checkout+install.
+    /// Lease a warm `workspan wt pool` slot (deps/build cache intact) — skips the cold checkout+install.
     /// The default dispatch path.
     Pool,
     /// Create a fresh cold worktree, paying the post-create install hook. The `--no-pool` opt-out.

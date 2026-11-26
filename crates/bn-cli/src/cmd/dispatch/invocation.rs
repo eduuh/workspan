@@ -3,7 +3,7 @@
 //! Its own module because `dispatch.rs` is at the file-size ratchet's mercy: the tests that guard the
 //! command shape belong beside the builder, not wedged into the file it is trying not to grow.
 
-/// Canonical argv builder for agent-bearing `bn dispatch` invocations.
+/// Canonical argv builder for agent-bearing `workspan dispatch` invocations.
 ///
 /// Orchestrator and SSH-host callers deliberately execute dispatch in a child process, but they
 /// must not independently encode its flags: seed construction, trust, and launch behavior belong
@@ -116,7 +116,7 @@ impl<'a> DispatchInvocation<'a> {
         args
     }
 
-    /// Run this `bn dispatch` as a child process and wait for it to return.
+    /// Run this `workspan dispatch` as a child process and wait for it to return.
     ///
     /// The door for agents the machine starts on its own behalf: a cron's repair agent,
     /// an attention item, a decomposed issue's children. A child rather than
@@ -136,17 +136,17 @@ impl<'a> DispatchInvocation<'a> {
         #[cfg(not(test))]
         {
             let exe = std::env::current_exe()
-                .map_err(|e| format!("cannot resolve the bn executable: {e}"))?;
+                .map_err(|e| format!("cannot resolve the workspan executable: {e}"))?;
             let status = std::process::Command::new(exe)
                 .args(self.args())
                 .env("BN_WORKER_REPO", self.repo)
                 .stdin(std::process::Stdio::null())
                 .status()
-                .map_err(|e| format!("could not run bn dispatch: {e}"))?;
+                .map_err(|e| format!("could not run workspan dispatch: {e}"))?;
             if status.success() {
                 Ok(())
             } else {
-                Err(format!("bn dispatch exited {}", status.code().unwrap_or(-1)))
+                Err(format!("workspan dispatch exited {}", status.code().unwrap_or(-1)))
             }
         }
     }

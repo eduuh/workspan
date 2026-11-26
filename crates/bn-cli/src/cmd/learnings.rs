@@ -1,7 +1,7 @@
 //! `bn learnings` — captured learnings + human review decisions.
 use crate::*;
 
-/// `bn learnings` — render the windowed, filtered, grouped fleet-learning inspection view (#322).
+/// `workspan learnings` — render the windowed, filtered, grouped fleet-learning inspection view (#322).
 pub(crate) fn emit_learnings(cfg: &Config, filter: &bn_core::learnings::Filter, as_json: bool) {
     let view = bn_core::learnings::collect(cfg, &today(), filter);
     if as_json {
@@ -12,7 +12,7 @@ pub(crate) fn emit_learnings(cfg: &Config, filter: &bn_core::learnings::Filter, 
     }
 }
 
-/// `bn learnings promote|dismiss <key|substring>` — record a human review decision, or report an
+/// `workspan learnings promote|dismiss <key|substring>` — record a human review decision, or report an
 /// unresolvable/ambiguous query (listing the candidates so the overseer can rerun with a key).
 pub(crate) fn emit_learnings_review(
     cfg: &Config,
@@ -23,7 +23,7 @@ pub(crate) fn emit_learnings_review(
 ) {
     use bn_core::learnings::ReviewError;
     if query.trim().is_empty() {
-        fail("bn learnings: a learning key or text substring is required");
+        fail("workspan learnings: a learning key or text substring is required");
     }
     match bn_core::learnings::review(cfg, &today(), query, state, note) {
         Ok(entry) => {
@@ -47,7 +47,7 @@ pub(crate) fn emit_learnings_review(
                 );
                 std::process::exit(1);
             }
-            fail(&format!("bn learnings: no learning matched {query:?}"));
+            fail(&format!("workspan learnings: no learning matched {query:?}"));
         }
         Err(ReviewError::Ambiguous(cands)) => {
             if as_json {
@@ -68,7 +68,7 @@ pub(crate) fn emit_learnings_review(
                 std::process::exit(1);
             }
             eprintln!(
-                "bn learnings: {query:?} matched {} learnings — rerun with one of these keys:",
+                "workspan learnings: {query:?} matched {} learnings — rerun with one of these keys:",
                 cands.len()
             );
             for e in &cands {
@@ -77,7 +77,7 @@ pub(crate) fn emit_learnings_review(
             std::process::exit(1);
         }
         Err(ReviewError::Write(e)) => {
-            fail(&format!("bn learnings: could not record decision: {e}"))
+            fail(&format!("workspan learnings: could not record decision: {e}"))
         }
     }
 }

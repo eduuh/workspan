@@ -36,7 +36,7 @@ pub const REMOVED: &[&str] = &[
     "BN_LOG",
 ];
 
-/// The full sandbox environment for a bn universe rooted at `root`.
+/// The full sandbox environment for a workspan universe rooted at `root`.
 pub fn contract(root: &Path, now: i64, today: &str) -> BTreeMap<String, String> {
     let home = root.join("home");
     let bn_home = home.join(".bn");

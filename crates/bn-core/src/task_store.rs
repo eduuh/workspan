@@ -15,7 +15,7 @@
 //!
 //! `[tasks] provider` picks the implementation ([`TaskProviderKind`]). The Forge provider is
 //! [`crate::forge_app::store::ForgeTaskStore`]. Without a Forge key it still builds, and every read
-//! and write fails pointing at `bn forge login`. It never falls back to the file — a person who
+//! and write fails pointing at `workspan forge login`. It never falls back to the file — a person who
 //! asked for Forge and got a quietly diverging local `tasks.txt` would have two task lists and no
 //! way to tell.
 
@@ -147,7 +147,7 @@ pub fn capture(
 /// unreachable when it tried to say so.
 pub fn note_best_effort(store: &dyn TaskStore, id: &str, text: &str) {
     if let Err(e) = store.note(id, text) {
-        eprintln!("bn: could not leave a note on task {id}: {e}");
+        eprintln!("workspan: could not leave a note on task {id}: {e}");
         crate::log::record(
             crate::log::LogLevel::Warn,
             "tasks",
@@ -170,7 +170,7 @@ pub fn note_governing(cfg: &Config, repo: &str, branch: &str, text: &str) {
     let file = match store.load() {
         Ok(file) => file,
         Err(e) => {
-            eprintln!("bn: could not load tasks to note {repo}:{branch}: {e}");
+            eprintln!("workspan: could not load tasks to note {repo}:{branch}: {e}");
             return;
         }
     };
@@ -353,7 +353,7 @@ mod tests {
         assert_eq!(store.kind(), TaskProviderKind::ForgeApp);
         let err = store.load().unwrap_err();
         assert_eq!(err.kind(), io::ErrorKind::PermissionDenied);
-        assert!(err.to_string().contains("bn forge login"), "{err}");
+        assert!(err.to_string().contains("workspan forge login"), "{err}");
         assert!(store.append(&task("t1", "x")).is_err());
         assert!(store.save(&TodoFile::default()).is_err());
         assert!(store.claim("t1", "bn", "main").is_err());

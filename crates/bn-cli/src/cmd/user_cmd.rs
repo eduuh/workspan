@@ -1,4 +1,4 @@
-//! `bn cmd` — list, scaffold, and run your own commands (see [`bn_core::cmds`]).
+//! `workspan cmd` — list, scaffold, and run your own commands (see [`bn_core::cmds`]).
 use crate::*;
 
 use bn_core::cmds;
@@ -23,8 +23,8 @@ pub(crate) fn emit_cmd(
     };
     let Some(cmd) = cmds::find(cfg, ctx.as_ref(), &name) else {
         eprintln!(
-            "bn cmd: no command '{name}' (looked branch → project → repo → global); \
-             `bn cmd` lists them, `bn cmd --new {name}` makes one"
+            "workspan cmd: no command '{name}' (looked branch → project → repo → global); \
+             `workspan cmd` lists them, `workspan cmd --new {name}` makes one"
         );
         return 2;
     };
@@ -35,13 +35,13 @@ pub(crate) fn emit_cmd(
         return 0;
     }
     if cfg!(windows) {
-        eprintln!("bn cmd: commands are sh scripts; not supported on native Windows");
+        eprintln!("workspan cmd: commands are sh scripts; not supported on native Windows");
         return 2;
     }
     match cmds::command(&cmd, &args, &cwd, ctx.as_ref()).status() {
         Ok(status) => status.code().unwrap_or(1),
         Err(e) => {
-            eprintln!("bn cmd: failed to run {}: {e}", cmd.path.display());
+            eprintln!("workspan cmd: failed to run {}: {e}", cmd.path.display());
             127
         }
     }
@@ -53,7 +53,7 @@ fn list(cfg: &Config, ctx: Option<&Resolved>, json: bool) -> i32 {
         return 0;
     }
     if all.is_empty() {
-        println!("No commands yet. Make one with `bn cmd --new <name>`.");
+        println!("No commands yet. Make one with `workspan cmd --new <name>`.");
         return 0;
     }
     let width = all.iter().map(|c| c.name.len()).max().unwrap_or(0);
@@ -75,13 +75,13 @@ fn scaffold(cfg: &Config, ctx: Option<&Resolved>, name: &str, scope: &str, json:
         "project" => JobScope::Project,
         "branch" => JobScope::Branch,
         other => {
-            eprintln!("bn cmd: unknown --scope '{other}' (global, repo, project, branch)");
+            eprintln!("workspan cmd: unknown --scope '{other}' (global, repo, project, branch)");
             return 2;
         }
     };
     let Some(dir) = cmds::scope_dir(cfg, ctx, scope) else {
         eprintln!(
-            "bn cmd: no {} tier here (repo/project need a worktree; branch needs a non-main branch)",
+            "workspan cmd: no {} tier here (repo/project need a worktree; branch needs a non-main branch)",
             scope.label()
         );
         return 2;
@@ -91,25 +91,25 @@ fn scaffold(cfg: &Config, ctx: Option<&Resolved>, name: &str, scope: &str, json:
             let shown = path.display().to_string();
             if !(json && json_ok("cmd-new", serde_json::json!({ "name": name, "path": shown }))) {
                 println!("{shown}");
-                println!("Edit it, then run `bn cmd {name}`.");
+                println!("Edit it, then run `workspan cmd {name}`.");
             }
             0
         }
         Err(e) => {
-            eprintln!("bn cmd: {}: {e}", dir.join(format!("{name}.sh")).display());
+            eprintln!("workspan cmd: {}: {e}", dir.join(format!("{name}.sh")).display());
             1
         }
     }
 }
 
-/// `bn cmd --pick` (tmux `prefix c`): choose a command in fzf, type its arguments, run it, and hold
+/// `workspan cmd --pick` (tmux `prefix c`): choose a command in fzf, type its arguments, run it, and hold
 /// the output until Enter so a popup does not close over it.
 pub(crate) fn emit_pick(cfg: &Config) -> i32 {
     let cwd = std::env::current_dir().unwrap_or_default();
     let ctx = resolver::resolve(cfg, &cwd).ok();
     let all = cmds::list(cfg, ctx.as_ref());
     if all.is_empty() {
-        println!("No commands yet. Make one with `bn cmd --new <name>`.");
+        println!("No commands yet. Make one with `workspan cmd --new <name>`.");
         return hold(0);
     }
     let Some(row) = fzf_with_preview(&pick_rows(&all)) else {
@@ -128,14 +128,14 @@ pub(crate) fn emit_pick(cfg: &Config) -> i32 {
     let args = match split_args(line.trim()) {
         Ok(args) => args,
         Err(e) => {
-            eprintln!("bn cmd: {e}");
+            eprintln!("workspan cmd: {e}");
             return hold(2);
         }
     };
     let code = match cmds::command(cmd, &args, &cwd, ctx.as_ref()).status() {
         Ok(status) => status.code().unwrap_or(1),
         Err(e) => {
-            eprintln!("bn cmd: failed to run {}: {e}", cmd.path.display());
+            eprintln!("workspan cmd: failed to run {}: {e}", cmd.path.display());
             127
         }
     };
@@ -171,7 +171,7 @@ fn fzf_with_preview(rows: &[String]) -> Option<String> {
             "--with-nth",
             "1..3",
             "--header",
-            "bn cmd · enter runs, esc cancels",
+            "workspan cmd · enter runs, esc cancels",
             "--preview",
             "bat --style=plain --color=always {4} 2>/dev/null || cat {4}",
             "--preview-window",

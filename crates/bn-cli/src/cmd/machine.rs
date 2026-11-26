@@ -4,7 +4,7 @@ use bn_core::machine_state::{
     machine_dirs, merge_machine, resolve_machine_dir, same_machine, LogMerge, MachineDir,
 };
 
-/// `bn machine list` — every host with state under the notes tree, newest activity first.
+/// `workspan machine list` — every host with state under the notes tree, newest activity first.
 ///
 /// Flags the current machine, so a second row belonging to *this* laptop under a different name is
 /// visible as the split it is rather than looking like another computer.
@@ -49,29 +49,29 @@ pub(crate) fn emit_machine_list(cfg: &Config, as_json: bool) {
         println!();
         println!(
             "More than one host has state here. If any of these is *this* machine under an old \
-             name, fold it in with `bn machine merge <name>`."
+             name, fold it in with `workspan machine merge <name>`."
         );
     }
 }
 
-/// `bn machine merge <from>` — fold another host's history into this one.
+/// `workspan machine merge <from>` — fold another host's history into this one.
 pub(crate) fn emit_machine_merge(cfg: &Config, from: &str, dry_run: bool, as_json: bool) {
     if same_machine(from, cfg.machine()) {
         fail(&format!(
-            "bn machine merge: '{from}' is this machine — nothing to merge into itself"
+            "workspan machine merge: '{from}' is this machine — nothing to merge into itself"
         ));
     }
     let dirs = machine_dirs(&cfg.personal_root);
     let Some(source) = dirs.iter().find(|d| same_machine(&d.name, from)) else {
         fail(&format!(
-            "bn machine merge: no state for '{from}' under {} (see `bn machine list`)",
+            "workspan machine merge: no state for '{from}' under {} (see `workspan machine list`)",
             cfg.personal_root.display()
         ));
     };
     let dest = resolve_machine_dir(&cfg.personal_root, cfg.machine());
     let merges = match merge_machine(&dest, &source.path, !dry_run) {
         Ok(merges) => merges,
-        Err(error) => fail(&format!("bn machine merge: {error}")),
+        Err(error) => fail(&format!("workspan machine merge: {error}")),
     };
     report(cfg, from, &merges, source, dry_run, as_json);
 }
@@ -129,12 +129,12 @@ fn report(
     );
 }
 
-/// `bn machine join | leave | mesh`: the `mesh` job script with these arguments, attached to this
+/// `workspan machine join | leave | mesh`: the `mesh` job script with these arguments, attached to this
 /// terminal. A shell job because the rest of the mesh plumbing (tunnel-host, tunnel-auto) is one,
 /// and they share its helpers. The exit code is the script's.
 pub(crate) fn run_mesh(cfg: &Config, args: &[String]) -> i32 {
     let Some((_, script)) = bn_core::resolver::job_script(cfg, None, "mesh") else {
-        eprintln!("bn machine: the mesh job (config/jobs/mesh.sh) is not installed; update bn");
+        eprintln!("workspan machine: the mesh job (config/jobs/mesh.sh) is not installed; update bn");
         return 2;
     };
     std::process::Command::new("sh")

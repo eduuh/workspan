@@ -10,7 +10,7 @@ use std::sync::{Arc, Mutex};
 /// `links / WORKERS × 5s` at worst.
 const WORKERS: usize = 8;
 
-/// `bn links check [--tag T]`.
+/// `workspan links check [--tag T]`.
 pub(super) fn check_links(cfg: &Config, tag: Option<String>, json: bool) {
     let items = links::read(cfg);
     let here = current_repo(cfg);

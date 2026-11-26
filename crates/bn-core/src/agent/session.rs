@@ -169,7 +169,7 @@ pub enum IngestMode {
     NewOnly,
     /// Re-read every session still on disk, replacing its recorded row.
     ///
-    /// For when the *parser* changed rather than the data: a row recorded by an older bn carries
+    /// For when the *parser* changed rather than the data: a row recorded by an older workspan carries
     /// whatever that version could measure, and no amount of re-polling in [`NewOnly`] mode will
     /// revisit it. Two such corrections shipped together — cache-creation tokens were not captured
     /// at all, and a response's usage was counted once per transcript line rather than once per
@@ -218,7 +218,7 @@ pub fn ingest(cfg: &Config) -> std::io::Result<IngestReport> {
     ingest_with_mode(cfg, IngestMode::NewOnly)
 }
 
-/// [`ingest`] under an explicit [`IngestMode`] — the entry point `bn agent ingest --reingest` uses
+/// [`ingest`] under an explicit [`IngestMode`] — the entry point `workspan agent ingest --reingest` uses
 /// to re-read sessions whose recorded row predates a parser fix.
 pub fn ingest_with_mode(cfg: &Config, mode: IngestMode) -> std::io::Result<IngestReport> {
     let home = dirs::home_dir().unwrap_or_default();
@@ -388,7 +388,7 @@ mod tests {
         assert_eq!(back.cache_read_tokens, 1_200_000);
     }
 
-    /// Two snapshots of one session id, as a backfill produces: the row an older bn recorded
+    /// Two snapshots of one session id, as a backfill produces: the row an older workspan recorded
     /// (no cache writes, inflated output) and the corrected re-read appended after it.
     fn snapshots() -> Vec<Event> {
         let mut old = claude_session();

@@ -283,7 +283,7 @@ fn gather_sentinel(_cfg: &Config) -> GatherOut {
 }
 
 /// `stale-branches` — local branch notes with unfinished work that is stale, goal-less, or
-/// blocked, reusing `bn doctor`'s exact note-finding logic (offline filesystem read).
+/// blocked, reusing `workspan doctor`'s exact note-finding logic (offline filesystem read).
 fn gather_stale_branches(cfg: &Config) -> GatherOut {
     let today = crate::util::today();
     let findings = doctor::workspace_findings(cfg, &today, doctor::DEFAULT_STALE_DAYS);

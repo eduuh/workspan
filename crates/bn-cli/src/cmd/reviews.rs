@@ -13,7 +13,7 @@ pub(crate) fn emit_reviews(cfg: &bn_core::resolver::Config, as_json: bool) {
         return;
     }
     if cache.prs.is_empty() {
-        println!("No PRs in the review queue — run `bn run pr-queue` to populate it");
+        println!("No PRs in the review queue — run `workspan run pr-queue` to populate it");
         return;
     }
     let now = bn_core::clock::RealClock.now_epoch_secs();
@@ -60,7 +60,7 @@ pub(crate) fn emit_reviews(cfg: &bn_core::resolver::Config, as_json: bool) {
     }
 }
 
-/// `bn feed` — render every feed source (informational-cron inbox), grouped by source with a
+/// `workspan feed` — render every feed source (informational-cron inbox), grouped by source with a
 /// staleness hint and each item's link.
 pub(crate) fn emit_feed(as_json: bool) {
     let sources = bn_core::feed::read_all();
@@ -80,7 +80,7 @@ pub(crate) fn emit_feed(as_json: bool) {
         return;
     }
     if sources.is_empty() && completed.is_empty() {
-        println!("Feed empty — feed crons populate it (e.g. `bn run ado-reviews`)");
+        println!("Feed empty — feed crons populate it (e.g. `workspan run ado-reviews`)");
         return;
     }
     let now = bn_core::util::now_epoch_secs();
@@ -112,32 +112,32 @@ pub(crate) fn emit_feed(as_json: bool) {
                 println!("      ↗ {link}");
             }
         }
-        println!("  ↳ review, then `bn attn ack <id>` to clear");
+        println!("  ↳ review, then `workspan attn ack <id>` to clear");
     }
 }
 
-/// `bn feed ingest <source>` — replace a source's items from JSON on stdin. The write path feed
-/// cron scripts pipe into; prints how many items landed so a `bn run` window shows the result.
+/// `workspan feed ingest <source>` — replace a source's items from JSON on stdin. The write path feed
+/// cron scripts pipe into; prints how many items landed so a `workspan run` window shows the result.
 /// With `--attn`, also mirrors the items onto the attention list (reconciling against current
-/// state) so review-queue findings surface in `bn next`/doctor, not just the passive feed.
+/// state) so review-queue findings surface in `workspan next`/doctor, not just the passive feed.
 pub(crate) fn feed_ingest(source: &str, attn: bool, severity: &str) {
     use std::io::Read;
     if attn && !bn_core::attention::SEVERITIES.contains(&severity) {
         eprintln!(
-            "bn feed ingest: invalid --severity '{severity}' (want {})",
+            "workspan feed ingest: invalid --severity '{severity}' (want {})",
             bn_core::attention::SEVERITIES.join(" | ")
         );
         std::process::exit(2);
     }
     let mut input = String::new();
     if std::io::stdin().read_to_string(&mut input).is_err() {
-        eprintln!("bn feed ingest: failed to read stdin");
+        eprintln!("workspan feed ingest: failed to read stdin");
         std::process::exit(1);
     }
     let items = bn_core::feed::parse_items(&input);
     let n = items.len();
     if let Err(e) = bn_core::feed::ingest(source, items.clone()) {
-        eprintln!("bn feed ingest: {e}");
+        eprintln!("workspan feed ingest: {e}");
         std::process::exit(1);
     }
     println!("feed '{source}': {n} item{}", if n == 1 { "" } else { "s" });
@@ -147,19 +147,19 @@ pub(crate) fn feed_ingest(source: &str, attn: bool, severity: &str) {
                 println!("attention '{source}': +{raised} raised, {acked} resolved");
             }
             Err(e) => {
-                eprintln!("bn feed ingest: attention mirror failed: {e}");
+                eprintln!("workspan feed ingest: attention mirror failed: {e}");
                 std::process::exit(1);
             }
         }
     }
 }
 
-/// `bn feed clear <source>` — forget a source.
+/// `workspan feed clear <source>` — forget a source.
 pub(crate) fn feed_clear(source: &str) {
     match bn_core::feed::clear(source) {
         Ok(()) => println!("feed '{source}': cleared"),
         Err(e) => {
-            eprintln!("bn feed clear: {e}");
+            eprintln!("workspan feed clear: {e}");
             std::process::exit(1);
         }
     }

@@ -121,7 +121,7 @@ pub(super) fn reclaim_stale(
 }
 
 /// How long a lease with nobody in its slot is given before it counts as leaked. Long enough to
-/// cover the gap between `bn dispatch` taking a slot and its agent appearing in tmux; short enough
+/// cover the gap between `workspan dispatch` taking a slot and its agent appearing in tmux; short enough
 /// that a day's work doesn't silently fill the pool. Same grace the fleet GC gives a quiet agent.
 pub(super) const LEAKED_LEASE_GRACE_SECS: i64 = bn_core::fleet_gc::DEFAULT_MIN_IDLE_SECS;
 
@@ -226,10 +226,10 @@ pub(super) fn lease_occupancy_in(
 /// idempotent same-branch hit exists so that re-dispatching a live agent's branch returns its own
 /// slot instead of opening a second checkout on it — correct, and it must keep working. But the hit
 /// is decided from the ledger alone, so a lease whose agent died still answered "already running".
-/// `bn dispatch` reads that back as an occupied worktree and refuses:
+/// `workspan dispatch` reads that back as an occupied worktree and refuses:
 ///
 /// ```text
-/// bn dispatch: refusing to reuse occupied pooled worktree …/_pool/2 for branch 'repo-setup'
+/// workspan dispatch: refusing to reuse occupied pooled worktree …/_pool/2 for branch 'repo-setup'
 /// ```
 ///
 /// Nothing then clears the lease. `reclaim_leaked_leases` would, but the acquisition path only runs
@@ -306,7 +306,7 @@ pub(super) fn leaked_lease_candidates(ctx: &PoolCtx, leases: &Leases, now: i64) 
 /// Every pool that exists on this machine, as `(repo, ctx)` — one per `<worktree>/<repo>/_pool`
 /// directory with a lease store in it.
 ///
-/// Enumerated from disk, which is now the only source there is: a plain `bn dispatch`
+/// Enumerated from disk, which is now the only source there is: a plain `workspan dispatch`
 /// pools *every* repo at [`bn_core::pool::DEFAULT_POOL_SIZE`] whether or not it is listed,
 /// so the config would miss exactly the unregistered pools nobody is watching.
 fn existing_pools(cfg: &Config) -> Vec<PoolCtx> {
@@ -332,7 +332,7 @@ fn existing_pools(cfg: &Config) -> Vec<PoolCtx> {
 /// Make every pool's ledger match who is actually in its slots. Called at the head of every
 /// `pool-warm` run.
 ///
-/// A slot is leased by `bn dispatch` and handed back by `bn agent kill`, and the second half only
+/// A slot is leased by `workspan dispatch` and handed back by `workspan agent kill`, and the second half only
 /// happens on that one path: an agent whose tmux window simply closes leaves its lease behind
 /// forever. Nothing noticed, because the recorded holder is the caller's parent — a tmux server or
 /// login shell that never exits — so a pool would sit at "7/7 worker slots leased" with three

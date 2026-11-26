@@ -19,7 +19,7 @@
 use crate::*;
 use std::path::Path;
 
-/// Locate bn's `bn/main` worktree in `git worktree list --porcelain` output — the first
+/// Locate workspan's `bn/main` worktree in `git worktree list --porcelain` output — the first
 /// `worktree <path>` line whose path ends in `/bn/main`. Pure so it's unit-testable.
 fn parse_main_worktree(porcelain: &str) -> Option<String> {
     porcelain
@@ -45,10 +45,10 @@ fn is_executable_file(p: &std::path::Path) -> bool {
     }
 }
 
-/// Resolve bn's `bn/main` worktree: the conventional `<worktree_dir>/bn/main`, else the main
+/// Resolve workspan's `bn/main` worktree: the conventional `<worktree_dir>/bn/main`, else the main
 /// worktree of the checkout the `<config_dir>/repo` install anchor points at, else
 /// `$BN_MAIN_WORKTREE`. Used by `self-update` so the committed `install.sh` is resolved regardless
-/// of the cron's arbitrary cwd, and it stays robust even when bn was installed from a feature
+/// of the cron's arbitrary cwd, and it stays robust even when workspan was installed from a feature
 /// worktree.
 fn resolve_bn_main_worktree() -> String {
     let root = bn_core::resolver::worktree_dir();
@@ -185,12 +185,12 @@ pub(crate) fn job_self_update(_cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
 }
 
 /// Why the published release must not replace the installed `bn`, or `None` when installing it is
-/// the right move (it is newer, or there is no bn with a known commit installed to protect).
+/// the right move (it is newer, or there is no workspan with a known commit installed to protect).
 ///
 /// When the release's commit cannot be learned, this refuses. It used to install then, and that
 /// is how source builds got replaced by an older release: a timer runs without the terminal's gh
 /// sign-in, gh cannot answer, and v0.6.2 went over a newer build (seen 2026-09-27 on
-/// a cloud PC, whose `bn run` then queued jobs instead of running them).
+/// a cloud PC, whose `workspan run` then queued jobs instead of running them).
 fn release_not_newer(main_wt: &str, installed: &Path) -> Option<String> {
     let installed_sha = installed_sha(installed)?;
     let Some(release_sha) = published_release_sha() else {
@@ -247,13 +247,13 @@ fn same_commit(a: &str, b: &str) -> bool {
     a.starts_with(b) || b.starts_with(a)
 }
 
-/// The git sha the installed binary reports in `bn --version`.
+/// The git sha the installed binary reports in `workspan --version`.
 fn installed_sha(bn: &Path) -> Option<String> {
     let out = std::process::Command::new(bn).arg("--version").output().ok()?;
     parse_version_sha(&String::from_utf8_lossy(&out.stdout))
 }
 
-/// `bn 0.5.0 (git 8ba69427374f, built 2026-09-07, …)` → `8ba69427374f`.
+/// `workspan 0.5.0 (git 8ba69427374f, built 2026-09-07, …)` → `8ba69427374f`.
 fn parse_version_sha(version: &str) -> Option<String> {
     let rest = version.split("(git ").nth(1)?;
     let sha: String = rest
@@ -273,7 +273,7 @@ fn parse_version_sha(version: &str) -> Option<String> {
 /// workflow pinned with `gh release create --target <sha>`.
 ///
 /// `None` when gh cannot answer (offline, unauthenticated, or a release pinned to a branch name
-/// rather than a commit), which makes [`release_not_newer`] leave the installed bn alone.
+/// rather than a commit), which makes [`release_not_newer`] leave the installed workspan alone.
 fn published_release_sha() -> Option<String> {
     let slug = std::env::var("BN_REPO_SLUG").unwrap_or_else(|_| "eduuh/workspan".to_string());
     let commitish = crate::gh::gh_capture_bounded(

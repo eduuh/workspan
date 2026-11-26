@@ -94,7 +94,7 @@ pub struct PromptOption {
     /// The digit to send to pick it.
     pub number: u8,
     /// The harness's own wording — what a button must say, so the human reads the same text the
-    /// pane shows rather than a label bn invented.
+    /// pane shows rather than a label workspan invented.
     pub label: String,
     /// What picking it means.
     pub semantic: PromptSemantic,
@@ -262,7 +262,7 @@ pub fn parse_pending_prompt(
 /// This used to be an FNV hash of the whole scanned tail plus the
 /// window's `@bn_agent` state. Anything outside the box — a line scrolling in above it, a
 /// lifecycle hook flipping `@bn_agent` — moved the hash while the same dialog sat on screen, so
-/// `bn agent prompt` and `bn agent answer` disagreed and every `--expect` was refused. The cursor
+/// `workspan agent prompt` and `workspan agent answer` disagreed and every `--expect` was refused. The cursor
 /// position is left out for the same reason: the answer sends an option number, not the cursor.
 pub fn dialog_fingerprint(p: &PendingPrompt) -> u64 {
     let mut key = format!(
@@ -427,7 +427,7 @@ fn dialog_lines(lines: &[String]) -> Vec<String> {
 /// The question is the last heading line that reads as one (ends in `?` or `:`); everything above
 /// it is the subject — for a Claude permission dialog, that is the tool title plus the command
 /// itself, which is exactly what a deny rule needs to match on. A heading with no question line
-/// falls back to its last line, so a dialog bn has never seen still gets a sensible summary rather
+/// falls back to its last line, so a dialog workspan has never seen still gets a sensible summary rather
 /// than an empty one.
 fn split_heading(heading: &[String]) -> (String, Option<String>) {
     // A question mark *anywhere* on the line, not only at the end. A harness hard-wraps its prompt

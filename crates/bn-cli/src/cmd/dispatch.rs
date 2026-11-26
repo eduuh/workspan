@@ -71,7 +71,7 @@ fn schedule_on_pool_full(repo: &str, item: &str, json: bool) {
         // No run for this repo — nothing to schedule onto.
         Ok(None) => return,
         Err(e) => {
-            eprintln!("bn dispatch: could not queue on {repo}'s run ({e})");
+            eprintln!("workspan dispatch: could not queue on {repo}'s run ({e})");
             return;
         }
     };
@@ -87,7 +87,7 @@ fn schedule_on_pool_full(repo: &str, item: &str, json: bool) {
         println!("{}", Envelope::success("dispatch", data).to_json());
     } else {
         println!(
-            "bn dispatch: every warm slot for '{repo}' is leased — scheduled on the run instead \
+            "workspan dispatch: every warm slot for '{repo}' is leased — scheduled on the run instead \
              ({queued} newly queued). It starts as soon as a slot frees."
         );
     }
@@ -186,7 +186,7 @@ pub(crate) fn create_worktree(
         };
         let (start, warn) = dispatch_fork_ref(base, origin_exists, behind, ahead);
         if let Some(w) = warn {
-            eprintln!("bn dispatch: {w}");
+            eprintln!("workspan dispatch: {w}");
         }
         bare_git(&["worktree", "add", "-b", branch, &wt_s, &start])
     }
@@ -358,9 +358,9 @@ pub(crate) fn command_quoting_is_balanced(s: &str) -> bool {
     st == St::Bare && !escaped
 }
 
-/// The `bn agent launch` invocation prefix — the native replacement for the old `workflow/bin/agent`
-/// zsh launcher (#683+). Points at the *installed* bn (`$HOME/.config/bn/bn`, the same stable path
-/// tmux.conf uses for `bn jump` / `bn tmux-cockpit`), because the tmux server's PATH lacks the
+/// The `workspan agent launch` invocation prefix — the native replacement for the old `workflow/bin/agent`
+/// zsh launcher (#683+). Points at the *installed* workspan (`$HOME/.config/bn/bn`, the same stable path
+/// tmux.conf uses for `workspan jump` / `workspan tmux-cockpit`), because the tmux server's PATH lacks the
 /// bindir, so callers embed an absolute command. Callers append ` {kind} …flags` to this.
 pub(crate) fn agent_launcher_bin() -> String {
     std::env::var("HOME")
@@ -380,7 +380,7 @@ fn gh_source_config_dir() -> std::path::PathBuf {
 }
 
 /// Pin a worktree to its own `GH_CONFIG_DIR` so a dispatched agent's `gh auth switch` is scoped to
-/// that worktree and can't flip a sibling lane's (or bn's own) gh account (#456). Returns the dir
+/// that worktree and can't flip a sibling lane's (or workspan's own) gh account (#456). Returns the dir
 /// to point `GH_CONFIG_DIR` at, or `None` to leave the agent on the shared config (no source config
 /// to seed from — pinning to an empty, unauthed dir would break the agent's gh, which is worse).
 ///
@@ -413,11 +413,11 @@ fn pin_worktree_gh_account(repo: &str, branch: &str) -> Option<std::path::PathBu
     dir.join("hosts.yml").is_file().then_some(dir)
 }
 
-/// Orchestrate `bn dispatch`: resolve the target repo (an explicit `--repo` name from anywhere, else
+/// Orchestrate `workspan dispatch`: resolve the target repo (an explicit `--repo` name from anywhere, else
 /// the cwd's), resolve the item, create a worktree off `base` for it, seed that branch's note (goal
 /// = the item, plus a source link), run the post-create hook, mark the source todo done, and open a
 /// window on it in the repo's tmux session — an agent window with `--agent`. The execution end of
-/// `bn next`. `ctx` is the cwd's note context (for todo-id resolution / closing the source todo);
+/// `workspan next`. `ctx` is the cwd's note context (for todo-id resolution / closing the source todo);
 /// it's `None` only when dispatching into another repo from outside any repo.
 fn enter_dispatched_investigate_stage(
     cfg: &Config,
@@ -432,7 +432,7 @@ fn enter_dispatched_investigate_stage(
 
 /// Run the fully-seeded harness command `cmd` in `dir` in the foreground, inheriting this process's
 /// stdio/tty so the agent takes over the current pane, and block until it exits. Used by
-/// `bn dispatch --attach` (the `claude`/`copilot` wrappers): control returns here on exit, which is
+/// `workspan dispatch --attach` (the `claude`/`copilot` wrappers): control returns here on exit, which is
 /// exactly where the leased pool slot gets handed back. Returns whether the harness exited cleanly.
 fn run_agent_foreground(cmd: &str, dir: &std::path::Path) -> bool {
     std::process::Command::new("sh")
@@ -511,7 +511,7 @@ pub(crate) fn run_dispatch(
                     .all(|c| c.is_ascii_alphanumeric() || matches!(c, '-' | '_'))
         });
     if raw.trim().is_empty() {
-        fail_json(json, "dispatch", "empty-item", "bn dispatch: empty item");
+        fail_json(json, "dispatch", "empty-item", "workspan dispatch: empty item");
     }
     // #503: opportunistic fleet GC before adding load. A dispatch wave is exactly when stale
     // stragglers from prior waves pile up (this is what drove load to 147), so reap the orphaned
@@ -534,7 +534,7 @@ pub(crate) fn run_dispatch(
                     json,
                     "dispatch",
                     "bad-agent",
-                    &format!("bn dispatch: unknown --agent '{a}' (use: copilot | claude)"),
+                    &format!("workspan dispatch: unknown --agent '{a}' (use: copilot | claude)"),
                 )
             })
         });
@@ -554,7 +554,7 @@ pub(crate) fn run_dispatch(
             json,
             "dispatch",
             "base-bootstrap-failed",
-            &format!("bn dispatch: base bootstrap failed: {e}"),
+            &format!("workspan dispatch: base bootstrap failed: {e}"),
         )
     });
     if let Some(message) = dispatch_base_bootstrap_message(&repo, &dispatch_base) {
@@ -586,7 +586,7 @@ pub(crate) fn run_dispatch(
                         "dispatch",
                         "bad-stage-harness",
                         &format!(
-                            "bn dispatch: unknown harness '{h}' in [pipeline.stages.{}] (use: copilot | claude)",
+                            "workspan dispatch: unknown harness '{h}' in [pipeline.stages.{}] (use: copilot | claude)",
                             stage.as_str()
                         ),
                     )
@@ -596,7 +596,7 @@ pub(crate) fn run_dispatch(
         if let Some((from, reason)) = &resolved.fallback_from {
             if !json {
                 eprintln!(
-                    "bn dispatch: {from} unavailable ({reason}); falling back to {}",
+                    "workspan dispatch: {from} unavailable ({reason}); falling back to {}",
                     resolved.harness
                 );
             }
@@ -614,7 +614,7 @@ pub(crate) fn run_dispatch(
     let yolo = yolo && url.is_none();
     if yolo_blocked_external {
         eprintln!(
-            "bn dispatch: --yolo ignored — this item carries an external link, so its seed runs \
+            "workspan dispatch: --yolo ignored — this item carries an external link, so its seed runs \
              WITH permission gating (an external title could inject commands)."
         );
     }
@@ -662,7 +662,7 @@ pub(crate) fn run_dispatch(
                 "dispatch",
                 "dispatch-already-active",
                 &format!(
-                    "bn dispatch: '{branch}' is already active for this item; not creating a \
+                    "workspan dispatch: '{branch}' is already active for this item; not creating a \
                      duplicate suffix branch. Use --fresh to recover, or --branch for separate \
                      same-title work."
                 ),
@@ -677,7 +677,7 @@ pub(crate) fn run_dispatch(
             "dispatch",
             "refuse-main",
             &format!(
-                "bn dispatch: refusing to dispatch onto '{branch}' — that's the repo's primary \
+                "workspan dispatch: refusing to dispatch onto '{branch}' — that's the repo's primary \
                  branch/worktree. Pick a feature branch (e.g. --branch dispatch/my-fix)."
             ),
         );
@@ -708,7 +708,7 @@ pub(crate) fn run_dispatch(
                 "dispatch",
                 "worktree-occupied",
                 &format!(
-                    "bn dispatch: refusing to reuse occupied worktree {} — choose another \
+                    "workspan dispatch: refusing to reuse occupied worktree {} — choose another \
                      --branch or omit --branch to allocate a unique dispatch branch",
                     wt_path.display()
                 ),
@@ -717,7 +717,7 @@ pub(crate) fn run_dispatch(
                 json,
                 "dispatch",
                 "worktree-failed",
-                &format!("bn dispatch: worktree creation failed: {e}"),
+                &format!("workspan dispatch: worktree creation failed: {e}"),
             ),
         };
         (wt_path, created)
@@ -761,7 +761,7 @@ pub(crate) fn run_dispatch(
                             "dispatch",
                             "paired_pool_unavailable",
                             &format!(
-                                "bn dispatch: --with-main needs two warm worker slots for '{repo}'; \
+                                "workspan dispatch: --with-main needs two warm worker slots for '{repo}'; \
                                  the paired request was not downgraded or queued without its flag"
                             ),
                         );
@@ -769,7 +769,7 @@ pub(crate) fn run_dispatch(
                     schedule_on_pool_full(&repo, raw, json);
                     // `schedule_on_pool_full` returns only when there was no run to queue onto.
                     eprintln!(
-                        "bn dispatch: pool full for '{repo}' and no orchestrate run to queue onto \
+                        "workspan dispatch: pool full for '{repo}' and no orchestrate run to queue onto \
                          — falling back to a cold worktree."
                     );
                     let (p, c) = cold_worktree();
@@ -780,8 +780,8 @@ pub(crate) fn run_dispatch(
                     "dispatch",
                     "pool_full",
                     &format!(
-                        "bn dispatch: every warm slot for '{repo}' is leased. Free one with \
-                         `bn agent kill <repo:branch>` or `wt pool return`, or pass \
+                        "workspan dispatch: every warm slot for '{repo}' is leased. Free one with \
+                         `workspan agent kill <repo:branch>` or `wt pool return`, or pass \
                          --on-pool-full cold to cut a throwaway worktree."
                     ),
                 ),
@@ -791,13 +791,13 @@ pub(crate) fn run_dispatch(
                             json,
                             "dispatch",
                             "paired_pool_unavailable",
-                            "bn dispatch: --with-main requires two pool slots and cannot fall back \
+                            "workspan dispatch: --with-main requires two pool slots and cannot fall back \
                              to one cold worktree",
                         );
                     }
                     eprintln!(
-                        "bn dispatch: couldn't lease a warm slot for '{repo}' (pool full? run \
-                         `bn wt pool warm`, or pass --no-pool) — falling back to a cold worktree."
+                        "workspan dispatch: couldn't lease a warm slot for '{repo}' (pool full? run \
+                         `workspan wt pool warm`, or pass --no-pool) — falling back to a cold worktree."
                     );
                     let (p, c) = cold_worktree();
                     (p, None, c, false, fresh)
@@ -831,12 +831,12 @@ pub(crate) fn run_dispatch(
                     Ok(report) => {
                         for m in &report.missing_runners {
                             eprintln!(
-                                "bn dispatch: MCP extra runner '{}' not on PATH — {}",
+                                "workspan dispatch: MCP extra runner '{}' not on PATH — {}",
                                 m.runner, m.fix
                             );
                         }
                     }
-                    Err(e) => eprintln!("bn dispatch: MCP extras not wired: {e}"),
+                    Err(e) => eprintln!("workspan dispatch: MCP extras not wired: {e}"),
                 }
             }
         }
@@ -858,7 +858,7 @@ pub(crate) fn run_dispatch(
                 json,
                 "dispatch",
                 "invalid-skill-catalog",
-                &format!("bn dispatch: {error}"),
+                &format!("workspan dispatch: {error}"),
             )
         });
         let found = if found.is_some() {
@@ -870,7 +870,7 @@ pub(crate) fn run_dispatch(
                         json,
                         "dispatch",
                         "invalid-skill-catalog",
-                        &format!("bn dispatch: {error}"),
+                        &format!("workspan dispatch: {error}"),
                     )
                 })
             })
@@ -881,7 +881,7 @@ pub(crate) fn run_dispatch(
                 "dispatch",
                 "skill-not-found",
                 &format!(
-                    "bn dispatch: required skill '{name}' not found — `bn skills` lists the available ones"
+                    "workspan dispatch: required skill '{name}' not found — `workspan skills` lists the available ones"
                 ),
             );
         }
@@ -889,7 +889,7 @@ pub(crate) fn run_dispatch(
     } else {
         if skill.is_some() {
             eprintln!(
-                "bn dispatch: --skill shapes a dispatched agent's seed — pass --agent to launch one"
+                "workspan dispatch: --skill shapes a dispatched agent's seed — pass --agent to launch one"
             );
         }
         None
@@ -958,7 +958,7 @@ pub(crate) fn run_dispatch(
                     json,
                     "dispatch",
                     "pipeline-stage",
-                    &format!("bn dispatch: failed to enter investigate stage: {e}"),
+                    &format!("workspan dispatch: failed to enter investigate stage: {e}"),
                 ),
                 // The SMART gate (#998) refused. This is a real stop, not a warning: dispatching
                 // an unscoped task is exactly the wasted-worktree case the gate exists to prevent.
@@ -969,7 +969,7 @@ pub(crate) fn run_dispatch(
                         json,
                         "dispatch",
                         "smart-gate",
-                        &format!("bn dispatch: {why}"),
+                        &format!("workspan dispatch: {why}"),
                     );
                 }
                 Ok(_) => {}
@@ -1006,7 +1006,7 @@ pub(crate) fn run_dispatch(
                             json,
                             "dispatch",
                             "plan-file",
-                            &format!("bn dispatch: cannot create plan draft: {error}"),
+                            &format!("workspan dispatch: cannot create plan draft: {error}"),
                         )
                     }),
                 )
@@ -1042,7 +1042,7 @@ pub(crate) fn run_dispatch(
                                     json,
                                     "dispatch",
                                     "prompt-render",
-                                    &format!("bn dispatch: {error}"),
+                                    &format!("workspan dispatch: {error}"),
                                 )
                             })
                     } else {
@@ -1063,7 +1063,7 @@ pub(crate) fn run_dispatch(
                                 json,
                                 "dispatch",
                                 "prompt-render",
-                                &format!("bn dispatch: {error}"),
+                                &format!("workspan dispatch: {error}"),
                             )
                         })
                     }
@@ -1101,7 +1101,7 @@ pub(crate) fn run_dispatch(
                     json,
                     "dispatch",
                     "prompt-render",
-                    &format!("bn dispatch: {error}"),
+                    &format!("workspan dispatch: {error}"),
                 )
             });
             // `launch_yolo` (approval-free for trusted dispatches), NOT the seed-framing `yolo`:
@@ -1233,7 +1233,7 @@ pub(crate) fn run_dispatch(
                 );
                 if !json {
                     eprintln!(
-                        "bn dispatch: {kind} ship in this pane → {}{}",
+                        "workspan dispatch: {kind} ship in this pane → {}{}",
                         wt_path.display(),
                         if used_pool {
                             " (pooled slot; returns on exit)"
@@ -1280,12 +1280,12 @@ pub(crate) fn run_dispatch(
                     let slot = if slot_returned {
                         format!("returned pool slot → {worktree}")
                     } else if used_pool {
-                        format!("pool slot kept (dirty? `bn wt pool return --force`) → {worktree}")
+                        format!("pool slot kept (dirty? `workspan wt pool return --force`) → {worktree}")
                     } else {
                         format!("worktree → {worktree}")
                     };
                     eprintln!(
-                        "bn dispatch: {kind} exited {}; {slot}",
+                        "workspan dispatch: {kind} exited {}; {slot}",
                         if ran { "cleanly" } else { "non-zero" }
                     );
                 }
@@ -1315,7 +1315,7 @@ pub(crate) fn run_dispatch(
                         json,
                         "dispatch",
                         "agent-lease-held",
-                        &format!("bn dispatch: refusing agent launch — {error}"),
+                        &format!("workspan dispatch: refusing agent launch — {error}"),
                     );
                 }
             };

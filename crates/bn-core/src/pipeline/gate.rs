@@ -289,9 +289,9 @@ fn refusal_reason(verdict: &SmartVerdict, stuck: bool) -> String {
         .collect::<Vec<_>>()
         .join("; ");
     if stuck {
-        format!("{gaps}. bn cannot fill this in by itself; please add it to the task.")
+        format!("{gaps}. workspan cannot fill this in by itself; please add it to the task.")
     } else {
-        format!("{gaps}. bn will try to fill this in.")
+        format!("{gaps}. workspan will try to fill this in.")
     }
 }
 
@@ -354,9 +354,9 @@ fn record_refusal(
     // A bn-authored prompt that points at the durable record, following `promote_todo`'s
     // discipline — the agent reads the task and its doc rather than being handed their contents.
     let prompt = format!(
-        "Run `bn task enhance {id}`. It failed the SMART gate on: {}. \
+        "Run `workspan task enhance {id}`. It failed the SMART gate on: {}. \
          Read the task and its context doc — including whatever the operator captured under \
-         `## Context` and `## Links`, and any files `bn task attach {id}` resolves — then close \
+         `## Context` and `## Links`, and any files `workspan task attach {id}` resolves — then close \
          each gap and re-check.",
         verdict.codes().join(", ")
     );

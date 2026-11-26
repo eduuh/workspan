@@ -19,7 +19,7 @@ pub fn now_rfc3339_utc() -> String {
 }
 
 /// A Unix-epoch-seconds instant as the same RFC-3339 UTC string [`now_rfc3339_utc`] produces, or
-/// `None` for an out-of-range value. Lets an epoch timestamp bn holds (a pool lease's `at`) be
+/// `None` for an out-of-range value. Lets an epoch timestamp workspan holds (a pool lease's `at`) be
 /// compared against the ISO instants other tools record (a Copilot session's `updated_at`), which
 /// sort lexically in this format.
 pub fn epoch_to_rfc3339_utc(epoch_secs: i64) -> Option<String> {
@@ -40,7 +40,7 @@ pub fn local_date_of(epoch_secs: i64) -> String {
 }
 
 /// A compact local `MM-DD HH:MM` rendering of a Unix-epoch-seconds instant — for terse event
-/// listings (e.g. `bn pipeline status` transition history).
+/// listings (e.g. `workspan pipeline status` transition history).
 pub fn fmt_local_short(epoch_secs: i64) -> String {
     chrono::DateTime::from_timestamp(epoch_secs, 0)
         .map(|dt| {
@@ -66,7 +66,7 @@ pub fn now_epoch_secs() -> i64 {
         .unwrap_or(0)
 }
 
-/// Local wall-clock as `YYYY-MM-DD HH:MM` — the stamp `bn log-progress` prefixes to each
+/// Local wall-clock as `YYYY-MM-DD HH:MM` — the stamp `workspan log-progress` prefixes to each
 /// entry. `$BN_NOW` (epoch seconds) overrides for deterministic tests, matching the rest of
 /// the time helpers. Cross-platform via `chrono` (no `date` binary).
 pub fn now_stamp() -> String {
@@ -213,7 +213,7 @@ pub fn detect_model() -> Option<String> {
     None
 }
 
-/// Path of the per-session "current model" file under the bn state dir, keyed by
+/// Path of the per-session "current model" file under the workspan state dir, keyed by
 /// session id so concurrent sessions/worktrees don't clobber each other. A harness
 /// hook (re)writes it each turn; `detect_model` reads it. `BN_SESSION_ID` is the
 /// generic key (any harness); Claude Code's `CLAUDE_CODE_SESSION_ID` is accepted too.
@@ -225,7 +225,7 @@ pub fn session_model_file() -> Option<std::path::PathBuf> {
 
 /// Path of the per-cwd "current model" file, keyed by the current directory. Used by
 /// harnesses with no session id in the tool environment (Copilot): the hook keys by
-/// its payload `cwd`, bn by its own cwd — equal under one-agent-per-worktree. `None`
+/// its payload `cwd`, workspan by its own cwd — equal under one-agent-per-worktree. `None`
 /// if the cwd can't be read. Keep the key derivation identical to the hook side
 /// (`model-cwd-<path with '/'→'_'>`).
 pub fn cwd_model_file() -> Option<std::path::PathBuf> {
@@ -347,15 +347,15 @@ fn days_from_civil(date: &str) -> Option<i64> {
 }
 
 /// Run a non-fatal side effect, logging its failure instead of swallowing it. On `Err` it writes
-/// one `bn: <context>: <err>` line to stderr so a dropped telemetry, paging, cache, or metrics
+/// one `workspan: <context>: <err>` line to stderr so a dropped telemetry, paging, cache, or metrics
 /// write leaves a trace; the `Ok` value is discarded either way.
 ///
 /// Use this — never a bare `let _ =` — wherever the command must still succeed but a silent
-/// failure would hide a real problem (a lost `bn staff` board row, an operator page that never
+/// failure would hide a real problem (a lost `workspan staff` board row, an operator page that never
 /// fired, a cache that stops warming). It is *not* for load-bearing writes a caller needs to
 /// observe: propagate those. `context` should name the write, e.g. `"staff: staff_run event"`.
 pub fn best_effort<T, E: std::fmt::Display>(result: Result<T, E>, context: &str) {
     if let Err(e) = result {
-        eprintln!("bn: {context}: {e}");
+        eprintln!("workspan: {context}: {e}");
     }
 }

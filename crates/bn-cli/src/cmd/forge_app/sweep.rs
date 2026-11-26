@@ -45,14 +45,14 @@ pub(crate) fn claimer() -> String {
     format!("bn@{}", bn_core::worker::node_id())
 }
 
-/// `bn forge sweep`: the claim step, then the merge poll, once.
+/// `workspan forge sweep`: the claim step, then the merge poll, once.
 pub(crate) fn run(cfg: &Config, max: usize, json: bool) -> i32 {
     if cfg.tasks_provider != TaskProviderKind::ForgeApp {
         let message = "[tasks] provider is not \"forge\"; there is nothing to sweep";
         if json {
             println!("{}", Envelope::failure("forge sweep", "not_forge", message).to_json());
         } else {
-            eprintln!("bn forge sweep: {message}");
+            eprintln!("workspan forge sweep: {message}");
         }
         return 1;
     }
@@ -90,7 +90,7 @@ pub(crate) struct ClaimAttempt {
     pub(crate) outcome: &'static str,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) detail: Option<String>,
-    /// The bn task id `bn dispatch --task` was started for, once a claim landed and started.
+    /// The workspan task id `workspan dispatch --task` was started for, once a claim landed and started.
     #[serde(skip_serializing_if = "Option::is_none")]
     pub(crate) started: Option<String>,
 }
@@ -201,11 +201,11 @@ pub(crate) fn claim(
                 if meta_repo.map(String::as_str) != Some(c.repo.as_str()) {
                     let set = BTreeMap::from([("repo".to_string(), c.repo.clone())]);
                     if let Err(e) = api.set_activity_meta(&c.activity, &set, &[], None) {
-                        eprintln!("bn forge: claimed {} but could not stamp repo:{} — {e}", c.activity, c.repo);
+                        eprintln!("workspan forge: claimed {} but could not stamp repo:{} — {e}", c.activity, c.repo);
                     }
                 }
                 if let Err(e) = api.create_comment(&c.activity, &format!("claimed by {claimer}")) {
-                    eprintln!("bn forge: claimed {} but could not comment — {e}", c.activity);
+                    eprintln!("workspan forge: claimed {} but could not comment — {e}", c.activity);
                 }
                 attempts.push(attempt("claimed", None));
             }
@@ -214,7 +214,7 @@ pub(crate) fn claim(
             }
             Ok(ClaimOutcome::Refused(reason)) => attempts.push(attempt("refused", Some(reason))),
             Err(e) => {
-                eprintln!("bn forge: could not claim {} — {e}", c.activity);
+                eprintln!("workspan forge: could not claim {} — {e}", c.activity);
                 attempts.push(attempt("error", Some(e.to_string())));
                 // A transport failure will fail the next claim the same way.
                 break;
@@ -246,7 +246,7 @@ pub(crate) fn sweep_forge_claims(cfg: &Config, max: usize) -> Vec<ClaimAttempt> 
     let rows = match api.list_bn_tasks(Some(0)) {
         Ok(rows) => rows,
         Err(e) => {
-            eprintln!("bn forge: could not list tasks to claim — {e}");
+            eprintln!("workspan forge: could not list tasks to claim — {e}");
             return Vec::new();
         }
     };
@@ -273,8 +273,8 @@ pub(crate) fn sweep_forge_claims(cfg: &Config, max: usize) -> Vec<ClaimAttempt> 
     attempts
 }
 
-/// Start every task a claim just landed on, through `bn dispatch --task <id>`: the one way the
-/// machine starts work on its own behalf. The bn id is read back from the task list, where a claimed
+/// Start every task a claim just landed on, through `workspan dispatch --task <id>`: the one way the
+/// machine starts work on its own behalf. The workspan id is read back from the task list, where a claimed
 /// activity is an ordinary task (`src:forge:<activity>`). A task that cannot be found or started
 /// keeps its claim and says why in `detail`; running the sweep again does not retry it, because it
 /// is no longer unstarted.
@@ -299,7 +299,7 @@ pub(crate) fn start_claimed(cfg: &Config, attempts: &mut [ClaimAttempt]) {
             .find(|t| t.meta("src") == Some(src.as_str()))
             .and_then(|t| Some((t.id()?.to_string(), t.summary())))
         else {
-            a.detail = Some("claimed, but no bn task carries it yet".to_string());
+            a.detail = Some("claimed, but no Workspan task carries it yet".to_string());
             continue;
         };
         match crate::cmd::dispatch::DispatchInvocation::new(&subject, &a.repo, "auto")
@@ -308,7 +308,7 @@ pub(crate) fn start_claimed(cfg: &Config, attempts: &mut [ClaimAttempt]) {
         {
             Ok(()) => a.started = Some(id),
             Err(e) => {
-                eprintln!("bn forge: claimed {} but could not start {id} — {e}", a.activity);
+                eprintln!("workspan forge: claimed {} but could not start {id} — {e}", a.activity);
                 a.detail = Some(format!("claimed, but could not start {id}: {e}"));
             }
         }
@@ -387,7 +387,7 @@ fn pr_state(runner: &dyn CommandRunner, pr: &str) -> Option<String> {
         .map(str::to_ascii_uppercase)
 }
 
-/// The merge poll, as `bn forge sweep` runs it: [`poll_merges`] as this machine, at most once a
+/// The merge poll, as `workspan forge sweep` runs it: [`poll_merges`] as this machine, at most once a
 /// minute.
 pub(crate) fn poll_forge_merges(cfg: &Config, runner: &dyn CommandRunner, now: i64) -> Vec<PrPoll> {
     if cfg.tasks_provider != TaskProviderKind::ForgeApp {
@@ -482,7 +482,7 @@ pub(crate) fn poll_merges(
                 }
             }
             Err(e) => {
-                eprintln!("bn forge: could not complete merged tasks — {e}");
+                eprintln!("workspan forge: could not complete merged tasks — {e}");
                 // Ask again next pass rather than in ten minutes.
                 for (_, key) in &merged {
                     state.prs.remove(key);

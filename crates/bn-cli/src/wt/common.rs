@@ -27,7 +27,7 @@ pub(crate) const P_NC: &str = NC;
 
 // --- layout ----------------------------------------------------------------
 
-/// `(bare_dir, worktree_dir)` for the active project root. `$WT_ROOT` overrides bn's config so
+/// `(bare_dir, worktree_dir)` for the active project root. `$WT_ROOT` overrides workspan's config so
 /// the `wtw` wrapper can drive the same logic against a different filesystem root.
 pub(crate) fn layout(cfg: &Config) -> (PathBuf, PathBuf) {
     match std::env::var("WT_ROOT") {
@@ -60,7 +60,7 @@ pub(crate) fn repo_name(bare: &Path) -> String {
 }
 
 /// Resolve a repo *name* to its bare-repo dir under the configured bare root, for from-anywhere
-/// targeting (`bn dispatch --repo <name>`): the caller need not be inside the repo, or inside any
+/// targeting (`workspan dispatch --repo <name>`): the caller need not be inside the repo, or inside any
 /// repo at all. The name may be the **local bare stem** (`tracker`), a **GitHub/ADO repo name**
 /// (`wira360`), or a full **`owner/repo` slug** — the #452 [`bn_core::repo_resolve`] policy maps
 /// any of them onto the local bare (so `--repo wira360` finds `tracker.git`). Matching is

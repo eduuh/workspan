@@ -10,8 +10,8 @@ outcome without one is a wish. Write no code in this skill.
 Ask every question with the `ask_user` tool, never in plain chat. One topic per form. Keep each
 question short and offer likely answers as options.
 
-1. **Get the tasks.** Run `config/scripts/pull-ado.sh` by absolute path from the bn checkout
-   (`--repo <name>` per repo, see `pull-ado`), then read `bn task` and `bn daily`. On failure,
+1. **Get the tasks.** Run `config/scripts/pull-ado.sh` by absolute path from the workspan checkout
+   (`--repo <name>` per repo, see `pull-ado`), then read `workspan task` and `workspan daily`. On failure,
    show the stderr and ask whether to continue with the existing backlog. Show the list in one
    compact table, then move on.
 
@@ -26,7 +26,7 @@ question short and offer likely answers as options.
    - "What could stop you?" Free text, may be empty.
    If an answer is vague ("make progress"), ask again until it is something visible. If the
    task cannot reach a visible outcome today, ask whether to shrink it or defer it with
-   `bn task add ... --due <date>`.
+   `workspan task add ... --due <date>`.
 
 4. **Ask for the message.** For each outcome ask who should hear about it (the user forwards
    it later; delivery is always to self). Draft a short message in the user's voice, with a PR link
@@ -39,9 +39,9 @@ question short and offer likely answers as options.
    schedule: "Commit to these N outcomes at these times?" Only a yes counts.
 
 6. **Record the commitment.** Only after that yes:
-   - `bn daily add "<outcome>" --task <ado-id> --est <duration>` for each outcome;
+   - `workspan daily add "<outcome>" --task <ado-id> --est <duration>` for each outcome;
    - write the plan (outcome, time, done-when, blocker, message) to `plans/active.md` via
-     `bn plan init`;
+     `workspan plan init`;
    - arm one `manage_schedule` reminder per milestone at its time, whose prompt says: the
      outcome, the done-when check, the drafted message, and "ask whether it is met; if not, ask
      what is blocking and offer to re-plan";

@@ -4,7 +4,7 @@
 use super::*;
 
 /// The picker, kept open across edits: ctrl-t/ctrl-e/ctrl-d change the store and show the picker
-/// again, so tidying links costs no round trip through `bn links edit`. Returns once the picker is
+/// again, so tidying links costs no round trip through `workspan links edit`. Returns once the picker is
 /// left with enter (open) or ctrl-y (copy); exits when fzf is missing or cancelled.
 pub(super) fn pick_loop(
     cfg: &Config,
@@ -30,7 +30,7 @@ pub(super) fn pick_loop(
             for l in &ranked {
                 println!("{:<4} {:<40} {}", l.id, truncate(&l.name, 40), l.url);
             }
-            eprintln!("Nothing opened. `bn links <query>` opens one without fzf.");
+            eprintln!("Nothing opened. `workspan links <query>` opens one without fzf.");
             std::process::exit(1);
         };
         let ids = expand(&items, &keys);
@@ -168,7 +168,7 @@ pub(super) fn picker_rows(ranked: &[&Link], include_groups: bool) -> Vec<String>
 
 /// Run fzf over `<rendered>\t<key>` rows with `--multi` and `--expect <expect>`, and return its
 /// raw stdout: the key line, then one selected row per line. `None` when fzf is missing or
-/// cancelled. Shared by the main picker and `bn links new`.
+/// cancelled. Shared by the main picker and `workspan links new`.
 pub(super) fn fzf(rows: &[String], expect: &str, header: &str) -> Option<String> {
     let mut child = Command::new("fzf")
         .args([

@@ -88,7 +88,7 @@ cmd_join() {
     esac
     shift
   done
-  [ -n "$name" ] && [ -n "$target" ] || die "usage: bn machine join <name> <user@host[:port]> [--back user@host[:port] | --no-back]"
+  [ -n "$name" ] && [ -n "$target" ] || die "usage: workspan machine join <name> <user@host[:port]> [--back user@host[:port] | --no-back]"
   name=$(printf '%s' "$name" | tr 'A-Z' 'a-z')
   bn_mesh_valid_name "$name" || die "'$name' is not a usable name (letters, digits, dashes)"
   [ "$name" != "$ME" ] || die "'$name' is this machine's own name"
@@ -140,7 +140,7 @@ cmd_join() {
 }
 
 cmd_leave() {
-  [ $# -eq 1 ] || die "usage: bn machine leave <name>"
+  [ $# -eq 1 ] || die "usage: workspan machine leave <name>"
   name=$1
   w=$(window_of "$name"); [ -z "$w" ] || { tmux kill-window -t "$w" 2>/dev/null || true; say "$name: reverse forward stopped"; }
   if bn_mesh_ssh "$name" true >/dev/null 2>&1; then
@@ -161,7 +161,7 @@ cmd_leave() {
 cmd_serve() {
   name=$1
   lport=$(bn_mesh_get "$name" lport); rport=$(bn_mesh_get "$name" rport)
-  [ -n "$lport" ] && [ -n "$rport" ] || die "$name: no reverse forward configured (bn machine join $name ...)"
+  [ -n "$lport" ] && [ -n "$rport" ] || die "$name: no reverse forward configured (workspan machine join $name ...)"
   delay=2
   while :; do
     start=$(date +%s)

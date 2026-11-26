@@ -54,7 +54,7 @@ impl Capacity {
     /// Derive the local admission status (epic #707 v4): PRESSURE when the 1-min load per core is
     /// at/above [`LOAD_PER_CORE_MAX`], or when free swap drops below [`SWAP_FREE_MIN_FRAC`] of
     /// total swap; READY otherwise. Unknown signals never raise pressure (fail-open, matching the
-    /// rest of bn's guards). A local sample is never `DEAD` — that is a remote reconcile verdict.
+    /// rest of workspan's guards). A local sample is never `DEAD` — that is a remote reconcile verdict.
     pub fn status(&self) -> NodeStatus {
         if let (Some(load), n) = (self.loadavg1, self.nproc) {
             if n > 0 && load / n as f64 >= LOAD_PER_CORE_MAX {

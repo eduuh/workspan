@@ -8,7 +8,7 @@
 //! cuts the fresh worktree, dispatches the `--fresh` lane, and wires the side effects.
 
 /// Default bound on the execute↔critique loop before escalating to a human (r17 §1.4).
-/// Not yet configurable — pipeline config is Phase 4/5; `bn critic` exposes it as a flag.
+/// Not yet configurable — pipeline config is Phase 4/5; `workspan critic` exposes it as a flag.
 pub const DEFAULT_MAX_ITERATIONS: u32 = 3;
 
 /// The critic's ruling on a diff.

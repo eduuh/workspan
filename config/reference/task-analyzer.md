@@ -8,7 +8,7 @@ keywords: [task-analyzer, task, analyzer, performs, metacognitive, analysis, ski
 
 ## Skills Index
 
-The installed skills are the index: `bn skills list` (name, tier, description) and `bn skills find "<task>"` (ranked matches with `when:` and how to invoke). Select only names these print.
+The installed skills are the index: `workspan skills list` (name, tier, description) and `workspan skills find "<task>"` (ranked matches with `when:` and how to invoke). Select only names these print.
 
 ## Task Analysis Process
 
@@ -49,7 +49,7 @@ Identify the fundamental purpose beyond surface-level work:
 
 ### 4. Tag-Based Skill Matching
 
-Extract tags from the task description and run `bn skills find "<tags or task>"`:
+Extract tags from the task description and run `workspan skills find "<tags or task>"`:
 
 ```yaml
 Task: "Implement user authentication with tests"
@@ -85,10 +85,10 @@ taskAnalysis:
   tags: [<string>, ...]  # Extracted from task description
 
 selectedSkills:
-  - skill: <skill-name>  # as printed by bn skills list/find
+  - skill: <skill-name>  # as printed by workspan skills list/find
     priority: <high|medium|low>
     reason: <string>  # Why this skill was selected
-    when: <string>  # the skill's `when:` line from bn skills find
+    when: <string>  # the skill's `when:` line from workspan skills find
 ```
 
 Choose which sections of a skill apply only after reading the skill itself.

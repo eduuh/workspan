@@ -20,19 +20,19 @@ not apply here — you write the plan yourself, below.
 1. Investigate, then write the plan as Markdown — approach, touched files, risks — directly into
    the Workspan-owned draft file `{{plan_file}}`, not a duplicate task checklist.
 2. Submit that exact file, fan out the reviewers, and pause:
-   `bn review submit --repo {{repo}} --branch {{branch}} --session {{session_id}} --reviewers {{reviewers}} --quorum {{quorum}} --plan-file {{plan_file}} [--label ...] [--path ...]`
+   `workspan review submit --repo {{repo}} --branch {{branch}} --session {{session_id}} --reviewers {{reviewers}} --quorum {{quorum}} --plan-file {{plan_file}} [--label ...] [--path ...]`
    (include every source label and planned touched path so sensitive-plan checks cannot be
-   bypassed), then `bn review agents <id>` to spawn the {{reviewers}} fresh, independent,
+   bypassed), then `workspan review agents <id>` to spawn the {{reviewers}} fresh, independent,
    read-only critics.
-3. Poll with `bn review status <id>`. Do not write code or open a PR while status is `pending`.
+3. Poll with `workspan review status <id>`. Do not write code or open a PR while status is `pending`.
    `consensus: human-required` needs explicit human approval even in unattended mode;
    `consensus: no-consensus` must be resolved by a human.
 4. `approved`: promote the approved draft to the active plan with
-   `bn plan promote {{session_id}}`, then implement it via the workflow's execution loop.
+   `workspan plan promote {{session_id}}`, then implement it via the workflow's execution loop.
    {{verification_requirement}} When the work is green, open the authorized PR and report
-   with `bn agent done --summary '<one line>' --pr <url>`.
-5. `changes-requested`: read `bn review show <id>`, revise, resubmit the same review, and poll again.
+   with `workspan agent done --summary '<one line>' --pr <url>`.
+5. `changes-requested`: read `workspan review show <id>`, revise, resubmit the same review, and poll again.
 6. `rejected`: stop without implementing and run
-   `bn agent done --report-only --summary 'plan rejected'`.
+   `workspan agent done --report-only --summary 'plan rejected'`.
 
 === END PLAN-REVIEW GATE ===

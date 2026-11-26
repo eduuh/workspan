@@ -84,7 +84,7 @@ impl Trigger {
 
 /// Whether a trigger should badge the window at all.
 ///
-/// `pane-died` only happens where `remain-on-exit` kept the pane, which bn sets on the windows it
+/// `pane-died` only happens where `remain-on-exit` kept the pane, which workspan sets on the windows it
 /// runs work in (agent windows, failed picker jobs), so a window that is still there always gets
 /// its outcome. `pane-exited` fires for every pane that closes, including a shell someone typed
 /// `exit` into, so it badges only a window that is still there and is being watched. The silence
@@ -97,7 +97,7 @@ pub(crate) fn should_badge(trigger: Trigger, window_exists: bool, monitor_silenc
     }
 }
 
-/// `bn tmux-done-badge <window> [--status=<s> | --exited]`: mark a finished window.
+/// `workspan tmux-done-badge <window> [--status=<s> | --exited]`: mark a finished window.
 ///
 /// Every step is best-effort, because this runs inside a tmux hook, and a hook that fails is worse
 /// than a badge that is missing.

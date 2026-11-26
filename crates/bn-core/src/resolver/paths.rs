@@ -77,7 +77,7 @@ impl Config {
             .join(&ctx.branch)
     }
 
-    /// `<artifact_dir>/plans` — branch-scoped plan artifacts. The directory is durable bn state,
+    /// `<artifact_dir>/plans` — branch-scoped plan artifacts. The directory is durable workspan state,
     /// not repo worktree state, so plan files follow the branch note across machines.
     pub fn plan_dir(&self, ctx: &Resolved) -> PathBuf {
         self.artifact_dir(ctx).join("plans")
@@ -169,7 +169,7 @@ impl Config {
         self.daily_dir().join(format!("{date}.md"))
     }
 
-    /// `<personal_root>/<machine>/inbox.md` — the global capture inbox (`bn q`). Cross-branch
+    /// `<personal_root>/<machine>/inbox.md` — the global capture inbox (`workspan q`). Cross-branch
     /// and machine-scoped like `daily/`, so captures ride the notes sync without git conflicts.
     pub fn inbox_file(&self) -> PathBuf {
         self.personal_root.join(self.machine()).join("inbox.md")
@@ -198,7 +198,7 @@ impl Config {
     }
 
     /// `<metrics_dir>/events.jsonl` — this machine's productivity event log (pr_*, activity,
-    /// note_closed). The append target for `bn event`; the per-machine read source.
+    /// note_closed). The append target for `workspan event`; the per-machine read source.
     pub fn metrics_log_path(&self) -> PathBuf {
         self.metrics_dir().join("events.jsonl")
     }
@@ -210,7 +210,7 @@ impl Config {
 
     /// `<metrics_dir>/scoreboard-baseline.json` — the single fixed baseline anchor the scoreboard
     /// (#276) compares against: the pre-staff snapshot of the success metrics, recorded once via
-    /// `bn insights --set-baseline`. A sibling of `snapshots/` under the synced metrics subtree, so
+    /// `workspan insights --set-baseline`. A sibling of `snapshots/` under the synced metrics subtree, so
     /// the anchor syncs across machines. Unlike the rolling per-week snapshots this is one durable
     /// point-in-time comparison anchor.
     pub fn scoreboard_baseline_path(&self) -> PathBuf {
@@ -292,7 +292,7 @@ impl Config {
             .join("reference")
     }
 
-    /// `<work_root>/references` — the reusable standards/preferences store (`bn ref`, #623).
+    /// `<work_root>/references` — the reusable standards/preferences store (`workspan ref`, #623).
     /// **Person-scoped, cross-machine** (mirrors `staff/`, NOT machine-scoped like `daily`/`state`):
     /// coding standards apply on every host, so the files live once under the synced notes root and
     /// every box reads the same references — no per-machine duplication. One markdown file per topic
@@ -303,7 +303,7 @@ impl Config {
         self.synced_person_store_root().join("references")
     }
 
-    /// `<work_root>/links.md` — the store of links worth going back to (`bn links`).
+    /// `<work_root>/links.md` — the store of links worth going back to (`workspan links`).
     /// **Person-scoped, cross-machine**, for the same reason as [`references_dir`](Self::references_dir):
     /// a PBI or a portal blade is yours, not one laptop's. Sits beside `tasks.txt` in the synced
     /// notes root rather than under `<machine>/`.

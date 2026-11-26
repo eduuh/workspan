@@ -26,15 +26,15 @@ pub(crate) fn task_store(cfg: &Config) -> Box<dyn bn_core::task_store::TaskStore
 }
 
 /// The current worktree's repo/branch, when there is one. `None` outside a git repo, which is a
-/// normal way to run `bn task` now rather than an error.
+/// normal way to run `workspan task` now rather than an error.
 pub(crate) fn task_ctx_opt(cfg: &Config) -> Option<Resolved> {
     target_ctx(cfg, None, None)
 }
 
-/// `bn task claim <id> [--repo] [--branch]` — bind a task to the worktree working it.
+/// `workspan task claim <id> [--repo] [--branch]` — bind a task to the worktree working it.
 ///
 /// The write that makes the fleet's "what is this agent working on?" answerable: it stamps the
-/// `repo:`/`branch:` metas the `(repo, branch)` join already keys on. `bn dispatch --task` does
+/// `repo:`/`branch:` metas the `(repo, branch)` join already keys on. `workspan dispatch --task` does
 /// this automatically; this is the hand path — an agent running it from inside its own checkout,
 /// or an operator adopting a worktree that was started before the task existed.
 pub(crate) fn emit_task_claim(
@@ -53,7 +53,7 @@ pub(crate) fn emit_task_claim(
                 as_json,
                 "task_claim",
                 "no_target",
-                "bn task claim: not in a git repo — pass --repo and --branch",
+                "workspan task claim: not in a git repo — pass --repo and --branch",
             ),
         },
     };
@@ -63,13 +63,13 @@ pub(crate) fn emit_task_claim(
             as_json,
             "task_claim",
             "not_found",
-            &format!("bn task claim: no task '{id}'"),
+            &format!("workspan task claim: no task '{id}'"),
         ),
         Err(e) => fail_json(
             as_json,
             "task_claim",
             "write_failed",
-            &format!("bn task claim: {e}"),
+            &format!("workspan task claim: {e}"),
         ),
     }
     let data = serde_json::json!({ "id": id, "repo": repo.to_lowercase(), "branch": branch });
@@ -95,7 +95,7 @@ fn warn_legacy_todo() {
         .unwrap_or(false);
     if has_tasks {
         eprintln!(
-            "note: {} is deprecated — tasks now live in one global store. Import it with: bn task import {}",
+            "note: {} is deprecated — tasks now live in one global store. Import it with: workspan task import {}",
             legacy.display(),
             legacy.display()
         );
@@ -107,7 +107,7 @@ pub(crate) fn emit_task_list(cfg: &Config, view: TaskView, repo: Option<&str>, a
     let scope = repo_scope(cfg, repo);
     let file = task_store(cfg)
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     let today = today();
 
     let items = select_tasks(&file, view, &scope, &today);
@@ -132,7 +132,7 @@ pub(crate) fn emit_task_list(cfg: &Config, view: TaskView, repo: Option<&str>, a
         };
         match view {
             TaskView::Today => println!(
-                "Nothing scheduled for today{where_} — `bn task --all` for the backlog, `bn task add` to start one."
+                "Nothing scheduled for today{where_} — `workspan task --all` for the backlog, `workspan task add` to start one."
             ),
             TaskView::All => println!("No open tasks{where_}."),
         }
@@ -179,17 +179,17 @@ pub(crate) fn emit_task_add(
     as_json: bool,
 ) {
     if text.trim().is_empty() {
-        fail("bn task add: text must not be empty");
+        fail("workspan task add: text must not be empty");
     }
     let priority = priority.map(|c| c.to_ascii_uppercase());
     if let Some(p) = priority {
         if !('A'..='C').contains(&p) {
-            fail("bn task add: -p/--priority must be A, B, or C");
+            fail("workspan task add: -p/--priority must be A, B, or C");
         }
     }
     if let Some(d) = due {
         if bn_core::util::epoch_day(d).is_none() {
-            fail("bn task add: --due must be a date (YYYY-MM-DD)");
+            fail("workspan task add: --due must be a date (YYYY-MM-DD)");
         }
     }
     warn_legacy_todo();
@@ -200,7 +200,7 @@ pub(crate) fn emit_task_add(
     // Read just to mint the next id; `append` then adds the one line without reflowing the rest.
     let file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     let today = today();
     let id = file.next_id();
     let branch = ctx.as_ref().map(|c| c.branch.as_str()).unwrap_or("");
@@ -222,7 +222,7 @@ pub(crate) fn emit_task_add(
     // new task when it is not; it also provisions the union merge on first write (#995).
     store
         .append(&task)
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     // Only once the line is durable: a capture that fails must cost context, never the task.
     let (stored, problems) = if capture.is_empty() {
         (Vec::new(), Vec::new())
@@ -244,7 +244,7 @@ pub(crate) fn emit_task_add(
     }
 }
 
-/// `bn task import <path>` — absorb a legacy repo-local `TODO.txt` into the global store.
+/// `workspan task import <path>` — absorb a legacy repo-local `TODO.txt` into the global store.
 ///
 /// Idempotent by construction: each imported line carries `key:import:<hash>` derived from its
 /// original text, and a line whose key is already present is skipped. So re-running after adding
@@ -261,7 +261,7 @@ pub(crate) fn emit_task_import(
     as_json: bool,
 ) {
     let legacy = bn_core::todo::load(source)
-        .unwrap_or_else(|e| fail(&format!("bn task import: cannot read {}: {e}", source.display())));
+        .unwrap_or_else(|e| fail(&format!("workspan task import: cannot read {}: {e}", source.display())));
 
     // `--repo` wins; otherwise name the repo after the directory the legacy file sits in, which is
     // the repo root for the `<repo>/TODO.txt` layout this imports from.
@@ -282,7 +282,7 @@ pub(crate) fn emit_task_import(
     let _lock = backend.lock();
     let mut store = backend
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
 
     let seen: std::collections::HashSet<String> = store
         .tasks()
@@ -314,7 +314,7 @@ pub(crate) fn emit_task_import(
     if added > 0 {
         backend
             .save(&store)
-            .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+            .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     }
 
     if as_json {
@@ -332,7 +332,7 @@ pub(crate) fn emit_task_import(
     }
 }
 
-/// `bn task doc <id>` — open (creating on first use) a task's context doc.
+/// `workspan task doc <id>` — open (creating on first use) a task's context doc.
 ///
 /// The doc is where everything the one-line task can't hold lives: why it matters, the
 /// `## Done When` checklist the SMART gate reads (#998), investigation findings, open questions.
@@ -343,14 +343,14 @@ pub(crate) fn emit_task_doc(cfg: &Config, id: &str, open: bool, as_json: bool) {
     let _lock = store.lock();
     let mut file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     let Some(task) = file.task_mut(id) else {
-        fail(&format!("bn task doc: no task {id}"));
+        fail(&format!("workspan task doc: no task {id}"));
     };
 
     let existed = bn_core::task_doc::doc_path(cfg, task).is_some_and(|p| p.exists());
     let doc = bn_core::task_doc::ensure(cfg, task)
-        .unwrap_or_else(|e| fail(&format!("bn task doc: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task doc: {e}")));
 
     // Record that this task has a doc, so `bn task --json` and the SMART gate can see it without
     // a filesystem probe. Stored as a bare file name — never a path, which could point at the
@@ -364,7 +364,7 @@ pub(crate) fn emit_task_doc(cfg: &Config, id: &str, open: bool, as_json: bool) {
         task.set_meta(bn_core::task_doc::DOC_KEY, &name);
         store
             .save(&file)
-            .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+            .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     }
     drop(_lock);
 
@@ -380,7 +380,7 @@ pub(crate) fn emit_task_doc(cfg: &Config, id: &str, open: bool, as_json: bool) {
         let editor = std::env::var("EDITOR").unwrap_or_else(|_| "vi".to_string());
         let status = std::process::Command::new(&editor).arg(&doc).status();
         if status.is_err() {
-            fail(&format!("bn task doc: could not launch {editor}"));
+            fail(&format!("workspan task doc: could not launch {editor}"));
         }
     } else {
         println!("{}", doc.display());
@@ -405,7 +405,7 @@ pub(crate) fn append_pulled_tasks(
     minted
 }
 
-/// `bn task pull` — top the task list back up from the GitHub-issue reservoir.
+/// `workspan task pull` — top the task list back up from the GitHub-issue reservoir.
 ///
 /// Bounded by a low-water mark per repo, so the store stays a curated working set rather than a
 /// mirror of every open issue. Ranking, exclusions and the unassigned filter all come from
@@ -427,7 +427,7 @@ pub(crate) fn emit_task_pull(
         RepoScope::Any => bn_core::issues::known_repos(cfg),
     };
     if repos.is_empty() {
-        fail("bn task pull: no repos known — set [managed_repos].repos or clone a managed repo");
+        fail("workspan task pull: no repos known — set [managed_repos].repos or clone a managed repo");
     }
 
     let policy = crate::cmd::keep_warm::configured_policy(cfg, low_water);
@@ -439,7 +439,7 @@ pub(crate) fn emit_task_pull(
     let _lock = store.lock();
     let mut file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
 
     let mut minted: Vec<serde_json::Value> = Vec::new();
     let mut stale_repos: Vec<String> = Vec::new();
@@ -467,7 +467,7 @@ pub(crate) fn emit_task_pull(
     if !dry_run && !minted.is_empty() {
         store
             .save(&file)
-            .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+            .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     }
     drop(_lock);
 
@@ -529,7 +529,7 @@ pub(crate) fn emit_task_pull(
         );
     }
     if !dry_run {
-        println!("None are executable yet — they need `bn task doc` + a done-when before the gate admits them.");
+        println!("None are executable yet — they need `workspan task doc` + a done-when before the gate admits them.");
     }
 }
 
@@ -547,7 +547,7 @@ fn import_key(task: &bn_core::todo::Task) -> String {
 pub(crate) fn emit_task_mutate(cfg: &Config, op: TaskOp, id: &str, as_json: bool) {
     if let TaskOp::Snooze(until) = op {
         if bn_core::util::epoch_day(until).is_none() {
-            fail("bn task snooze: date must be YYYY-MM-DD");
+            fail("workspan task snooze: date must be YYYY-MM-DD");
         }
     }
     warn_legacy_todo();
@@ -556,7 +556,7 @@ pub(crate) fn emit_task_mutate(cfg: &Config, op: TaskOp, id: &str, as_json: bool
     let _lock = store.lock();
     let mut file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     let today = today();
     let (ok, verb) = match op {
         TaskOp::Do => (file.mark_done(id, &today), "Done"),
@@ -565,7 +565,7 @@ pub(crate) fn emit_task_mutate(cfg: &Config, op: TaskOp, id: &str, as_json: bool
         TaskOp::Cancel(reason) => (file.cancel(id, &today, reason), "Cancelled"),
     };
     if !ok {
-        fail(&format!("bn task: no task {id}"));
+        fail(&format!("workspan task: no task {id}"));
     }
 
     // Marking a task `@wip` is the moment it is picked up, so this is where its context doc moves
@@ -582,7 +582,7 @@ pub(crate) fn emit_task_mutate(cfg: &Config, op: TaskOp, id: &str, as_json: bool
 
     store
         .save(&file)
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     if as_json {
         let data = serde_json::json!({
             "id": id,
@@ -611,7 +611,7 @@ pub(crate) fn emit_task_ingest(
     let ctx = task_ctx_opt(cfg);
     let mut input = String::new();
     if std::io::stdin().read_to_string(&mut input).is_err() {
-        fail("bn task ingest: failed to read stdin");
+        fail("workspan task ingest: failed to read stdin");
     }
     let items = bn_core::todo::parse_ingest_todos(&input);
     let default_branch = branch
@@ -621,10 +621,10 @@ pub(crate) fn emit_task_ingest(
     let _lock = store.lock();
     let mut file = store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     let out = file
         .ingest(&items, source, default_branch, replace, &today())
-        .unwrap_or_else(|e| fail(&format!("bn task ingest: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task ingest: {e}")));
     let repo = repo.filter(|repo| *repo != ".")
         .or(ctx.as_ref().map(|ctx| ctx.repo.as_str()));
     if let Some(repo) = repo {
@@ -638,7 +638,7 @@ pub(crate) fn emit_task_ingest(
     }
     store
         .save(&file)
-        .unwrap_or_else(|e| fail(&format!("bn task: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan task: {e}")));
     if as_json {
         let data = serde_json::json!({
             "added": out.added, "skipped": out.skipped, "resolved": out.resolved, "ids": out.ids,

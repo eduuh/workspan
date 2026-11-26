@@ -11,7 +11,7 @@ use std::process::Command;
 pub struct RegisteredAgent {
     /// `com.bn.<job>` / `com.bn.<repo>.<job>`.
     pub label: String,
-    /// The bn job the agent runs (the label's last segment).
+    /// The workspan job the agent runs (the label's last segment).
     pub job: String,
     pub path: PathBuf,
 }

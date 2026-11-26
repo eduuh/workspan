@@ -13,14 +13,14 @@ fn read_layer(path: &Path) -> Option<toml::Table> {
         Ok(text) => text,
         Err(error) if error.kind() == std::io::ErrorKind::NotFound => return None,
         Err(error) => {
-            eprintln!("bn: could not read {}: {error}", path.display());
+            eprintln!("workspan: could not read {}: {error}", path.display());
             return None;
         }
     };
     match text.parse::<toml::Table>() {
         Ok(table) => Some(table),
         Err(e) => {
-            eprintln!("bn: ignoring malformed {}: {e}", path.display());
+            eprintln!("workspan: ignoring malformed {}: {e}", path.display());
             None
         }
     }
@@ -44,7 +44,7 @@ pub(crate) fn merge_tables(base: &mut toml::Table, over: toml::Table) {
     }
 }
 
-/// The settings bn reads, all optional: the shared `<notes_root>/config.toml` with this machine's
+/// The settings workspan reads, all optional: the shared `<notes_root>/config.toml` with this machine's
 /// `<notes_root>/<machine>/config.toml` merged on top. `crate::config_migrate::KNOWN_SECTIONS`
 /// lists these field names, and a test keeps the two equal.
 #[derive(Debug, Clone, Default, serde::Deserialize)]
@@ -80,7 +80,7 @@ pub(super) struct ConfigFile {
     orchestrate: Option<OrchestrateSection>,
     /// `[machine]`: what this machine should do less of. Absent, it is allowed everything.
     machine: Option<MachineProfile>,
-    /// `[hosts.<alias>]`: ssh-host enrichment for `bn connect`. Keyed by
+    /// `[hosts.<alias>]`: ssh-host enrichment for `workspan connect`. Keyed by
     /// the ssh-config `Host` alias; connection details stay in `~/.ssh/config`.
     pub(super) hosts: Option<HashMap<String, crate::hosts::HostExtra>>,
     /// `[nodes.<node_id>]` (#729): the declarative multi-node worker list — each node's execution
@@ -116,7 +116,10 @@ impl ConfigFile {
             Ok(cf) => Some(cf),
             Err(e) => {
                 let paths: Vec<String> = read.iter().map(|p| p.display().to_string()).collect();
-                eprintln!("bn: ignoring malformed config ({}): {e}", paths.join(", "));
+                eprintln!(
+                    "workspan: ignoring malformed config ({}): {e}",
+                    paths.join(", ")
+                );
                 None
             }
         }
@@ -141,12 +144,12 @@ impl ConfigFile {
         self.work.as_ref().and_then(|w| w.work_repos.clone())
     }
 
-    /// `[managed_repos].repos`: the clone URLs bn keeps checked out under the managed root.
+    /// `[managed_repos].repos`: the clone URLs workspan keeps checked out under the managed root.
     pub(super) fn managed_repos(&self) -> Option<Vec<String>> {
         self.managed_repos.as_ref().and_then(|m| m.repos.clone())
     }
 
-    /// `[links].tags` — the curated tag vocabulary for `bn links`. `None` when unset.
+    /// `[links].tags` — the curated tag vocabulary for `workspan links`. `None` when unset.
     pub(super) fn links_tags(&self) -> Option<Vec<String>> {
         self.links.as_ref().and_then(|l| l.tags.clone())
     }
@@ -506,7 +509,7 @@ mod layer_tests {
         }
     }
 
-    /// Every top-level section bn parses, read off the derive itself.
+    /// Every top-level section workspan parses, read off the derive itself.
     pub(crate) fn parsed_sections() -> Vec<&'static str> {
         let mut names = FieldNames(Vec::new());
         let _ = <ConfigFile as serde::Deserialize>::deserialize(&mut names);
@@ -514,8 +517,8 @@ mod layer_tests {
         names.0
     }
 
-    /// The migration keeps what bn reads and drops everything else, so its list of sections must be
-    /// exactly the sections bn parses: one it missed would be silently thrown away on migration.
+    /// The migration keeps what workspan reads and drops everything else, so its list of sections must be
+    /// exactly the sections workspan parses: one it missed would be silently thrown away on migration.
     #[test]
     fn the_migration_knows_every_section_bn_parses() {
         let mut known = crate::config_migrate::KNOWN_SECTIONS.to_vec();

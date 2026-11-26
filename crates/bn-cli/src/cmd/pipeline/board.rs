@@ -34,7 +34,7 @@ pub(super) fn active_board(cfg: &Config) -> Vec<BoardEntry> {
     board
 }
 
-/// `bn pipeline board` — every active local worktree's current stage, newest transition first.
+/// `workspan pipeline board` — every active local worktree's current stage, newest transition first.
 pub(crate) fn emit_pipeline_board(cfg: &Config, as_json: bool) {
     let board = active_board(cfg);
     if as_json {
@@ -59,7 +59,7 @@ pub(crate) fn emit_pipeline_board(cfg: &Config, as_json: bool) {
     }
 }
 
-/// `bn pipeline badge [path]` — the compact `glyph stage` for a worktree, for the tmux status
+/// `workspan pipeline badge [path]` — the compact `glyph stage` for a worktree, for the tmux status
 /// row. Resolves from `path` (tmux passes `#{pane_current_path}`) or the cwd. Legacy worktrees with
 /// no recorded stage render the default pickup stage.
 pub(crate) fn emit_pipeline_badge(cfg: &Config, path: Option<String>) {

@@ -1,9 +1,9 @@
-//! `bn agent run` — launch a catalog agent or workflow skill by name, seeded with an instruction.
+//! `workspan agent run` — launch a catalog agent or workflow skill by name, seeded with an instruction.
 //!
 //! bn could already list what it supports (`bn agents list`) and could already launch a harness
-//! with a prompt (`bn agent launch --seed`), but nothing joined the two: picking an agent by name
+//! with a prompt (`workspan agent launch --seed`), but nothing joined the two: picking an agent by name
 //! and starting it meant rendering the body yourself, or reaching for one of the bespoke launchers
-//! (`bn control start --agent`, `bn today agent start`) that each re-implemented the same
+//! (`workspan control start --agent`, `bn today agent start`) that each re-implemented the same
 //! render → write seed → launch dance. This is that dance, once.
 //!
 //! The name resolves through [`bn_core::launchable`], so agents and skills share one namespace —
@@ -21,7 +21,7 @@ use serde_json::{Map, Value};
 use std::io::Write;
 use std::process::{Command, Stdio};
 
-/// The hidden callback stages the fzf picker re-invokes (`bn agent run --pick-stage <s>`).
+/// The hidden callback stages the fzf picker re-invokes (`workspan agent run --pick-stage <s>`).
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub(crate) enum RunPickStage {
     /// Print the row list (the initial feed and every `reload`).
@@ -36,7 +36,7 @@ const TAB: char = '\t';
 /// How many near-miss suggestions an unknown name is worth.
 const SUGGESTIONS: usize = 6;
 
-/// `bn skills --pick` / `bn agents --pick` — the same picker, narrowed to one catalog.
+/// `workspan skills --pick` / `workspan agents --pick` — the same picker, narrowed to one catalog.
 ///
 /// Both land here rather than growing their own so there is exactly one row format, one preview,
 /// and one no-fzf fallback. Selecting a row launches it, which is what makes the picker a way to
@@ -110,9 +110,9 @@ fn rows(entries: &[Launchable], only: Option<Source>) -> Vec<Row> {
         .collect()
 }
 
-/// `bn agent run` with no name — the interactive picker over everything launchable.
+/// `workspan agent run` with no name — the interactive picker over everything launchable.
 ///
-/// Mirrors the established shape (`bn jump`, `bn doctor --pick`): the same binary renders the rows
+/// Mirrors the established shape (`workspan jump`, `workspan doctor --pick`): the same binary renders the rows
 /// and the preview, fzf's bindings just re-invoke it with a hidden stage, and a machine without
 /// fzf degrades to the plain list rather than failing.
 fn pick(
@@ -396,8 +396,8 @@ fn warn_missing_skills(cfg: &Config, entry: &Launchable) {
         .collect();
     if !missing.is_empty() {
         eprintln!(
-            "bn agent run: {} declares skill(s) this machine has not installed: {} \
-             (launching anyway; `bn skills install` may fix it)",
+            "workspan agent run: {} declares skill(s) this machine has not installed: {} \
+             (launching anyway; `workspan skills install` may fix it)",
             entry.name,
             missing.join(", ")
         );
@@ -407,8 +407,8 @@ fn warn_missing_skills(cfg: &Config, entry: &Launchable) {
 /// Refuse a launch this machine or configuration cannot honour.
 ///
 /// Deliberately **not** [`crate::cmd::cron::agent_gate::refuse`]: that also calls
-/// `ensure_runnable()`, which refuses `kind: specialist` because the *cron* `bn run <name>` path
-/// cannot execute one. A specialist is precisely what an interactive `bn agent run
+/// `ensure_runnable()`, which refuses `kind: specialist` because the *cron* `workspan run <name>` path
+/// cannot execute one. A specialist is precisely what an interactive `workspan agent run
 /// <repo>-pull-request-reviewer` should launch, so the runnable check does not belong here — only
 /// the repo-availability and opt-in gates do.
 fn refuse_reason(cfg: &Config, ctx: Option<&Resolved>, entry: &Launchable) -> Option<String> {
@@ -456,7 +456,7 @@ fn named_entry(
     }))
 }
 
-/// `bn agent run [name] [instruction…]`.
+/// `workspan agent run [name] [instruction…]`.
 #[allow(clippy::too_many_arguments)]
 pub(crate) fn emit_run(
     cfg: &Config,
@@ -493,15 +493,15 @@ pub(crate) fn emit_run(
 
     let entries = launchable::discover(cfg, ctx, &cwd);
     let Some(entry) = named_entry(cfg, &cwd, &entries, &name)
-        .unwrap_or_else(|error| fail(&format!("bn agent run: {error}")))
+        .unwrap_or_else(|error| fail(&format!("workspan agent run: {error}")))
     else {
         let near = launchable::near_misses(&entries, &name, SUGGESTIONS);
-        let mut msg = format!("bn agent run: no agent or skill named '{name}'");
+        let mut msg = format!("workspan agent run: no agent or skill named '{name}'");
         if !near.is_empty() {
             let names: Vec<&str> = near.iter().map(|r| r.name.as_str()).collect();
             msg.push_str(&format!("\n  did you mean: {}", names.join(", ")));
         }
-        msg.push_str("\n  `bn agent run --list` shows everything launchable");
+        msg.push_str("\n  `workspan agent run --list` shows everything launchable");
         fail(&msg);
     };
 
@@ -509,22 +509,22 @@ pub(crate) fn emit_run(
     // still there and reachable by editing one of them, and silence here reads as a bug.
     if launchable::shadowed_skill(&entries, &name).is_some() {
         eprintln!(
-            "bn agent run: '{name}' resolves to the agent; a skill of the same name is shadowed"
+            "workspan agent run: '{name}' resolves to the agent; a skill of the same name is shadowed"
         );
     }
 
     if let Some(reason) = refuse_reason(cfg, ctx, &entry) {
-        fail(&format!("bn agent run: {reason}"));
+        fail(&format!("workspan agent run: {reason}"));
     }
 
     let args = match parse_args(&arg_pairs) {
         Ok(a) => a,
-        Err(e) => fail(&format!("bn agent run: {e}")),
+        Err(e) => fail(&format!("workspan agent run: {e}")),
     };
     let body = match render_body(cfg, ctx, &cwd, &entry, args.as_ref()) {
         Ok(b) => b,
         Err(e) => {
-            let mut msg = format!("bn agent run: {e}");
+            let mut msg = format!("workspan agent run: {e}");
             if entry.needs_args() {
                 msg.push_str(&format!(
                     "\n  {} requires: {}",
@@ -624,7 +624,7 @@ pub(crate) fn emit_run(
     }
 }
 
-/// How a `--worktree` run reaches `bn dispatch`: `(skill, seed_override)`.
+/// How a `--worktree` run reaches `workspan dispatch`: `(skill, seed_override)`.
 ///
 /// Exactly one is ever `Some`. That is the invariant worth pinning: passing both would let the
 /// skill envelope wrap an agent body that already carries its own completion protocol, and
@@ -642,7 +642,7 @@ fn worktree_route<'a>(
 
 /// `--worktree`: run the entry in a fresh isolated worktree instead of here.
 ///
-/// Delegates to `bn dispatch` wholesale — it already builds the worktree, the branch, the note and
+/// Delegates to `workspan dispatch` wholesale — it already builds the worktree, the branch, the note and
 /// the tmux window, leases the slot and launches the agent, and none of that is worth a second
 /// copy. The two catalogs differ only in where the prompt comes from:
 ///

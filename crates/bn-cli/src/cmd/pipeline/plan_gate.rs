@@ -27,6 +27,6 @@ pub(crate) fn append_plan_gate_seed(
             plan_file: Some(plan_path),
         },
     )
-    .unwrap_or_else(|error| fail(&format!("bn pipeline plan: {error}")));
+    .unwrap_or_else(|error| fail(&format!("workspan pipeline plan: {error}")));
     seed.push_str(&gate_seed);
 }

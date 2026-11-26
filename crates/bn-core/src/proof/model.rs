@@ -7,9 +7,9 @@ use std::fmt;
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(rename_all = "lowercase")]
 pub enum Kind {
-    /// `bn verify` output.
+    /// `workspan verify` output.
     Verify,
-    /// `bn gate` output (verify on the rebased head).
+    /// `workspan gate` output (verify on the rebased head).
     Gate,
     /// A focused test run.
     Test,
@@ -75,7 +75,7 @@ pub struct Proof {
     pub dirty: bool,
     pub author: String,
     pub created: String,
-    /// What produced it: `bn verify`, `bn gate`, `bn proof add`.
+    /// What produced it: `workspan verify`, `workspan gate`, `workspan proof add`.
     pub source: String,
     #[serde(default, skip_serializing_if = "Option::is_none")]
     pub cmd: Option<String>,

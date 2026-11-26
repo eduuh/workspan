@@ -17,7 +17,7 @@ pub(crate) fn configured_policy(cfg: &Config, low_water: usize) -> KeepWarmPolic
     }
 }
 
-/// `keep-warm` is repo-scoped but not branch-scoped: `bn run keep-warm --repo R` targets that
+/// `keep-warm` is repo-scoped but not branch-scoped: `workspan run keep-warm --repo R` targets that
 /// repo's main-note layer directly rather than forcing the caller to invent a branch.
 pub(crate) fn run_target_ctx(
     cfg: &Config,
@@ -28,8 +28,8 @@ pub(crate) fn run_target_ctx(
         (Some(repo), None) => {
             let (repo, _) = match crate::wt::resolve_bare_by_name(cfg, Some(repo.as_str())) {
                 Ok(Some(pair)) => pair,
-                Ok(None) => fail("bn run keep-warm: pass --repo <name>"),
-                Err(error) => fail(&format!("bn run keep-warm: {error}")),
+                Ok(None) => fail("workspan run keep-warm: pass --repo <name>"),
+                Err(error) => fail(&format!("workspan run keep-warm: {error}")),
             };
             Some(Resolved {
                 repo: repo.to_lowercase(),

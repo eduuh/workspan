@@ -6,7 +6,7 @@
 /// Compact human token count: `48.2k`, `1.3m`, `4.8b`, or the bare number under 1000.
 ///
 /// The billions tier is not hypothetical: every turn of a cached agent session re-reads the whole
-/// prefix, so a month of `bn cost` cache-read totals runs to 10^9 and used to render as `4839.4m`.
+/// prefix, so a month of `workspan cost` cache-read totals runs to 10^9 and used to render as `4839.4m`.
 pub(crate) fn fmt_tokens(t: u64) -> String {
     if t >= 1_000_000_000 {
         format!("{:.1}b", t as f64 / 1_000_000_000.0)

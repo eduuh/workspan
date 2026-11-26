@@ -1,14 +1,14 @@
 //! `bn findings` — the cron findings store (#576): record + query durable, structured findings.
 use crate::*;
 
-/// `bn findings record <source>` — append one run's findings from JSON on stdin. Parses the same
+/// `workspan findings record <source>` — append one run's findings from JSON on stdin. Parses the same
 /// `{key,text,url}` items as `feed ingest` (JSON array or JSONL); prints how many items landed so
-/// a `bn run` window shows the result.
+/// a `workspan run` window shows the result.
 pub(crate) fn findings_record(source: &str, run_id: Option<&str>, raw: Option<&str>) {
     use std::io::Read;
     let mut input = String::new();
     if std::io::stdin().read_to_string(&mut input).is_err() {
-        eprintln!("bn findings record: failed to read stdin");
+        eprintln!("workspan findings record: failed to read stdin");
         std::process::exit(1);
     }
     let items = bn_core::feed::parse_items(&input);
@@ -20,13 +20,13 @@ pub(crate) fn findings_record(source: &str, run_id: Option<&str>, raw: Option<&s
             if n == 1 { "" } else { "s" }
         ),
         Err(e) => {
-            eprintln!("bn findings record: {e}");
+            eprintln!("workspan findings record: {e}");
             std::process::exit(1);
         }
     }
 }
 
-/// `bn findings query [--source] [--since|--date] [--limit]` — recorded findings, newest-first.
+/// `workspan findings query [--source] [--since|--date] [--limit]` — recorded findings, newest-first.
 pub(crate) fn findings_query(
     source: Option<&str>,
     since: Option<&str>,
@@ -56,7 +56,7 @@ pub(crate) fn findings_query(
     }
     if runs.is_empty() {
         println!(
-            "No findings — cron runs populate the store (e.g. `… | bn findings record <source>`)"
+            "No findings — cron runs populate the store (e.g. `… | workspan findings record <source>`)"
         );
         return;
     }
@@ -82,7 +82,7 @@ pub(crate) fn findings_query(
     }
 }
 
-/// `bn findings sources` — the sources that have recorded findings.
+/// `workspan findings sources` — the sources that have recorded findings.
 pub(crate) fn findings_sources(as_json: bool) {
     let sources = bn_core::findings::sources();
     if as_json {
@@ -105,7 +105,7 @@ pub(crate) fn findings_sources(as_json: bool) {
     }
 }
 
-/// `bn findings gather` (#897) — snapshot the local morning-planning caches into the findings
+/// `workspan findings gather` (#897) — snapshot the local morning-planning caches into the findings
 /// store: the PR review queue and your own open PRs, the inbound feed (meetings/email/teams/owe),
 /// stale/blocked branches, last night's PR-ready dispatches, failing crons, the sentinel patrol,
 /// the current quarter's open goals, and mined dojo cards. Additive — records one durable run per
@@ -118,7 +118,7 @@ pub(crate) fn findings_gather(cfg: &Config, as_json: bool) {
             as_json,
             "findings-gather",
             "gather_failed",
-            &format!("bn findings gather: {e}"),
+            &format!("workspan findings gather: {e}"),
         ),
     };
     if as_json {

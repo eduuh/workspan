@@ -95,7 +95,7 @@ pub fn machine_dirs(personal_root: &Path) -> Vec<MachineDir> {
 
 /// The on-disk machine dir for `name`, matched case-insensitively.
 ///
-/// Hostnames are case-insensitive (RFC 4343) and the filesystems bn runs on disagree about whether
+/// Hostnames are case-insensitive (RFC 4343) and the filesystems workspan runs on disagree about whether
 /// paths are: the same laptop reports `mac.lan` while its directory is `Mac.lan`. Matching exactly
 /// would make a merge pick its destination by luck on macOS and pick the wrong one on Linux. Falls
 /// back to the literal join so a first-ever write still lands somewhere sensible.

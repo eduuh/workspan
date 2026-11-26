@@ -101,7 +101,7 @@ impl SemVer {
         }
     }
 
-    /// Render as a `vX.Y.Z` tag (bn's tags are `v`-prefixed).
+    /// Render as a `vX.Y.Z` tag (workspan's tags are `v`-prefixed).
     pub fn to_tag(self) -> String {
         format!("v{}.{}.{}", self.major, self.minor, self.patch)
     }

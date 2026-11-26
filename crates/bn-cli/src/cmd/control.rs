@@ -1,4 +1,4 @@
-//! `bn control` — lifecycle and durable request protocol for coordination-only agents.
+//! `workspan control` — lifecycle and durable request protocol for coordination-only agents.
 
 use crate::*;
 use bn_core::controller::{
@@ -114,7 +114,7 @@ fn controller_seed(
 }
 
 /// The `session:window` a controller's window lives at — in the session of the repo whose
-/// controller slot it leases, like every other agent bn opens.
+/// controller slot it leases, like every other agent workspan opens.
 fn control_target(repo: &str, window_name: &str) -> String {
     format!("{repo}:{window_name}")
 }
@@ -129,7 +129,7 @@ fn enqueue_request(controller_id: &str, request: &[String]) -> Vec<String> {
         &[request.join(" ")],
         bn_core::util::now_epoch_secs(),
     )
-    .unwrap_or_else(|e| fail(&format!("bn control start: enqueue request: {e}")))
+    .unwrap_or_else(|e| fail(&format!("workspan control start: enqueue request: {e}")))
 }
 
 fn nudge_controller_with_message(
@@ -232,7 +232,7 @@ fn start_controller(
 ) {
     let id = id.unwrap_or_else(|| format!("ctrl-{}", &gen_uuid()[..8]));
     if !valid_controller_id(&id) {
-        fail("bn control start: --id must contain only letters, digits, '-' or '_'");
+        fail("workspan control start: --id must contain only letters, digits, '-' or '_'");
     }
     // Explicit --harness is validated + availability-gated; omit it to inherit the machine's
     // configured default (`[harness].default` / `$BN_HARNESS`, else copilot).
@@ -242,9 +242,9 @@ fn start_controller(
                 canonical.to_string()
             }
             Some(canonical) => fail(&format!(
-                "bn control start: harness '{canonical}' is unavailable on this machine"
+                "workspan control start: harness '{canonical}' is unavailable on this machine"
             )),
-            None => fail("bn control start: --harness must be copilot or claude"),
+            None => fail("workspan control start: --harness must be copilot or claude"),
         },
         None => bn_core::harness::preferred_harness(cfg).to_string(),
     };
@@ -263,7 +263,7 @@ fn start_controller(
     let resolved = resolver::resolve_hint(cfg, &invoked_from);
     let Some(repo) = resolved.as_ref().map(|ctx| ctx.repo.clone()) else {
         fail(&format!(
-            "bn control start: not inside a repo ({}). cd into the repo you want a controller for \
+            "workspan control start: not inside a repo ({}). cd into the repo you want a controller for \
              and retry.",
             invoked_from.display()
         ));
@@ -276,8 +276,8 @@ fn start_controller(
     // anywhere in the repo; the slot, not your cwd, is where it lands.
     let Some((cwd, _fresh)) = wt_pool::lease_controller_slot(cfg, &repo) else {
         fail(&format!(
-            "bn control start: could not lease the controller slot for {repo}. Check \
-             `wt pool status`; a running controller holds it until `bn control stop`."
+            "workspan control start: could not lease the controller slot for {repo}. Check \
+             `wt pool status`; a running controller holds it until `workspan control stop`."
         ));
     };
     let branch = wt_pool::CONTROLLER_LEASE_LABEL.to_string();
@@ -316,7 +316,7 @@ fn start_controller(
             stale_target: None,
         }
     })
-    .unwrap_or_else(|e| fail(&format!("bn control start: reserve controller: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan control start: reserve controller: {e}")));
 
     let (mut record, stale_target) = match reservation {
         StartReservation::Launch {
@@ -361,18 +361,18 @@ fn start_controller(
         let removed = kill_controller_window(&stale_target);
         if !removed && controller_window_exists(&stale_target) {
             let _ = controller::update_registry(&registry_path, |registry| registry.stop(&id, now));
-            fail("bn control start: could not remove stale controller window");
+            fail("workspan control start: could not remove stale controller window");
         }
     }
     controller::requeue_leased(&bn_core::backlog::backlog_path(), &id, now)
-        .unwrap_or_else(|e| fail(&format!("bn control start: recover leased requests: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan control start: recover leased requests: {e}")));
     let queued = enqueue_request(&id, &request);
     let exe = std::env::current_exe()
         .unwrap_or_else(|_| std::path::PathBuf::from("bn"))
         .to_string_lossy()
         .into_owned();
     let seed = controller_seed(cfg, resolved.as_ref(), agent, &id)
-        .unwrap_or_else(|error| fail(&format!("bn control start: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan control start: {error}")));
     let cmd = format!(
         "{} control watch --id {} & exec env BN_CONTROLLER_ID={} {} agent launch {} --fresh --yolo --session {} --seed {}",
         wt::shell_single_quote(&exe),
@@ -386,7 +386,7 @@ fn start_controller(
     // Reserve the controller slot for exactly this control agent — the lease layer independently
     // refuses a Control lease anywhere but `_pool/1`, and refuses any other kind *in* it. Refuse
     // mode: never displace another live agent, so two controllers can't share the slot. Rolled back
-    // if the window fails to open, released on `bn control stop`.
+    // if the window fails to open, released on `workspan control stop`.
     let reservation = match agent_lease::reserve(agent_lease::AgentLeaseRequest {
         repo: &record.repo,
         branch: &record.branch,
@@ -403,7 +403,7 @@ fn start_controller(
         Err(error) => {
             let _ =
                 controller::update_registry(&registry_path, |registry| registry.stop(&id, now));
-            fail(&format!("bn control start: {error}"));
+            fail(&format!("workspan control start: {error}"));
         }
     };
     // `record.repo`, not the literal `"control"` this used to pass: that argument is stamped on the
@@ -419,7 +419,7 @@ fn start_controller(
     );
     if !opened {
         if let Err(error) = reservation.rollback() {
-            eprintln!("bn control start: agent lease rollback failed; {error}");
+            eprintln!("workspan control start: agent lease rollback failed; {error}");
         }
         let session_id = record.session_id;
         let _ = controller::update_registry(&registry_path, |registry| {
@@ -430,7 +430,7 @@ fn start_controller(
                 registry.stop(&id, now);
             }
         });
-        fail("bn control start: could not launch controller tmux window");
+        fail("workspan control start: could not launch controller tmux window");
     }
     agent_lease::mark_window(reservation.lease());
     reservation.commit();
@@ -455,10 +455,10 @@ fn start_controller(
         }
         reserved
     })
-    .unwrap_or_else(|e| fail(&format!("bn control start: persist controller: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan control start: persist controller: {e}")));
     if !activated {
         kill_controller_window(&record.target);
-        fail("bn control start: controller start was cancelled");
+        fail("workspan control start: controller start was cancelled");
     }
 
     if json {
@@ -489,7 +489,7 @@ fn start_controller(
 
 fn watch_controller(id: String) {
     let mut reactor = crate::event_loop::EventLoop::with_wake_queue(
-        "bn control watch",
+        "workspan control watch",
         vec![crate::event_loop::Watch::file(controller::registry_path())],
         &[],
     );
@@ -497,7 +497,7 @@ fn watch_controller(id: String) {
         let registry = match controller::load_registry(&controller::registry_path()) {
             Ok(registry) => registry,
             Err(error) => {
-                eprintln!("bn control watch: read controllers: {error}");
+                eprintln!("workspan control watch: read controllers: {error}");
                 if reactor.wait(CONTROLLER_EVENT_POLL_INTERVAL)
                     == crate::event_loop::LoopEvent::Shutdown
                 {
@@ -528,14 +528,14 @@ fn watch_controller(id: String) {
             &record.session_id,
             bn_core::util::now_epoch_secs(),
         ) {
-            eprintln!("bn control watch: write heartbeat: {error}");
+            eprintln!("workspan control watch: write heartbeat: {error}");
         }
         let queue = bn_core::wake::WakeQueue::default();
         let target = bn_core::wake::WakeTarget::Controller { id: id.clone() };
         let pending = match queue.pending(&target) {
             Ok(pending) => pending,
             Err(error) => {
-                eprintln!("bn control watch: read wake queue: {error}");
+                eprintln!("workspan control watch: read wake queue: {error}");
                 Vec::new()
             }
         };
@@ -564,10 +564,10 @@ fn watch_controller(id: String) {
         match result {
             Ok(()) => {
                 if let Err(error) = queue.acknowledge(&target, &pending_ids) {
-                    eprintln!("bn control watch: acknowledge wake queue: {error}");
+                    eprintln!("workspan control watch: acknowledge wake queue: {error}");
                 }
             }
-            Err(error) => eprintln!("bn control watch: tail or wake events: {error}"),
+            Err(error) => eprintln!("workspan control watch: tail or wake events: {error}"),
         }
     }
 }
@@ -696,9 +696,9 @@ fn turn_end_guard(cfg: &Config, id: Option<String>) {
 
 fn status_controllers(id: Option<String>, json: bool) {
     reconcile_controller_liveness()
-        .unwrap_or_else(|e| fail(&format!("bn control status: reconcile controllers: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan control status: reconcile controllers: {e}")));
     let registry = controller::load_registry(&controller::registry_path())
-        .unwrap_or_else(|e| fail(&format!("bn control status: read controllers: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan control status: read controllers: {e}")));
     let launches = bn_core::cost::launch_records();
     let mut joined = controller::join_ownership(&registry.controllers, &launches);
     if let Some(id) = id {
@@ -814,25 +814,25 @@ fn controller_stuck_lanes(
 fn stop_controller(cfg: &Config, id: String, json: bool) {
     let path = controller::registry_path();
     let registry = controller::load_registry(&path)
-        .unwrap_or_else(|e| fail(&format!("bn control stop: read controllers: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan control stop: read controllers: {e}")));
     let Some(record) = registry.get(&id).cloned() else {
-        fail(&format!("bn control stop: unknown controller '{id}'"));
+        fail(&format!("workspan control stop: unknown controller '{id}'"));
     };
     let stopped_window = kill_controller_window(&record.target);
     if !stopped_window && controller_window_exists(&record.target) {
-        fail("bn control stop: could not terminate controller window");
+        fail("workspan control stop: could not terminate controller window");
     }
     // Free both leases this controller held — the agent lease and the pool slot itself — so the
     // slot is immediately available again rather than waiting for the next reconcile to notice the
     // window is gone. Both are idempotent for controllers started before leasing existed.
     if let Err(error) = agent_lease::release(&record.session_id) {
-        eprintln!("bn control stop: {error}");
+        eprintln!("workspan control stop: {error}");
     }
     wt_pool::release_controller_slot(cfg, &record.repo);
     controller::update_registry(&path, |registry| {
         registry.stop(&id, bn_core::util::now_epoch_secs())
     })
-    .unwrap_or_else(|e| fail(&format!("bn control stop: persist controller: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan control stop: persist controller: {e}")));
     if json {
         println!(
             "{}",
@@ -863,7 +863,7 @@ fn lease_request(id: String, json: bool) {
         &id,
         bn_core::util::now_epoch_secs(),
     )
-    .unwrap_or_else(|e| fail(&format!("bn control lease: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan control lease: {e}")));
     if json {
         println!(
             "{}",
@@ -884,9 +884,9 @@ fn complete_request(id: String, request_id: String, failed: bool, json: bool) {
         !failed,
         bn_core::util::now_epoch_secs(),
     )
-    .unwrap_or_else(|e| fail(&format!("bn control complete: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan control complete: {e}")));
     if !changed {
-        fail("bn control complete: request is absent or already terminal");
+        fail("workspan control complete: request is absent or already terminal");
     }
     if json {
         println!(

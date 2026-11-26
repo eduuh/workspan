@@ -143,7 +143,7 @@ fn a_lost_race_is_skipped_silently_and_the_next_candidate_takes_the_lane() {
     );
 }
 
-/// A claim that landed starts through `bn dispatch --task <id>`, in the local clone, with the bn id
+/// A claim that landed starts through `workspan dispatch --task <id>`, in the local clone, with the workspan id
 /// the task list gave the activity. Races lost and refusals start nothing.
 #[test]
 fn a_landed_claim_starts_through_dispatch_with_its_bn_id() {

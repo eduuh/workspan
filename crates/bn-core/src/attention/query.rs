@@ -154,7 +154,7 @@ pub fn live_with_key_prefix(prefix: &str) -> Vec<AttnItem> {
 /// resolved, or snoozed into the future. Urgent-first then oldest-first. *Completions* (finished
 /// work awaiting review, see [`is_completion`]) are excluded — they are outcomes, not actions, and
 /// surface in [`completed_items`] instead. This is the single definition of "what belongs in the
-/// attention list", so doctor / `bn next` / the badge all inherit the actionable-only rule.
+/// attention list", so doctor / `workspan next` / the badge all inherit the actionable-only rule.
 pub fn open_items(today: &str) -> Vec<AttnItem> {
     let mut out: Vec<AttnItem> = open_raw(today)
         .into_iter()
@@ -168,7 +168,7 @@ pub fn open_items(today: &str) -> Vec<AttnItem> {
     out
 }
 
-/// The review inbox lane — completions (an agent's `bn agent done` push) that are finished and
+/// The review inbox lane — completions (an agent's `workspan agent done` push) that are finished and
 /// awaiting your review, most-recent-first. These are *not* attention: they hold no action for you
 /// beyond a look. Reviewing one is an [`ack`], which folds it terminal so it leaves this lane. The
 /// source of truth is the same event log the completion was pushed to — this is a rendering view,
@@ -371,7 +371,7 @@ pub fn next_auto_batch(
 
 /// The single next attention item the autonomous loop would start under a `max_running` cap — the
 /// head of [`next_auto_batch`]. `None` when the loop is at its concurrency cap or nothing is
-/// eligible. Powers the `bn attn next-auto` dry-run.
+/// eligible. Powers the `workspan attn next-auto` dry-run.
 pub fn next_auto(
     cfg: &crate::resolver::Config,
     today: &str,

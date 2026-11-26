@@ -9,7 +9,7 @@ use std::fmt;
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 
-/// Captured output from `bn --json <args>`.
+/// Captured output from `workspan --json <args>`.
 #[derive(Debug)]
 pub struct RunOutput {
     pub success: bool,
@@ -37,12 +37,12 @@ impl std::error::Error for RunError {
     }
 }
 
-/// Run `bn --json <args>` from an optional working directory.
+/// Run `workspan --json <args>` from an optional working directory.
 pub fn run(args: &[&str], cwd: Option<&Path>) -> Result<RunOutput, RunError> {
     run_with_env(args, cwd, &[])
 }
 
-/// Run `bn --json <args>` with extra environment variables set on the child (else identical to
+/// Run `workspan --json <args>` with extra environment variables set on the child (else identical to
 /// [`run`]). Used where a sibling surface must declare a dispatch's target session
 /// (`BN_WORKER_REPO`) so the CLI's cross-repo-session guard treats it as that repo's own session
 /// rather than a stray hop from the server's own worktree.
@@ -74,7 +74,7 @@ pub fn run_with_env(
     })
 }
 
-/// Spawn `bn <args>` detached and reap it off the caller's request path.
+/// Spawn `workspan <args>` detached and reap it off the caller's request path.
 ///
 /// The child gets its own process group, so a terminal closing or a Ctrl-C aimed at the caller
 /// does not take a long-running job down with it.

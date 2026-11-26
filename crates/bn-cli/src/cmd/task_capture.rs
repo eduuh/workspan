@@ -23,7 +23,7 @@ use bn_core::todo::Task;
 use std::io::Read;
 use std::path::{Path, PathBuf};
 
-/// What `bn task add` captured alongside the task line.
+/// What `workspan task add` captured alongside the task line.
 #[derive(Debug, Default)]
 pub(crate) struct Capture {
     /// Markdown for `## Context`. `-` means stdin.
@@ -45,7 +45,7 @@ fn resolve_body(body: Option<&str>) -> Option<String> {
         Some("-") => {
             let mut buf = String::new();
             if std::io::stdin().read_to_string(&mut buf).is_err() {
-                fail("bn task add: --body - could not read stdin");
+                fail("workspan task add: --body - could not read stdin");
             }
             Some(buf)
         }
@@ -58,7 +58,7 @@ fn resolve_body(body: Option<&str>) -> Option<String> {
 fn checked_link(url: &str) -> bn_core::task_doc::Link {
     let lower = url.to_ascii_lowercase();
     if !(lower.starts_with("http://") || lower.starts_with("https://")) {
-        fail(&format!("bn task add: --link must be an http(s) URL, got {url}"));
+        fail(&format!("workspan task add: --link must be an http(s) URL, got {url}"));
     }
     bn_core::task_doc::Link {
         url: url.to_string(),
@@ -130,14 +130,14 @@ fn task_by_id(cfg: &Config, id: &str) -> Task {
     let _lock = store.lock();
     store
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn task attach: {e}")))
+        .unwrap_or_else(|e| fail(&format!("workspan task attach: {e}")))
         .tasks()
         .find(|t| t.id() == Some(id))
         .cloned()
-        .unwrap_or_else(|| fail(&format!("bn task attach: no task {id}")))
+        .unwrap_or_else(|| fail(&format!("workspan task attach: no task {id}")))
 }
 
-/// `bn task attach <id> [--add <path>…] [--rm <name>…]` — list, capture, or drop a task's files.
+/// `workspan task attach <id> [--add <path>…] [--rm <name>…]` — list, capture, or drop a task's files.
 ///
 /// The listing prints **absolute paths**, which is the whole point: this is what an agent runs to
 /// turn the doc's manifest of names into files it can open.
@@ -155,7 +155,7 @@ pub(crate) fn emit_task_attach(
 
     if !add.is_empty() {
         if let Err(e) = bn_core::task_doc::ensure(cfg, &task) {
-            fail(&format!("bn task attach: could not create the context doc: {e}"));
+            fail(&format!("workspan task attach: could not create the context doc: {e}"));
         }
         for path in add {
             match attach_one(cfg, &task, path) {

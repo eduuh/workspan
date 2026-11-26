@@ -26,7 +26,7 @@ report_hits \
 
 retired_hits=$(
   grep -nHE \
-    'bn_(context|cat|add|done|drop|reopen|reword|goal|pr|status|handoff_read|handoff_write|sync)([^[:alnum:]_]|$)|(^|[[:space:]`(])(bn|workspan) (--cat|--path|add |done |goal |handoff |ingest([[:space:]`]|$)|tmux-note)' \
+    'bn_(context|cat|add|done|drop|reopen|reword|goal|pr|status|handoff_read|handoff_write|sync)([^[:alnum:]_]|$)|(^|[[:space:]`(])(workspan|ws|bn) (--cat|--path|add |done |goal |handoff |ingest([[:space:]`]|$)|tmux-note)' \
     config/prompts/*.md config/agents/*.md config/AGENTS.md \
     .github/copilot-instructions.md 2>/dev/null || true
 )
@@ -53,7 +53,7 @@ for file in config/jobs/*.sh; do
   if grep -Eq 'agency[[:space:]]+copilot|m365_query_json|bn_prompt' "$file"; then
     if ! grep -Eq '^[[:space:]]*[^#].*(agents|skills)[[:space:]]+render' "$file"; then
       printf '%s\n' \
-        "Prompt-backed shell job $file does not call 'bn agents render' or 'bn skills render'." >&2
+        "Prompt-backed shell job $file does not call 'workspan agents render' or 'workspan skills render'." >&2
       failed=1
     fi
   fi
@@ -61,7 +61,7 @@ for file in config/jobs/*.sh; do
   if grep -Eq '^[[:space:]]*[^#].*agency[[:space:]]+copilot' "$file"; then
     if ! grep -Eq '^[[:space:]]*[^#].*agents[[:space:]]+render' "$file"; then
       printf '%s\n' \
-        "Agent-backed shell job $file must obtain its role prompt with 'bn agents render'." >&2
+        "Agent-backed shell job $file must obtain its role prompt with 'workspan agents render'." >&2
       failed=1
     fi
   fi

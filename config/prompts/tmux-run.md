@@ -54,7 +54,7 @@ they have to go find. Anchor on **`$TMUX_PANE`**, never on a bare `display-messa
 ```bash
 job=$(tmux split-window -d -t "$TMUX_PANE" -h -P -F '#{pane_id}' \
         -c ~/projects/worktree/bn/main \
-        'bn build build-to-local; echo "--- exited $? ---"')
+        'workspan build build-to-local; echo "--- exited $? ---"')
 ```
 
 * `-t "$TMUX_PANE"` splits *your* pane, so the job lands in the window the user is
@@ -77,9 +77,9 @@ everything unreadably narrow. Say which you chose.
 **2. Say where it is, in one line** — "building in the pane beside this one, ~4 min" —
 and move on. Do not narrate progress you have not checked.
 
-For long batch jobs, run `bn cmd run -- <command...>` in that pane. It streams output,
+For long batch jobs, run `workspan cmd run -- <command...>` in that pane. It streams output,
 saves a private log, emits a heartbeat every 60 seconds, and warns after 180 seconds without
-output. Use `bn cmd run -- --label "<stage>" -- <command...>` to name the stage.
+output. Use `workspan cmd run -- --label "<stage>" -- <command...>` to name the stage.
 An inactivity warning means progress is unknown, not that the command has hung.
 Leave interactive editors and TUIs unwrapped.
 
@@ -93,7 +93,7 @@ Have the job signal completion even when it fails, and retain its exit status:
 done="build-$$"
 status_file=<scratchpad>/build.exit
 job=$(tmux split-window -d -t "$TMUX_PANE" -h -P -F '#{pane_id}' -c <dir> \
-  "bn cmd run -- cargo build; code=\$?; printf '%s\n' \"\$code\" > '$status_file'; tmux wait-for -S '$done'; exit \$code")
+  "workspan cmd run -- cargo build; code=\$?; printf '%s\n' \"\$code\" > '$status_file'; tmux wait-for -S '$done'; exit \$code")
 tmux wait-for "$done"
 ```
 
@@ -131,7 +131,7 @@ job=$(tmux split-window -d -t "$TMUX_PANE" -h -P -F '#{pane_id}' -c <dir> \
 * **Long builds belong in the pane; quick checks stay in the session.** A release build under
   load can take ten minutes. Background execution alone is not a substitute for a visible pane
   when the job is long-running.
-* **bn itself:** build and test the worktree-local binary to try a change. `bn build build-to-local`
+* **workspan itself:** build and test the worktree-local binary to try a change. `workspan build build-to-local`
   uses a shared cache and replaces the live installation; run it only with explicit installation
   approval and coordination with affected owners.
 
@@ -146,7 +146,7 @@ Each of these produced a confident, wrong status report:
   bare call answers about somebody else's pane:
 
   ```bash
-  win=$(tmux new-window -d -t bn -n build -P -F '#{window_id}')   # -> "" on failure
+  win=$(tmux new-window -d -t workspan -n build -P -F '#{window_id}')   # -> "" on failure
   pid=$(tmux list-panes -t "$win" -F '#{pane_pid}')               # -t "" -> the ACTIVE window's pid
   ```
 
@@ -154,7 +154,7 @@ Each of these produced a confident, wrong status report:
   back before using it**, and retry rather than pressing on:
 
   ```bash
-  [ -n "$win" ] || { echo "tmux refused the window; retrying"; win=$(tmux new-window -d -t bn: -n build -P -F '#{window_id}'); }
+  [ -n "$win" ] || { echo "tmux refused the window; retrying"; win=$(tmux new-window -d -t workspan: -n build -P -F '#{window_id}'); }
   ```
 - **Anchoring on the session instead of your own pane.** `tmux display-message -p '#S'`
   with no `-t` answers for the session's **active** pane — which, for an agent running
@@ -299,32 +299,32 @@ pane_current_command pane_current_path session_name window_name window_activity_
 
 ### Independent agents in other sessions
 
-These launch and placement rules apply to standalone bn workers. Ordinary Copilot fleet /
+These launch and placement rules apply to standalone workspan workers. Ordinary Copilot fleet /
 Claude subagents use the harness's native delegation tools and do not require a separate
-tmux session or `bn dispatch`. Their long-running commands still follow the command-routing
+tmux session or `workspan dispatch`. Their long-running commands still follow the command-routing
 rule above.
 
 An agent is a long-running job with opinions. It goes where the model says it goes — **another
 repo's session, in that branch's window** — because that placement is the only reason
-`bn agent live`, the tab badges, the steer path and the kill path can find it at all. A hand-rolled
+`workspan agent live`, the tab badges, the steer path and the kill path can find it at all. A hand-rolled
 `tmux new-session` gets you an agent no tool can see.
 
-**Launch through `bn dispatch`**, which leases a worktree, supplies the task packet, and
+**Launch through `workspan dispatch`**, which leases a worktree, supplies the task packet, and
 opens the window in the right session:
 
 ```bash
-bn dispatch --repo <repo> --agent claude "<what to do>"     # a ship task
-bn dispatch --repo <repo> --agent claude --skill investigate "<what to find out>"
+workspan dispatch --repo <repo> --agent claude "<what to do>"     # a ship task
+workspan dispatch --repo <repo> --agent claude --skill investigate "<what to find out>"
 ```
 
-`bn agent launch` is the same chokepoint when you are already in the worktree. Both record
+`workspan agent launch` is the same chokepoint when you are already in the worktree. Both record
 the harness session in execution state, which makes resume, steering and the dashboard work.
 
 **Find them.**
 
 ```bash
-bn agent live --json      # every agent: target, state, health, session_id, idle_secs
-bn agent supervise        # the same fleet, flagged for stuck
+workspan agent live --json      # every agent: target, state, health, session_id, idle_secs
+workspan agent supervise        # the same fleet, flagged for stuck
 ```
 
 `target` is `repo:branch` — the handle for everything below.
@@ -332,14 +332,14 @@ bn agent supervise        # the same fleet, flagged for stuck
 **Read them.**
 
 ```bash
-bn agent pane <repo:branch> --lines 60     # live tail of its pane
-bn agent activity <session_id> --limit 40  # its transcript — works after the window closed
-bn agent prompt <repo:branch>              # the dialog it is blocked on, options and meanings
+workspan agent pane <repo:branch> --lines 60     # live tail of its pane
+workspan agent activity <session_id> --limit 40  # its transcript — works after the window closed
+workspan agent prompt <repo:branch>              # the dialog it is blocked on, options and meanings
 ```
 
 Raw tmux works too, but its targeting will hand you the wrong agent if you let it. **`=` anchors
 only the part it precedes**, so `=repo:branch` pins the session and leaves the *window* matching by
-prefix: with no window named `main`, `=bn:main` cheerfully resolves to `main-stale`. Anchor both
+prefix: with no window named `main`, `=workspan:main` cheerfully resolves to `main-stale`. Anchor both
 halves:
 
 ```bash
@@ -351,7 +351,7 @@ all exit 1 with `can't find window: <name>`, which is what you want: a target th
 should fail rather than answer.
 
 **`display-message` is the exception, and it is the one people reach for.** With no `main` beside a
-`main-stale`, `capture-pane -t '=bn:=main'` exits 1, while `display-message -p -t '=bn:=main'`
+`main-stale`, `capture-pane -t '=workspan:=main'` exits 1, while `display-message -p -t '=workspan:=main'`
 prints the session's *current* window and exits 0. So never test a window's existence with
 `display-message`; ask something that fails:
 
@@ -360,18 +360,18 @@ tmux list-panes -t "=<repo>:=<branch>" -F '#{pane_id}' >/dev/null 2>&1 \
   || { echo "no window for <repo>:<branch>"; exit 1; }
 ```
 
-`bn agent pane` is the better call regardless: it joins the target against recorded agent state
-rather than guessing from window names, and since bn #1264 it anchors both halves too, so it
+`workspan agent pane` is the better call regardless: it joins the target against recorded agent state
+rather than guessing from window names, and since workspan #1264 it anchors both halves too, so it
 reports `no such window` instead of quoting a same-prefixed neighbour.
 
 **Steer them.**
 
 ```bash
-bn agent send <repo:branch> "<message>"            # delivers and returns the reply
-bn agent send <repo:branch> "<message>" --detach   # fire-and-forget; it reports via bn agent done
-bn agent answer <repo:branch> <option>             # resolve a blocked dialog, verified
-bn agent instruct <repo:branch> "<standing rule>"  # persists in execution state across relaunches
-bn agent kill <repo:branch>                        # process tree, window, lease and pool slot
+workspan agent send <repo:branch> "<message>"            # delivers and returns the reply
+workspan agent send <repo:branch> "<message>" --detach   # fire-and-forget; it reports via workspan agent done
+workspan agent answer <repo:branch> <option>             # resolve a blocked dialog, verified
+workspan agent instruct <repo:branch> "<standing rule>"  # persists in execution state across relaunches
+workspan agent kill <repo:branch>                        # process tree, window, lease and pool slot
 ```
 
 Prefer these over raw keystrokes. They verify delivery, and `kill` actually frees the slot instead
@@ -379,7 +379,7 @@ of closing a window and leaving the harness reparented and running.
 
 ### Driving a harness TUI by hand
 
-Only when the `bn agent` path is unavailable. Sending text to a TUI is not sending text to a shell,
+Only when the `workspan agent` path is unavailable. Sending text to a TUI is not sending text to a shell,
 and the failures are quiet ones — measured on Claude Code v2.1.260 / tmux 3.6, 2026-09-04:
 
 **Paste as a block, never key by key.** An autosuggest or highlight TUI mangles a char-by-char
@@ -401,7 +401,7 @@ tmux send-keys -t "$pane" -H 0d                    # raw CR, with no Escape befo
 tmux send-keys -t "$pane" Escape; sleep 0.4; tmux send-keys -t "$pane" -H 0d
 ```
 
-bn's own steer sends the raw CR because Copilot's compose TUI needs it. So do not pick one and
+workspan's own steer sends the raw CR because Copilot's compose TUI needs it. So do not pick one and
 trust it — **send, then verify the box emptied**, and escalate to the other key if it did not:
 
 ```bash
@@ -418,7 +418,7 @@ left.
 **A fresh agent pane does not open on an input box.** Claude Code asks whether it should trust an
 unfamiliar directory first. A readiness check that greps for `❯` matches *the dialog's own cursor*,
 reports ready, and feeds your prompt to the dialog as a menu answer. Wait for the REPL's status
-line (`? for shortcuts`), and read a dialog with `bn agent prompt` rather than firing digits at it.
+line (`? for shortcuts`), and read a dialog with `workspan agent prompt` rather than firing digits at it.
 
 ## Rules that keep this honest
 

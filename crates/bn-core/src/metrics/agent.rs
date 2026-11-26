@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use std::collections::HashMap;
 
-/// In-progress work across open branch todos: items advanced with `bn done --pct N` but not yet
+/// In-progress work across open branch todos: items advanced with `workspan done --pct N` but not yet
 /// closed (#213). Binary done/not-done hides hours of progress on long-running goals; this block
 /// makes it count for something on the card.
 #[derive(Debug, Default, Serialize, Deserialize)]
@@ -90,7 +90,7 @@ fn sorted_counts(map: HashMap<String, usize>) -> Vec<(String, usize)> {
 }
 
 /// Harness-switch activity over the window, folded from `harness_switch` events (one per
-/// Claude↔Copilot switch, emitted on every path: `bn switch`, the fleet auto-switch, and
+/// Claude↔Copilot switch, emitted on every path: `workspan switch`, the fleet auto-switch, and
 /// orchestrator relaunch). How often we hop harnesses — and why — is a rate-limit-pressure and
 /// harness-reliability signal (#326): a spike in `limit`-reason switches flags a capped harness
 /// that new dispatches should bias away from.

@@ -66,9 +66,9 @@ pub(crate) fn native_job(job: &str) -> Option<NativeJob> {
 
 /// The `*:0/5` cadence cluster, in run order.
 ///
-/// `notify` deliberately left this cluster: `bn watch` (the `*:0/2` cron) owns attention delivery,
+/// `notify` deliberately left this cluster: `workspan watch` (the `*:0/2` cron) owns attention delivery,
 /// and running both meant every urgent item was toasted twice on two independent dedup ledgers.
-/// The job still exists for `bn run notify` — see [`crate::cmd::jobs::job_notify`].
+/// The job still exists for `workspan run notify` — see [`crate::cmd::jobs::job_notify`].
 ///
 /// `tmux-keylog` rides here because its window is set by tmux's `message-limit` (10000 rows, about
 /// 20 minutes of this machine's status polling): five minutes drains it well inside that.

@@ -152,7 +152,7 @@ fn render(data: &Value) -> String {
     if data["task"].as_str().unwrap_or_default().is_empty() {
         out.push_str("Supply a task to select workflows.\n");
     } else if data["workflows"].as_array().unwrap().is_empty() {
-        out.push_str("No matching workflow; try a more specific task or browse bn skills.\n");
+        out.push_str("No matching workflow; try a more specific task or browse workspan skills.\n");
     }
     for s in data["workflows"].as_array().unwrap() {
         let _ = writeln!(

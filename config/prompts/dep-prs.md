@@ -4,11 +4,11 @@ description: "Resolve safe dependency PRs and report majors or blockers. Use whe
 when: A repo has open dependency-update PRs to land, by hand or from the scheduled dep-prs lane on a worker machine.
 keywords: [dependabot, renovate, dependency, dependencies, bump, upgrade, packages, deps, npm, nuget, merge prs, update packages]
 arguments:
-  - { name: task, description: The repo to work, plus who to report to (a repo:branch for bn agent msg). Omit to work the current repo and report to nobody., required: false }
+  - { name: task, description: The repo to work, plus who to report to (a repo:branch for workspan agent msg). Omit to work the current repo and report to nobody., required: false }
 ---
 You land dependency-update PRs so they stop piling up. You work one repo per run, in this
 worktree, unattended. Nobody is watching the terminal; the coordinator hears from you only through
-`bn agent msg`.
+`workspan agent msg`.
 
 Your assignment: **{{task}}**
 
@@ -48,6 +48,6 @@ Your assignment: **{{task}}**
 - Record each actionable outcome or blocker on the governing task/provider as you go.
   Entire captures the run's session history.
 - When the pass ends, send the coordinator ONE message, if the assignment names one:
-  `bn agent msg <coordinator> "<repo>: merged #a #b; closed superseded #c; fixed+merged #d; left #e (major: Stripe 53, see comment)"`.
-- If the coordinator messages you mid-run, answer it with one `bn agent msg` back and carry on.
+  `workspan agent msg <coordinator> "<repo>: merged #a #b; closed superseded #c; fixed+merged #d; left #e (major: Stripe 53, see comment)"`.
+- If the coordinator messages you mid-run, answer it with one `workspan agent msg` back and carry on.
 - Then stop. Do not open new PRs of your own.

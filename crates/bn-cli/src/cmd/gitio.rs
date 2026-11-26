@@ -155,7 +155,7 @@ pub(crate) fn open_url(url: &str) -> bool {
     false
 }
 
-/// Where `bn diff` should look. `dir` is the worktree to run git in; `ctx` keys the note whose
+/// Where `workspan diff` should look. `dir` is the worktree to run git in; `ctx` keys the note whose
 /// todos/blockers are shown beside the stat. They travel together because a `--path` into another
 /// worktree must move *both* — showing this branch's todos next to that branch's diff is the
 /// picker-lies failure this whole feature exists to avoid.
@@ -164,7 +164,7 @@ pub(crate) struct DiffTarget {
     pub(crate) dir: PathBuf,
 }
 
-/// Resolve `bn diff`'s target from its flags: an explicit `--path`, an explicit `--repo/--branch`
+/// Resolve `workspan diff`'s target from its flags: an explicit `--path`, an explicit `--repo/--branch`
 /// (looked up through the rollup so a pooled slot resolves to its real checkout rather than a
 /// reconstructed `<worktree_dir>/<repo>/<branch>` that would not exist), else the cwd.
 pub(crate) fn diff_target(
@@ -198,7 +198,7 @@ pub(crate) fn diff_target(
     Ok(DiffTarget { ctx, dir })
 }
 
-/// `bn diff` — diff stat vs the branch's base + the note's open todos/blockers + commits ahead.
+/// `workspan diff` — diff stat vs the branch's base + the note's open todos/blockers + commits ahead.
 ///
 /// The base comes from [`bn_core::gitbase::base_ref`] rather than a hardcoded `origin/main`, and
 /// `three_dot` selects `<base>...HEAD` — changes on this branch since it diverged. Two-dot (the
@@ -295,8 +295,8 @@ pub(crate) fn emit_diff(
 }
 
 /// Restore the default SIGPIPE disposition on Unix. Rust ignores SIGPIPE by default, so a
-/// closed downstream pipe (`bn todo | head`, `bn diff | grep -q`) turns a write into an
-/// `EPIPE` error that the print macros then panic on. Resetting to `SIG_DFL` makes bn die
+/// closed downstream pipe (`workspan todo | head`, `workspan diff | grep -q`) turns a write into an
+/// `EPIPE` error that the print macros then panic on. Resetting to `SIG_DFL` makes workspan die
 /// quietly like a normal Unix filter instead — matching the bash bn, which never panicked.
 #[cfg(unix)]
 #[allow(
@@ -316,7 +316,7 @@ pub(crate) fn reset_sigpipe() {}
 
 /// Write `bytes` to a child's stdin without dying when the child has already exited. With
 /// SIGPIPE at its default (see [`reset_sigpipe`]), a write to a command that never reads stdin
-/// kills bn itself; ignoring it for the write turns that into a plain `EPIPE` error instead.
+/// kills workspan itself; ignoring it for the write turns that into a plain `EPIPE` error instead.
 #[cfg(unix)]
 #[allow(
     unsafe_code,
@@ -342,8 +342,8 @@ pub(crate) fn write_child_stdin(stdin: &mut impl std::io::Write, bytes: &[u8]) -
 }
 
 
-/// [`git_capture`] scoped to `dir` (`git -C <dir>`) — what lets `bn diff` describe a worktree
-/// other than the one bn is running in, which is the whole point of `--path`/`--repo`.
+/// [`git_capture`] scoped to `dir` (`git -C <dir>`) — what lets `workspan diff` describe a worktree
+/// other than the one workspan is running in, which is the whole point of `--path`/`--repo`.
 pub(crate) fn git_capture_in(args: &[&str], dir: &std::path::Path) -> Option<String> {
     crate::git::git_capture(args, Some(dir), false)
 }

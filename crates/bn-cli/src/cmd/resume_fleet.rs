@@ -301,7 +301,7 @@ pub(crate) struct ResumeFleetOpts {
     /// Unattended recovery from tmux.conf: once per tmux server, implies `--yes`, and restores only
     /// transcript-verified rows — agents seen working just before the crash. A lease or launch
     /// record from hours earlier is not proof the agent was still open, and relaunching one the
-    /// operator closed on purpose is worse than leaving it for a manual `bn resume --all`.
+    /// operator closed on purpose is worse than leaving it for a manual `workspan resume --all`.
     pub auto: bool,
 }
 
@@ -448,15 +448,15 @@ fn emit_auto(cfg: &Config) {
     for row in &plan {
         match restore_one(row) {
             Ok(()) => restored.push(row.branch.clone()),
-            Err(error) => eprintln!("bn resume --auto: {}: {error}", row.branch),
+            Err(error) => eprintln!("workspan resume --auto: {}: {error}", row.branch),
         }
     }
     for r in &rejected {
-        eprintln!("bn resume --auto: skipped {} — {}", r.branch, r.reason);
+        eprintln!("workspan resume --auto: skipped {} — {}", r.branch, r.reason);
     }
     if !restored.is_empty() {
         let message = format!(
-            "bn: recovered {} agent(s): {}",
+            "workspan: recovered {} agent(s): {}",
             restored.len(),
             restored.join(", ")
         );
@@ -483,7 +483,7 @@ fn restore_one(row: &RestoreRow) -> Result<(), String> {
     }
 }
 
-/// The `bn agent launch` invocation for a row. `--resume-session` only when the row is verified;
+/// The `workspan agent launch` invocation for a row. `--resume-session` only when the row is verified;
 /// otherwise a plain launch, which the table has already labelled `fresh`.
 fn launch_command(row: &RestoreRow) -> String {
     let exe = std::env::current_exe()

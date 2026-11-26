@@ -11,7 +11,7 @@ use serde_json::Value;
 ///
 /// A consumer that checks it gets a loud failure instead of a silent one: before this existed, a
 /// script parsing `data` had no way to tell "this field moved" from "this field is absent today",
-/// and bn had no way to say so. Bump it only when a change would break a reader that was correct
+/// and workspan had no way to say so. Bump it only when a change would break a reader that was correct
 /// under the previous number — adding a key to some command's `data` is not that.
 pub const ENVELOPE_VERSION: u32 = 1;
 
@@ -70,9 +70,9 @@ impl Envelope {
 /// Flatten `text` to a single line of at most `max` characters, marking with `…` when anything was
 /// dropped.
 ///
-/// Branch-note items are free text, and some of them are whole agent prompts — `bn summary` was
+/// Branch-note items are free text, and some of them are whole agent prompts — `workspan summary` was
 /// printing a 30-line dispatch brief inline, so one row buried every other row on the screen. A
-/// list view shows the first line; the full text is what `bn cat` is for.
+/// list view shows the first line; the full text is what `workspan cat` is for.
 ///
 /// Cuts on `char_indices`, never a byte offset, so a multi-byte title is not split mid-codepoint.
 pub fn oneline(text: &str, max: usize) -> String {
@@ -167,8 +167,8 @@ pub fn set_goal_in_body(body: &str, text: &str) -> String {
 }
 
 /// Append `line` to the end of the `## Heading` body section (just before the next heading,
-/// or at EOF), creating the section at the end of the body if it's absent. Used by `bn notes`,
-/// `bn tc`, and `bn log-progress` to grow the prose sections. Preserves everything else.
+/// or at EOF), creating the section at the end of the body if it's absent. Used by `workspan notes`,
+/// `workspan tc`, and `workspan log-progress` to grow the prose sections. Preserves everything else.
 pub fn append_to_section(body: &str, heading: &str, line: &str) -> String {
     let mut out: Vec<String> = Vec::new();
     let mut in_section = false;
@@ -212,7 +212,7 @@ pub fn append_to_section(body: &str, heading: &str, line: &str) -> String {
 
 /// Replace the entire content of a `## Heading` body section with `content` verbatim, creating the
 /// section at the end if absent. Unlike [`append_to_section`], this is idempotent — re-running with
-/// the same content leaves exactly one copy (used by `bn review approve` to record the approved
+/// the same content leaves exactly one copy (used by `workspan review approve` to record the approved
 /// plan without stacking duplicates on re-approve). `content` keeps its own line structure; leading
 /// / trailing blank lines are trimmed and the section is fenced from neighbours by a blank line.
 ///
@@ -262,8 +262,8 @@ pub fn set_section(body: &str, heading: &str, content: &str) -> String {
 }
 
 /// The content lines under a `## Heading` body section (excluding the heading), with leading
-/// and trailing blank lines trimmed. Empty when the heading is absent. Used to list `bn notes`
-/// / `bn tc`.
+/// and trailing blank lines trimmed. Empty when the heading is absent. Used to list `workspan notes`
+/// / `workspan tc`.
 pub fn section_content(body: &str, heading: &str) -> Vec<String> {
     let mut in_section = false;
     let mut out: Vec<String> = Vec::new();
@@ -299,14 +299,14 @@ fn first_nonblank_in_section(body: &str, heading: &str) -> Option<String> {
     None
 }
 
-/// The `## Links` footer of `bn cat`: this repo's saved links, most-used first, so a fresh
+/// The `## Links` footer of `workspan cat`: this repo's saved links, most-used first, so a fresh
 /// session sees the PR, board or dashboard it would otherwise go looking for. Empty when the
 /// repo has none.
 pub fn links_footer(links: &[crate::links::Link]) -> String {
     if links.is_empty() {
         return String::new();
     }
-    let mut out = String::from("\n## Links (`bn links` to open)\n");
+    let mut out = String::from("\n## Links (`workspan links` to open)\n");
     for l in links {
         let tags = if l.tags.is_empty() {
             String::new()

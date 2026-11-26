@@ -327,7 +327,7 @@ pub(super) fn raise(seat: &str, key: &str, title: &str, severity: &str) -> std::
     .map(|_| ())
 }
 
-/// `bn agent checkin` on top of a watchdog: a one-shot reminder to `target` in `mins` minutes.
+/// `workspan agent checkin` on top of a watchdog: a one-shot reminder to `target` in `mins` minutes.
 pub(crate) fn checkin(
     target: &str,
     mins: u64,

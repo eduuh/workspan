@@ -7,7 +7,7 @@
 //! re-invoke `bn` with a hidden `--pick-stage`. No attention logic lives here — every row and
 //! action is an existing native `bn` surface (`doctor`, `attn ack/snooze`, `cron show`).
 //!
-//! Extends the `bn wt` precedent (native fzf + native dispatch); see `MIGRATION.md`.
+//! Extends the `workspan wt` precedent (native fzf + native dispatch); see `MIGRATION.md`.
 
 use bn_core::doctor::{self, Finding};
 use bn_core::resolver::Config;
@@ -16,7 +16,7 @@ use bn_core::util::{add_days, now_epoch_secs, today};
 use std::io::{IsTerminal, Write};
 use std::process::{Command, Stdio};
 
-/// The hidden callback stages a `--pick` fzf session re-invokes (`bn doctor --pick-stage <s>`).
+/// The hidden callback stages a `--pick` fzf session re-invokes (`workspan doctor --pick-stage <s>`).
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub enum PickStage {
     /// Print the row list (fzf `reload` after an action, or the initial feed). Served from the
@@ -149,7 +149,7 @@ fn row_for(f: &Finding) -> Row {
             display: disp(
                 Warn,
                 format!("\u{2022} {}", i.text),
-                format!("in inbox {}d — bn q drain", i.idle_days),
+                format!("in inbox {}d — workspan q drain", i.idle_days),
             ),
             kind: "inbox",
             id: i.id.clone(),
@@ -227,7 +227,7 @@ fn header(findings: &[Finding]) -> String {
     )
 }
 
-/// `bn doctor --pick` — the interactive fzf popup. Falls back to a plain `doctor` dump when fzf
+/// `workspan doctor --pick` — the interactive fzf popup. Falls back to a plain `doctor` dump when fzf
 /// is absent, and holds the popup open (Enter) on the empty / no-fzf paths so the message reads.
 pub fn run(cfg: &Config) {
     let findings =
@@ -416,7 +416,7 @@ fn preview(kind: &str, id: &str, job: &str, link: &str, path: &str) {
 }
 
 /// Act on the focused row (the `open` stage): its link, the note in `$EDITOR`, or `cron show`. A
-/// plan-review row opens the plan in an nvim popup (`bn review edit`) for decision-in-place instead
+/// plan-review row opens the plan in an nvim popup (`workspan review edit`) for decision-in-place instead
 /// of a browser link (#651).
 fn open(kind: &str, id: &str, job: &str, link: &str, path: &str) {
     match kind {
@@ -444,7 +444,7 @@ fn open(kind: &str, id: &str, job: &str, link: &str, path: &str) {
 }
 
 /// Pipe bytes through `$PAGER` (default `less -R`); on a missing pager, print and hold.
-/// Shared with the `jump` picker (`bn jump`'s cron dispatch).
+/// Shared with the `jump` picker (`workspan jump`'s cron dispatch).
 pub(crate) fn page(bytes: &[u8]) {
     let pager = std::env::var("PAGER").unwrap_or_else(|_| "less -R".to_string());
     let mut parts = pager.split_whitespace();

@@ -38,7 +38,7 @@ use std::time::{Duration, Instant};
 ///
 /// A sweep asks about every slot in turn, and off Linux each miss would otherwise be its own
 /// `lsof` pass — ten slots, ten full scans of the process table. One capture serves the whole
-/// pass. It is a TTL and not a `OnceLock` because a bn process can be long-lived: a table
+/// pass. It is a TTL and not a `OnceLock` because a workspan process can be long-lived: a table
 /// cached for its lifetime would answer for a fleet that has since turned over completely, and a
 /// stale table is exactly the wrong thing to decide occupancy from.
 const PROC_CWD_TTL: Duration = Duration::from_secs(2);
@@ -180,7 +180,7 @@ fn tenants_among(pids: &[i32], kinds: Option<&[(i32, i32, String, String)]>) -> 
     })
 }
 
-/// Whether the process is bn's own tmux-git poller.
+/// Whether the process is workspan's own tmux-git poller.
 fn is_bn_tmux_git(command: &str) -> bool {
     let mut parts = command.split_whitespace();
     match (parts.next(), parts.next()) {

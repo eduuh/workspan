@@ -5,7 +5,7 @@
 
 use std::process::Command;
 
-/// A systemd `--user` timer that triggers a `bn run <job>` service.
+/// A systemd `--user` timer that triggers a `workspan run <job>` service.
 #[derive(Debug, Clone)]
 pub struct RegisteredTimer {
     pub job: String,
@@ -16,8 +16,8 @@ pub struct RegisteredTimer {
     pub next_epoch: Option<i64>,
 }
 
-/// Every registered timer that runs a `bn run <job>` service, or `[]` when systemd is
-/// unavailable. Timers we can't classify as a bn job (any other service) are skipped.
+/// Every registered timer that runs a `workspan run <job>` service, or `[]` when systemd is
+/// unavailable. Timers we can't classify as a workspan job (any other service) are skipped.
 pub fn registered() -> Vec<RegisteredTimer> {
     let Some(entries) = list_timers_json() else {
         return Vec::new();
@@ -160,7 +160,7 @@ fn us_to_secs(us: u64) -> Option<i64> {
 }
 
 /// Pull the job name out of a systemd `ExecStart` value, which contains an argv field like
-/// `argv[]=/home/you/.bin/bn run refresh-all`. Only `bn run <job>` services qualify.
+/// `argv[]=/home/you/.bin/bn run refresh-all`. Only `workspan run <job>` services qualify.
 fn parse_exec_job(exec: &str) -> Option<String> {
     let argv = field(exec, "argv[]=")?;
     let mut toks = argv.split_whitespace();

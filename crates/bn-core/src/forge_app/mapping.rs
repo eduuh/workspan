@@ -8,7 +8,7 @@ use std::collections::BTreeMap;
 use super::client::{ActivityStatus, BnTaskRow, GoalRow};
 use crate::todo::{neutralize_meta, Task, Token};
 
-/// Meta keys bn derives from Forge fields on every load. They are never read from, or written to,
+/// Meta keys workspan derives from Forge fields on every load. They are never read from, or written to,
 /// the activity's `agentMeta`: `src` is the activity id, `due` is the due date, and `mod` is a
 /// tasks.txt merge stamp that would otherwise turn every edit into a meta write.
 pub(crate) const DERIVED_KEYS: &[&str] = &["src", "mod", "due"];
@@ -16,7 +16,7 @@ pub(crate) const DERIVED_KEYS: &[&str] = &["src", "mod", "due"];
 /// The `src:` prefix marking a task that lives in Forge.
 pub(crate) const SRC_PREFIX: &str = "forge:";
 
-/// Forge priority word to bn letter: Urgent/High/Medium are A/B/C; Low and None carry no letter.
+/// Forge priority word to workspan letter: Urgent/High/Medium are A/B/C; Low and None carry no letter.
 pub(crate) fn priority_letter(word: &str) -> Option<char> {
     match word.trim().to_ascii_lowercase().as_str() {
         "urgent" => Some('A'),
@@ -26,7 +26,7 @@ pub(crate) fn priority_letter(word: &str) -> Option<char> {
     }
 }
 
-/// bn letter to Forge priority word. A letter past C is still a priority, so it is `Low` rather
+/// workspan letter to Forge priority word. A letter past C is still a priority, so it is `Low` rather
 /// than dropped.
 pub(crate) fn priority_word(letter: Option<char>) -> &'static str {
     match letter {
@@ -50,7 +50,7 @@ pub(crate) fn date_part(s: &str) -> Option<String> {
     shaped.then(|| d.to_string())
 }
 
-/// A meta key bn's grammar reads as one: `[A-Za-z][A-Za-z0-9_-]*`.
+/// A meta key workspan's grammar reads as one: `[A-Za-z][A-Za-z0-9_-]*`.
 pub(crate) fn valid_meta_key(key: &str) -> bool {
     let mut chars = key.chars();
     matches!(chars.next(), Some(c) if c.is_ascii_alphabetic())
@@ -222,7 +222,7 @@ pub(crate) fn forge_id(task: &Task) -> Option<&str> {
         .filter(|id| !id.is_empty())
 }
 
-/// The bn task for one Forge row, with `id` as its bn id.
+/// The workspan task for one Forge row, with `id` as its workspan id.
 ///
 /// The title is defanged with [`neutralize_meta`]: activity titles are written by any family
 /// member, and `smart:`, `repo:` or `@wip` in a title would otherwise become the task's structure.

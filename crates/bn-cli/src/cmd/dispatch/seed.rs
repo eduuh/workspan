@@ -31,10 +31,10 @@ fn render_workflow_body(skill: &bn_core::skills::Skill, title: &str) -> Result<S
         .map_err(|error| format!("render workflow '{}': {error}", skill.name))
 }
 
-/// The concrete plan-review-gate protocol (#349) appended to a `bn dispatch --plan` ship seed. It
-/// is the authoritative final instruction: the agent writes a plan, registers it with `bn review
+/// The concrete plan-review-gate protocol (#349) appended to a `workspan dispatch --plan` ship seed. It
+/// is the authoritative final instruction: the agent writes a plan, registers it with `workspan review
 /// submit` (raising a pending plan-review for `repo`/`branch` under session `sid`), and PAUSES —
-/// polling `bn review status <id>` — implementing and opening a PR after low-risk agent consensus,
+/// polling `workspan review status <id>` — implementing and opening a PR after low-risk agent consensus,
 /// or after explicit human approval for high-risk/no-consensus plans. `verify` folds the `bn
 /// verify` gate into the post-approval implement step.
 pub(crate) fn plan_gate_seed(
@@ -95,14 +95,14 @@ pub(super) fn append_plan_gate(
 /// (scope, build, and review the change end to end in one session via bounded subagents). `debug`
 /// is the explicit pick for a repro-first bugfix.
 ///
-/// The default ship arm is the ordinary `bn dispatch` entry: with the multi-session pipeline off
+/// The default ship arm is the ordinary `workspan dispatch` entry: with the multi-session pipeline off
 /// (the default; opt in with `$BN_DISPATCH_PIPELINE=1`), a skill-less agent dispatch is
 /// *not* `pipeline_investigate`, so it lands here and runs `ship-solo`. With the pipeline flag on, that
 /// same dispatch routes to the Investigate stage instead and this default only applies to explicit
 /// `--skill` lanes (e.g. the critic's execute re-dispatch).
 ///
 /// Deliberately **not** the same mapping as [`bn_core::pipeline::stage::Stage::default_skill`],
-/// which answers a different question. This one is "what does an ad-hoc `bn dispatch` run?" — a
+/// which answers a different question. This one is "what does an ad-hoc `workspan dispatch` run?" — a
 /// ship gets `ship-solo`, a self-contained investigate→implement→review lane. That one is "what
 /// does the nine-stage pipeline run at this stage?" — `execute` picks up an *already approved*
 /// plan. Both are correct; folding them together would silently change what dispatch launches.
@@ -112,8 +112,8 @@ pub(crate) fn dispatch_skill_name(explicit: Option<&str>) -> &str {
 
 /// The seed for a skill-driven dispatch (#321): wraps the skill's rendered workflow body with
 /// dispatch context (fresh worktree, plan-approval gate unless --yolo),
-/// maps the workflow's MCP tool names onto the CLI for harnesses without the bn MCP server, and
-/// closes with outcome ingestion, completion reporting, and the `bn reflect "skill:<name> — …"`
+/// maps the workflow's MCP tool names onto the CLI for harnesses without the workspan MCP server, and
+/// closes with outcome ingestion, completion reporting, and the `workspan reflect "skill:<name> — …"`
 /// line whose text the next run of that skill sees under "Recent lessons". Self-contained: the caller appends nothing.
 pub(super) struct SkillSeedContext<'a> {
     pub(super) title: &'a str,

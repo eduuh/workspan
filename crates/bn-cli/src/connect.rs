@@ -14,7 +14,7 @@ use std::process::{Child, Command, ExitStatus, Stdio};
 use std::thread;
 use std::time::{Duration, Instant};
 
-/// The hidden callback stages a `connect` fzf session re-invokes (`bn connect --pick-stage <s>`).
+/// The hidden callback stages a `connect` fzf session re-invokes (`workspan connect --pick-stage <s>`).
 #[derive(Clone, Copy, Debug, clap::ValueEnum)]
 pub enum ConnectStage {
     /// Emit the host row list (the fzf `start` reload feed).
@@ -52,7 +52,7 @@ const INTERACTIVE_SSH_OPTIONS: &[&str] = &[
 
 const PREVIEW_COMMAND_TIMEOUT: Duration = Duration::from_secs(10);
 
-/// The remote session every `bn connect` attaches to. `new-session -A` re-attaches an existing
+/// The remote session every `workspan connect` attaches to. `new-session -A` re-attaches an existing
 /// `bn` session, so a dropped pipe resumes work instead of killing it.
 const REMOTE_TMUX_SESSION: &str = "bn";
 
@@ -242,7 +242,7 @@ fn ssh_failure(context: &str, run: &SshRun) -> String {
 
 fn ssh_next_steps(alias: &str) -> String {
     format!(
-        "hint: try `ssh {alias}`; check key auth, the Host stanza in ~/.ssh/config, and network; run `bn doctor` for diagnostics"
+        "hint: try `ssh {alias}`; check key auth, the Host stanza in ~/.ssh/config, and network; run `workspan doctor` for diagnostics"
     )
 }
 
@@ -279,14 +279,14 @@ fn find_host(cfg: &Config, alias: &str) -> Host {
     match host_by_alias(&all, alias) {
         Some(h) => h.clone(),
         None => crate::fail(&format!(
-            "bn connect: no ssh-config Host '{alias}' — {} (add a Host stanza to ~/.ssh/config)\n{}",
+            "workspan connect: no ssh-config Host '{alias}' — {} (add a Host stanza to ~/.ssh/config)\n{}",
             known_hosts_hint(&all),
             ssh_next_steps(alias)
         )),
     }
 }
 
-/// `bn connect [host]`: attach directly with an alias, else run the picker.
+/// `workspan connect [host]`: attach directly with an alias, else run the picker.
 pub fn run(cfg: &Config, host: Option<&str>, window: bool, read_only: bool) {
     match host {
         Some(alias) if !alias.is_empty() => {
@@ -337,7 +337,7 @@ fn build_list(cfg: &Config) {
 }
 
 /// The preview panel: connection facts from config, then a live probe of the remote's
-/// `bn summary` (its status/agents dashboard), degrading to `uptime` when bn is absent
+/// `workspan summary` (its status/agents dashboard), degrading to `uptime` when workspan is absent
 /// and to "unreachable" when ssh fails.
 fn preview(cfg: &Config, alias: &str) {
     if alias.is_empty() {
@@ -395,7 +395,7 @@ fn pick(cfg: &Config, window: bool, read_only: bool) {
     let all = load_hosts(cfg);
     if all.is_empty() {
         crate::fail(
-            "bn connect: no Host stanzas in ~/.ssh/config — add one (wildcards are skipped)",
+            "workspan connect: no Host stanzas in ~/.ssh/config — add one (wildcards are skipped)",
         );
     }
     let exe = std::env::current_exe().unwrap_or_else(|_| "bn".into());
@@ -454,7 +454,7 @@ fn pick_numbered(all: &[Host], window: bool, read_only: bool) {
     match selected_host(all, &line) {
         Ok(Some(h)) => attach(&h.alias, window, read_only),
         Ok(None) => {}
-        Err(error) => eprintln!("bn connect: {error}"),
+        Err(error) => eprintln!("workspan connect: {error}"),
     }
 }
 
@@ -546,11 +546,11 @@ fn attach_direct(alias: &str, read_only: bool) {
         Ok(run) if run.status.success() => {}
         Ok(run) => crate::fail(&format!(
             "{}\n{}",
-            ssh_failure(&format!("bn connect: ssh to '{alias}' failed"), &run),
+            ssh_failure(&format!("workspan connect: ssh to '{alias}' failed"), &run),
             ssh_next_steps(alias)
         )),
         Err(e) => crate::fail(&format!(
-            "bn connect: failed to run ssh: {e}\n{}",
+            "workspan connect: failed to run ssh: {e}\n{}",
             ssh_next_steps(alias)
         )),
     }
@@ -581,10 +581,10 @@ fn attach_window(alias: &str, read_only: bool) {
                 .arg(command)
                 .status(),
         }
-        .unwrap_or_else(|e| crate::fail(&format!("bn connect: failed to run tmux: {e}")));
+        .unwrap_or_else(|e| crate::fail(&format!("workspan connect: failed to run tmux: {e}")));
         if !status.success() {
             crate::fail(&format!(
-                "bn connect: failed to attach local tmux session '{session}'"
+                "workspan connect: failed to attach local tmux session '{session}'"
             ));
         }
         return;
@@ -604,10 +604,10 @@ fn attach_window(alias: &str, read_only: bool) {
             ])
             .arg(command)
             .output()
-            .unwrap_or_else(|e| crate::fail(&format!("bn connect: failed to run tmux: {e}")));
+            .unwrap_or_else(|e| crate::fail(&format!("workspan connect: failed to run tmux: {e}")));
             if !out.status.success() {
                 crate::fail(&format!(
-                    "bn connect: failed to create local tmux session '{session}'"
+                    "workspan connect: failed to create local tmux session '{session}'"
                 ));
             }
             String::from_utf8_lossy(&out.stdout).trim().to_string()
@@ -615,13 +615,13 @@ fn attach_window(alias: &str, read_only: bool) {
     };
     if id.is_empty() {
         crate::fail(&format!(
-            "bn connect: tmux returned no id for local session '{session}'"
+            "workspan connect: tmux returned no id for local session '{session}'"
         ));
     }
 
     if !crate::proc::tmux_run(&["switch-client", "-t", &id]) {
         crate::fail(&format!(
-            "bn connect: failed to switch to local tmux session '{session}'"
+            "workspan connect: failed to switch to local tmux session '{session}'"
         ));
     }
 }

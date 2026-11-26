@@ -8,7 +8,7 @@ arguments:
 ---
 Use the existing `debug` workflow for the fix lifecycle; this skill supplies runtime evidence,
 not a second implementation pipeline. Recipes and verified adapter behavior are in
-`config/reference/nvim-explore.md` in bn's source checkout.
+`config/reference/nvim-explore.md` in workspan's source checkout.
 
 1. **Reproduce.** Read the branch context and relevant repo references. Pin the symptom
    ({{symptom}}), expected result, input and exact failing command before editing code.

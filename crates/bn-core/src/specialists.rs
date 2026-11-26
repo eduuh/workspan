@@ -30,7 +30,7 @@ use std::path::{Path, PathBuf};
 const MANAGED_MARKER_PREFIX: &str = "<!-- bn-managed-agent: ";
 
 /// Copilot caps an agent file body at ~30k chars; when inlining mined standards would exceed this
-/// we fall back to pointing at `bn ref <name>` instead of embedding the full text.
+/// we fall back to pointing at `workspan ref <name>` instead of embedding the full text.
 const MAX_AGENT_CHARS: usize = 30_000;
 
 /// A reference doc resolved to its full body, ready to inline into a compiled agent.
@@ -204,7 +204,7 @@ fn effective_description(spec: &AgentDef) -> String {
                  {repo} PR review."
             )
         }
-        _ => format!("bn {} agent: {}.", spec.kind.label(), spec.name),
+        _ => format!("Workspan {} agent: {}.", spec.kind.label(), spec.name),
     }
 }
 
@@ -242,7 +242,7 @@ fn render_body(spec: &AgentDef, refs: &[ResolvedRef], inline: bool) -> String {
                 out.push_str("\n\n");
             } else {
                 out.push_str(&format!(
-                    "Run `bn ref {}` for the full standards (omitted here to stay within the \
+                    "Run `workspan ref {}` for the full standards (omitted here to stay within the \
                      agent-file size limit).\n\n",
                     r.name
                 ));
@@ -251,8 +251,8 @@ fn render_body(spec: &AgentDef, refs: &[ResolvedRef], inline: bool) -> String {
     }
 
     if !spec.skills.is_empty() {
-        out.push_str("## bn skills\n\n");
-        out.push_str("Use these bn workflows while reviewing: ");
+        out.push_str("## workspan skills\n\n");
+        out.push_str("Use these workspan workflows while reviewing: ");
         let list = spec
             .skills
             .iter()
@@ -319,8 +319,8 @@ fn is_any_managed_agent(content: &str) -> bool {
     managed_agent_name(content).is_some()
 }
 
-/// Resolve a specialist's `references:` to their full bodies from the bn reference store. Missing
-/// references become a placeholder note so install stays robust before `bn agents bootstrap` runs.
+/// Resolve a specialist's `references:` to their full bodies from the workspan reference store. Missing
+/// references become a placeholder note so install stays robust before `workspan agents bootstrap` runs.
 pub fn resolve_refs(spec: &AgentDef) -> Vec<ResolvedRef> {
     spec.references
         .iter()
@@ -332,7 +332,7 @@ pub fn resolve_refs(spec: &AgentDef) -> Vec<ResolvedRef> {
             None => ResolvedRef {
                 name: name.clone(),
                 body: format!(
-                    "_(reference `{name}` not found yet — run `bn agents bootstrap {}` to mine \
+                    "_(reference `{name}` not found yet — run `workspan agents bootstrap {}` to mine \
                      it.)_",
                     spec.name
                 ),
@@ -424,7 +424,7 @@ pub fn install_native_agents(
                     .map_err(|e| format!("read {}: {e}", path.display()))?;
                 if !is_managed_agent(&existing, &spec.name) {
                     return Err(format!(
-                        "refusing to overwrite non-bn agent: {}",
+                        "refusing to overwrite non-Workspan agent: {}",
                         path.display()
                     ));
                 }

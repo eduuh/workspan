@@ -16,7 +16,7 @@ const SEEN_EVENT_CAP: usize = 8192;
 #[serde(tag = "kind", rename_all = "kebab-case")]
 pub enum WakeTarget {
     Watch,
-    /// Written by the removed `bn afk`; kept so older queue files still parse, and stripped on load.
+    /// Written by the removed `workspan afk`; kept so older queue files still parse, and stripped on load.
     Afk,
     Controller {
         id: String,

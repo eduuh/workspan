@@ -195,7 +195,7 @@ if [ "$found" = 0 ] && [ -n "$TO" ]; then
   # label and name it after the request.
   label="bn-host-$(lower "$TO" | tr -c 'a-z0-9-\n' '-')"
   id=$("$DT" list --labels "$label" 2>/dev/null | awk 'NR>1 && $1 ~ /\./ {print $1; exit}')
-  [ -n "$id" ] || die "no tunnel for $TO. Run 'bn run tunnel-host' on $TO first (same Dev Tunnels account)."
+  [ -n "$id" ] || die "no tunnel for $TO. Run 'workspan run tunnel-host' on $TO first (same Dev Tunnels account)."
   connect_one "$id" "$TO"
 elif [ "$found" = 0 ] && [ "$listed" = 1 ]; then
   say "no bn hosts on this Dev Tunnels account yet. Run 'bn run tunnel-host' on the machine to reach."

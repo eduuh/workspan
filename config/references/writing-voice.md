@@ -1,6 +1,6 @@
 # Writing voice
 
-These shipped rules come from bn's `write-like-me` skill. They record explicit instructions,
+These shipped rules come from workspan's `write-like-me` skill. They record explicit instructions,
 not guessed personal preferences. A personal `writing-voice` reference can override them.
 
 Use `write-like-me` only for explicitly requested drafts, rewrites, and polishing, including

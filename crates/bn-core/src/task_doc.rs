@@ -368,7 +368,7 @@ pub fn sync_attachments(cfg: &Config, task: &Task) -> Result<TaskDoc, DocError> 
         String::new()
     } else {
         let mut out = format!(
-            "Captured with this task. Run `bn task attach {id}` for their paths on this machine.\n\n"
+            "Captured with this task. Run `workspan task attach {id}` for their paths on this machine.\n\n"
         );
         for file in &files {
             out.push_str(&format!(
@@ -689,7 +689,7 @@ mod tests {
         );
         // Names, never paths: the doc syncs to machines where this path does not exist.
         assert!(!doc.text.contains(root.path().to_str().expect("utf8")));
-        assert!(doc.text.contains("bn task attach t4"));
+        assert!(doc.text.contains("workspan task attach t4"));
 
         crate::task_attach::remove(&cfg, &task, "shot.png").expect("remove");
         let doc = sync_attachments(&cfg, &task).expect("resync");

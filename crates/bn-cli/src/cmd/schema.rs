@@ -31,7 +31,7 @@ fn all(json: bool) -> i32 {
         return 0;
     }
     println!(
-        "bn --json envelope, contract version {}\n",
+        "workspan --json envelope, contract version {}\n",
         bn_core::render::ENVELOPE_VERSION
     );
     for field in schema::ENVELOPE_FIELDS {
@@ -41,7 +41,7 @@ fn all(json: bool) -> i32 {
     for c in schema::COMMANDS {
         println!("  {:<16} {}", c.tag, c.summary);
     }
-    println!("\n`bn schema <command>` prints one command's data shape.");
+    println!("\n`workspan schema <command>` prints one command's data shape.");
     0
 }
 
@@ -57,7 +57,7 @@ fn one(name: &str, json: bool) -> i32 {
             json,
             "schema",
             "unknown_command",
-            &format!("'{name}' is not documented. `bn schema` lists what is."),
+            &format!("'{name}' is not documented. `workspan schema` lists what is."),
         );
     };
     if json {

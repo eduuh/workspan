@@ -11,7 +11,7 @@ set -eu
 
 if ! command -v systemctl >/dev/null 2>&1; then
   echo "bn-systemd: systemctl not found — this installer is for systemd hosts only." >&2
-  echo "  On stock WSL (no systemd) drive 'bn run <job>' from Windows Task Scheduler;" >&2
+  echo "  On stock WSL (no systemd) drive 'workspan run <job>' from Windows Task Scheduler;" >&2
   echo "  see config/jobs/README.md." >&2
   exit 1
 fi
@@ -23,13 +23,13 @@ if [ ! -x "$bn_bin" ]; then
   if command -v bn >/dev/null 2>&1; then
     bn_bin="$(command -v bn)"
   else
-    echo "bn-systemd: bn not found (looked for $HOME/.config/bn/bn and \`bn\` on PATH)." >&2
-    echo "  Install bn first (run ./install.sh), then re-run this script." >&2
+    echo "bn-systemd: workspan not found (looked for $HOME/.config/bn/bn and \`bn\` on PATH)." >&2
+    echo "  Install workspan first (run ./install.sh), then re-run this script." >&2
     exit 1
   fi
 fi
 
 "$bn_bin" cron register
 
-echo "bn-systemd: registered via \`bn cron register\`. Next runs:"
+echo "bn-systemd: registered via \`workspan cron register\`. Next runs:"
 systemctl --user list-timers 'bn-*' --no-pager

@@ -19,7 +19,7 @@ fn announce_reap(name: &str, reason: &str) {
         crate::toast::Class::Lifecycle,
         &format!("wt:{name}:reclaimed"),
         "wt",
-        &format!("bn: reclaimed {name}"),
+        &format!("workspan: reclaimed {name}"),
         body,
     );
 }
@@ -28,7 +28,7 @@ fn announce_reap(name: &str, reason: &str) {
 
 /// The bare repos a `--all` sweep covers: only the repo the cwd sits in, so a sweep started from a
 /// worktree never reaches into another repo's checkouts. `all_repos`, or a cwd outside any managed
-/// repo (the cron), widens it to every bare repo — the same rule `bn wt prune` follows.
+/// repo (the cron), widens it to every bare repo — the same rule `workspan wt prune` follows.
 pub(crate) fn sweep_bares(bare_dir: &Path, all_repos: bool) -> Vec<PathBuf> {
     if !all_repos {
         if let Some(bare) = find_bare_repo(&cwd()) {
@@ -309,8 +309,8 @@ pub(crate) fn commits_ahead(wt: &Path) -> u32 {
 /// Clean a single worktree: verify the PR, close the note, remove the worktree + branch, and
 /// kill its tmux window(s).
 ///
-/// **The one reclaim path.** `prefix x` (via `bn wt close --reclaim`), `prefix D`, `bn wt
-/// cleanup`, `bn close`, `wt merge` and the reaper all arrive here, and the two shapes of worktree
+/// **The one reclaim path.** `prefix x` (via `workspan wt close --reclaim`), `prefix D`, `workspan wt
+/// cleanup`, `workspan close`, `wt merge` and the reaper all arrive here, and the two shapes of worktree
 /// fork exactly once: a `_pool/<n>` slot hands its *lease* back and keeps its checkout (warm-reset
 /// for the next tenant), while a conventional worktree is removed outright behind the merged-PR /
 /// clean-tree gates. Nothing else in the codebase may remove a worktree or drop a lease.
@@ -588,7 +588,7 @@ pub(crate) fn ack_stuck(key: &str) {
 /// from `git worktree list`, or is still present but now clean (nothing left to commit/stash).
 /// Both the started/in-flight and open lanes are swept, since an orphaned notice may sit in either.
 ///
-/// Safe to run on every cleanup poll and from `bn doctor`: a genuinely still-stuck worktree is
+/// Safe to run on every cleanup poll and from `workspan doctor`: a genuinely still-stuck worktree is
 /// present *and* dirty, so it is never acked; re-acking an already-resolved item is a no-op. The
 /// worktree-absent signal is primary — it's unambiguous — with the clean-tree signal catching the
 /// case where the changes were committed/stashed out of band.

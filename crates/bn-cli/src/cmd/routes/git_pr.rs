@@ -25,7 +25,7 @@ pub(super) fn route(cfg: &Config, action: CmdGitPr, json: bool) {
                 &summary,
                 None,
             )
-            .unwrap_or_else(|e| fail(&format!("bn log-progress: controller event: {e}")));
+            .unwrap_or_else(|e| fail(&format!("workspan log-progress: controller event: {e}")));
         }
         CmdGitPr::Diff {
             path,
@@ -40,7 +40,7 @@ pub(super) fn route(cfg: &Config, action: CmdGitPr, json: bool) {
             branch.as_deref(),
         ) {
             Ok(target) => emit_diff(cfg, &target, base.as_deref(), three_dot, json),
-            Err(e) => fail_json(json, "diff", "no_target", &format!("bn diff: {e}")),
+            Err(e) => fail_json(json, "diff", "no_target", &format!("workspan diff: {e}")),
         },
         CmdGitPr::Open { url } => {
             if !cmd::gitio::open_url(&url) {

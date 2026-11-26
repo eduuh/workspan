@@ -46,11 +46,11 @@ pub const DEFAULT_LIMIT: usize = 100;
 /// One open issue, as much of it as the reservoir needs to rank and convert into a task.
 ///
 /// Includes the `labels` that drive the exclusion policy so
-/// `bn task pull` reuses from [`crate::keep_warm::plan_keep_warm`], `updated_at` orders staleness,
+/// `workspan task pull` reuses from [`crate::keep_warm::plan_keep_warm`], `updated_at` orders staleness,
 /// and `is_assigned` keeps already-owned work out of the pull.
 #[derive(Debug, Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct IssueRef {
-    /// The bn repo name this issue belongs to (not the GitHub slug).
+    /// The workspan repo name this issue belongs to (not the GitHub slug).
     pub repo: String,
     pub number: i64,
     pub title: String,
@@ -308,7 +308,7 @@ pub fn for_repo(cfg: &Config, runner: &dyn CommandRunner, repo: &str, now: i64) 
     fresh
 }
 
-/// Every repo bn knows about, each with its issues and its own freshness.
+/// Every repo workspan knows about, each with its issues and its own freshness.
 ///
 /// A repo that cannot be reached is **present with a reason**, never omitted. Sorted by repo name
 /// so callers and tests see a stable order.
@@ -411,7 +411,7 @@ fn merge_in_order(repos: &[String], done: Vec<(usize, RepoIssues)>, now: i64) ->
         .collect()
 }
 
-/// The repos to sweep: everything bn manages, plus everything it has a branch note for. The union
+/// The repos to sweep: everything workspan manages, plus everything it has a branch note for. The union
 /// matters — a repo can be managed before it has notes, and can have notes without being managed.
 pub fn known_repos(cfg: &Config) -> Vec<String> {
     let mut names: Vec<String> = cfg
@@ -429,7 +429,7 @@ pub fn known_repos(cfg: &Config) -> Vec<String> {
     names
 }
 
-/// The bn repo name for a clone URL: the last path segment, minus `.git`, lowercased.
+/// The workspan repo name for a clone URL: the last path segment, minus `.git`, lowercased.
 pub(crate) fn repo_name_from_url(url: &str) -> Option<String> {
     let trimmed = url.trim().trim_end_matches('/');
     let last = trimmed.rsplit(['/', ':']).next()?;

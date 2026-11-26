@@ -42,10 +42,10 @@ diagnostic logging that changes code.
    propose it rather than forcing it in.
 
 5. **Prove it's gone.** Re-run the step-1 repro: it must now pass. Then run the repo's full gate —
-   `bn verify` (build/test/lint gate) via the harness — so the fix didn't break anything else. Not
+   `workspan verify` (build/test/lint gate) via the harness — so the fix didn't break anything else. Not
    green means not done. Where a test would have caught this, add it now.
 
-6. **Capture the learning.** Record the non-obvious cause with `bn learned "…"` — the thing that
+6. **Capture the learning.** Record the non-obvious cause with `workspan learned "…"` — the thing that
    would've saved you an hour. Then ask whether it is *durable repo knowledge*: will it trip up
    the next session on this repo, not just this branch? If so, fold it into the repo's reference
    notes with `bn_ref_append` — one line, under `gotchas`, ending in where it came from and

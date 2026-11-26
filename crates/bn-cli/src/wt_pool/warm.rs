@@ -20,8 +20,8 @@ use report::{Outcome, WarmReport};
 
 /// Template written when a repo has no `build.sh` yet — the user fills in the install/build.
 const BUILD_TEMPLATE: &str = "#!/bin/sh
-# `bn build` runs this (cwd = the repo checkout) to install deps / build. `bn wt pool warm` runs
-# `bn build` in every pool slot, so the slot stays warm across get/return — and a slot is built
+# `workspan build` runs this (cwd = the repo checkout) to install deps / build. `workspan wt pool warm` runs
+# `workspan build` in every pool slot, so the slot stays warm across get/return — and a slot is built
 # exactly the way you build by hand. Keep it idempotent: it re-runs on every `wt pool warm`.
 set -eu
 
@@ -82,7 +82,7 @@ fn warm_in_window(ctx: &PoolCtx, new: bool, slot: Option<u32>) -> bool {
     true
 }
 
-/// `bn wt pool warm` — resolve the named repo (or the cwd's, or an fzf pick) and warm it. Since
+/// `workspan wt pool warm` — resolve the named repo (or the cwd's, or an fzf pick) and warm it. Since
 /// pooling stopped being a registration, [`resolve_pool`] and the cron's [`resolve_dispatch_pool`]
 /// differ only in how they learn the repo's name, and "that repo isn't pooled" has stopped being a
 /// possible answer.
@@ -102,7 +102,7 @@ pub(crate) fn pool_warm(
 /// Warm one already-resolved pool: ensure every non-skipped slot holds a live checkout, then build
 /// them. Split from [`pool_warm`] so the caller owns *how the pool is resolved* — the two callers
 /// disagree on that, and conflating them is what made the `pool-warm` cron fail on every pool
-/// `bn dispatch` created implicitly.
+/// `workspan dispatch` created implicitly.
 fn warm_pool(cfg: &Config, ctx: &PoolCtx, here: bool, new: bool, slot: Option<u32>) -> bool {
     // Warming is long (checkout + build per slot), so inside tmux run it in a window in the repo's
     // own session — you watch it live instead of it blocking/hiding. `--here` (and the window
@@ -386,7 +386,7 @@ fn warm_pool(cfg: &Config, ctx: &PoolCtx, here: bool, new: bool, slot: Option<u3
 ///
 /// The fetch has to come first and it has to be here. Every commit a warm reaches for comes out of
 /// the bare clone, so without it the pool warms itself to whatever main looked like the last time
-/// something else happened to fetch — `bn dispatch` refreshes origin on its way past, but nothing
+/// something else happened to fetch — `workspan dispatch` refreshes origin on its way past, but nothing
 /// else that touches a slot does, and the `pool-warm` cron runs on its own.
 ///
 /// Best-effort, the same posture [`crate::cmd::main_sync`] takes: being offline is a fact about the
@@ -400,7 +400,7 @@ fn warm_pool(cfg: &Config, ctx: &PoolCtx, here: bool, new: bool, slot: Option<u3
 /// refspec-less monorepo clone an `origin/main` at all.
 ///
 /// Both notices go through [`crate::cmd::jobs::native_job_line`] with git's own error attached, so
-/// `bn cron show pool-warm` says *why* the refresh failed instead of just that it did.
+/// `workspan cron show pool-warm` says *why* the refresh failed instead of just that it did.
 fn refresh_base(repo: &str, bare_s: &str) -> Option<(String, Option<String>)> {
     let fetched = crate::origin_fetch::refresh_origin(bare_s);
     if let Err(why) = fetched {
@@ -432,7 +432,7 @@ fn refresh_base(repo: &str, bare_s: &str) -> Option<(String, Option<String>)> {
 ///
 /// The half of "warm" that used to be missing. Warming left an existing checkout wherever its last
 /// tenant left it and only re-ran the build, so a slot created weeks ago stayed pinned at that
-/// week's main forever: `bn dispatch` cutting a *new* branch got the fresh base from the bare
+/// week's main forever: `workspan dispatch` cutting a *new* branch got the fresh base from the bare
 /// repo's refs, but every other way into a slot — re-dispatching an existing branch, `wt pool get`,
 /// `wt open`, a controller slot — inherited the stale tree, and the deps this job keeps warm were
 /// built against it.
@@ -621,11 +621,11 @@ enum BuildOutcome {
     Failed,
 }
 
-/// The bn to re-execute for a slot build: this binary, even when it was reinstalled mid-run.
+/// The workspan to re-execute for a slot build: this binary, even when it was reinstalled mid-run.
 ///
-/// A warm runs for minutes to hours, and reinstalling bn replaces the file under the running
+/// A warm runs for minutes to hours, and reinstalling workspan replaces the file under the running
 /// process. On Linux `current_exe` then reads `<path> (deleted)`, which cannot be spawned. That
-/// failed every slot build of the 2026-09-27 02:01 pool-build: bn was reinstalled the same second
+/// failed every slot build of the 2026-09-27 02:01 pool-build: workspan was reinstalled the same second
 /// the run started. The file now at `<path>` is the newly installed bn, which is the one to run.
 /// Falls back to `bn` on PATH when there is no usable path at all.
 fn self_exe(current: Option<PathBuf>) -> PathBuf {
@@ -642,9 +642,9 @@ fn self_exe(current: Option<PathBuf>) -> PathBuf {
     }
 }
 
-/// Warm one slot by running `bn build` in it (cwd = slot) — the same command a human runs by hand,
-/// so the pool builds exactly the way `bn build` does and the two can't drift. `--repo/--branch
-/// main` is required, not a nicety: a pool slot is a *detached* checkout, so `bn build`'s cwd
+/// Warm one slot by running `workspan build` in it (cwd = slot) — the same command a human runs by hand,
+/// so the pool builds exactly the way `workspan build` does and the two can't drift. `--repo/--branch
+/// main` is required, not a nicety: a pool slot is a *detached* checkout, so `workspan build`'s cwd
 /// resolution finds no branch there. Re-executes *this* binary (`current_exe`) rather than whatever
 /// `bn` is on PATH, so a dev build warms with itself. Inherits stdio; the child prepends
 /// `~/.local/bin:~/.bin` to PATH for the script, and both env vars below reach it through the child.
@@ -705,9 +705,9 @@ fn run_bn_build(repo: &str, slot: &Path, jobs: Option<usize>) -> BuildOutcome {
 }
 
 /// `pool-warm` cron — refresh every due repo's warm-slot pool after its daily deadline, so a leased
-/// dispatch always lands on a ready checkout. Run as `bn run pool-warm --repo <repo>`, the context
+/// dispatch always lands on a ready checkout. Run as `workspan run pool-warm --repo <repo>`, the context
 /// scopes the refresh to that one repo so the Repos page can start a pool build without turning
-/// it into an all-pools sweep. Each repo's warm records a `pool_warm` event, so `bn metrics` shows
+/// it into an all-pools sweep. Each repo's warm records a `pool_warm` event, so `workspan metrics` shows
 /// when the pools were last refreshed (the "record when we refresh pools" ask).
 ///
 /// Every run first makes the pool ledgers match who is actually in the slots
@@ -766,14 +766,14 @@ pub(crate) fn job_pool_build(cfg: &Config, _ctx: Option<&bn_core::resolver::Reso
 ///
 /// Resolved through [`resolve_dispatch_pool`], which takes the repo name straight rather than
 /// resolving a cwd — the cron has no worktree to stand in. Historically this mattered far more:
-/// `resolve_pool` refused any repo absent from `~/.config/wt/pools` while `bn dispatch` pooled
+/// `resolve_pool` refused any repo absent from `~/.config/wt/pools` while `workspan dispatch` pooled
 /// every clone regardless, so a `pool-warm --repo <repo>` failed exit 1 on a pool that
 /// plainly existed on disk. The config is gone and the two resolvers now agree by construction.
 ///
 /// A repo with no bare clone is a **skip, not a failure**: the only way to reach that is a warm
 /// requested for a clone that has since gone, which is a stale request rather than a broken cron,
 /// and paging for it buries the failures that mean something. Every line goes through
-/// [`crate::cmd::jobs::native_job_line`] so `bn cron show pool-warm` names the repo and the reason
+/// [`crate::cmd::jobs::native_job_line`] so `workspan cron show pool-warm` names the repo and the reason
 /// instead of reporting "(no output captured)".
 fn warm_pool_for_cron(cfg: &Config, repo: &str) -> i32 {
     let Some(ctx) = resolve_dispatch_pool(cfg, repo) else {

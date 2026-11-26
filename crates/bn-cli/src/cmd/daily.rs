@@ -1,10 +1,10 @@
-//! `bn daily` — daily goals log.
+//! `workspan daily` — daily goals log.
 use crate::*;
 
-/// The one-line routine context header for the bare "today" `bn daily` view (#801): what's
+/// The one-line routine context header for the bare "today" `workspan daily` view (#801): what's
 /// current (with remaining minutes) or, absent that, what's next (with the countdown). Never
 /// deletes the goal log below it — purely additive context.
-/// `bn daily [date]` / `add` / `done` / `edit`. The bare view auto-creates today (carrying
+/// `workspan daily [date]` / `add` / `done` / `edit`. The bare view auto-creates today (carrying
 /// forward yesterday's open goals); a past `date` is read-only.
 /// Resolve a scheduling target from the mutually-exclusive `--on <date>` / `--in <days>`
 /// flags. `None` means neither was given (act on today); `Err` means both were given or the
@@ -31,8 +31,8 @@ pub(crate) fn emit_daily(
             let view = date.unwrap_or_else(|| today.clone());
             let is_today = view == today;
             let daily = if is_today {
-                // #1004: today's goals are a projection over the task store, so `bn daily` and
-                // `bn task --day today` cannot drift. `ensure_today` still runs first, because it
+                // #1004: today's goals are a projection over the task store, so `workspan daily` and
+                // `workspan task --day today` cannot drift. `ensure_today` still runs first, because it
                 // is what drains due scheduled follow-ups into the day; its carry-forward copy is
                 // now redundant but harmless.
                 let _ = daily::ensure_today(cfg, &today);
@@ -78,10 +78,10 @@ pub(crate) fn emit_daily(
             let today = today();
             let resolved = daily::resolve_link(task.as_deref(), link.as_deref());
             let on = match resolve_on(&today, on, in_days) {
-                Err(msg) => fail(&format!("bn daily add: {msg}")),
+                Err(msg) => fail(&format!("workspan daily add: {msg}")),
                 Ok(d) => d,
             };
-            let est = parse_est_or_exit("bn daily add", est.as_deref());
+            let est = parse_est_or_exit("workspan daily add", est.as_deref());
             match daily::add_full(
                 cfg,
                 &today,
@@ -125,9 +125,9 @@ pub(crate) fn emit_daily(
         Some(DailyCmd::Defer { query, on, in_days }) => {
             let today = today();
             let date = match resolve_on(&today, on, in_days) {
-                Err(msg) => fail(&format!("bn daily defer: {msg}")),
+                Err(msg) => fail(&format!("workspan daily defer: {msg}")),
                 Ok(Some(d)) => d,
-                Ok(None) => fail("bn daily defer: needs a target day (--on <date> or --in <days>)"),
+                Ok(None) => fail("workspan daily defer: needs a target day (--on <date> or --in <days>)"),
             };
             match daily::defer(cfg, &today, &query.join(" "), &date) {
                 Ok(d) => {
@@ -155,7 +155,7 @@ pub(crate) fn emit_daily(
                     print!("{}", payload::rollover_text(&r));
                 }
             }
-            Err(e) => fail(&format!("bn daily rollover: {e}")),
+            Err(e) => fail(&format!("workspan daily rollover: {e}")),
         },
         Some(DailyCmd::Done { query, pct }) => {
             match daily::done(cfg, &today(), &query.join(" "), pct) {
@@ -182,7 +182,7 @@ pub(crate) fn emit_daily(
         Some(DailyCmd::Edit) => {
             let today = today();
             if let Err(e) = daily::ensure_today(cfg, &today) {
-                fail(&format!("bn daily: {e}"));
+                fail(&format!("workspan daily: {e}"));
             }
             let editor = std::env::var("EDITOR").unwrap_or_else(|_| "nvim".into());
             let status = std::process::Command::new(editor)

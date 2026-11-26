@@ -128,7 +128,7 @@ pub fn warn_unreachable<T>(context: &str, result: Result<T, TmuxError>) {
     static WARNED: AtomicBool = AtomicBool::new(false);
     if let Err(e) = result {
         if e.is_unreachable() && !WARNED.swap(true, Ordering::Relaxed) {
-            eprintln!("bn: {context}: {e}");
+            eprintln!("workspan: {context}: {e}");
         }
     }
 }
@@ -190,7 +190,7 @@ pub fn warn_if_old_tmux() {
         if !WARNED.swap(true, Ordering::Relaxed) {
             let (want_major, want_minor) = MIN_TMUX_VERSION;
             eprintln!(
-                "bn: tmux {major}.{minor} is older than {want_major}.{want_minor}; agent liveness \
+                "workspan: tmux {major}.{minor} is older than {want_major}.{want_minor}; agent liveness \
                  and message delivery may misread a missing window"
             );
         }

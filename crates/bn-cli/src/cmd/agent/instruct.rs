@@ -17,13 +17,13 @@ pub(crate) fn emit_instruct(
 ) {
     let (repo, branch) = target
         .split_once(':')
-        .unwrap_or_else(|| fail("bn agent instruct: expected repo:branch"));
+        .unwrap_or_else(|| fail("workspan agent instruct: expected repo:branch"));
     let task = bn_core::pipeline::gate::governing_task(cfg, repo, branch)
-        .unwrap_or_else(|| fail("bn agent instruct: capture or claim a task first"));
+        .unwrap_or_else(|| fail("workspan agent instruct: capture or claim a task first"));
     bn_core::task_doc::ensure(cfg, &task)
-        .unwrap_or_else(|error| fail(&format!("bn agent instruct: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan agent instruct: {error}")));
     let doc = bn_core::task_doc::read(cfg, &task)
-        .unwrap_or_else(|| fail("bn agent instruct: cannot read task document"));
+        .unwrap_or_else(|| fail("workspan agent instruct: cannot read task document"));
     let mut items: Vec<String> = doc
         .section("Directives")
         .unwrap_or_default()
@@ -56,12 +56,12 @@ pub(crate) fn emit_instruct(
         let before = items.len();
         items.retain(|text| directive_id(text) != id);
         if before == items.len() {
-            fail("bn agent instruct: unknown directive");
+            fail("workspan agent instruct: unknown directive");
         }
         (id.to_string(), true)
     } else {
         if text.is_empty() {
-            fail("bn agent instruct: an instruction is required");
+            fail("workspan agent instruct: an instruction is required");
         }
         let changed = !items.contains(&text);
         if changed {
@@ -77,7 +77,7 @@ pub(crate) fn emit_instruct(
             .join("\n");
         let updated = bn_core::render::set_section(&doc.text, "## Directives", &body);
         bn_core::task_doc::write(cfg, &task, updated, Some(&doc.version()))
-            .unwrap_or_else(|error| fail(&format!("bn agent instruct: {error}")));
+            .unwrap_or_else(|error| fail(&format!("workspan agent instruct: {error}")));
     }
     let delivered = if no_send || drop.is_some() {
         None
@@ -102,7 +102,7 @@ pub(crate) fn emit_instruct(
             }
         );
         if delivered == Some(false) {
-            eprintln!("bn agent instruct: recorded, but no live session accepted delivery");
+            eprintln!("workspan agent instruct: recorded, but no live session accepted delivery");
         }
     }
 }

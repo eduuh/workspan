@@ -26,10 +26,10 @@ pub struct CronFinding {
 /// `cron_status` most-recent-run first), minus the names that no longer exist
 /// ([`LiveJobs::is_retired`]).
 ///
-/// The retirement filter is not optional here: this is what `bn doctor` and `bn next` raise from,
+/// The retirement filter is not optional here: this is what `workspan doctor` and `workspan next` raise from,
 /// and reading `cron_status` straight left a retired job's frozen failures alerting forever —
-/// `bn cron retire task-improve` printed its tombstone while `bn next` kept the BREAKING row.
-/// Unlike [`crate::crons::alerting_crons`] this keeps the one-failure blips: `bn doctor` is the
+/// `workspan cron retire task-improve` printed its tombstone while `workspan next` kept the BREAKING row.
+/// Unlike [`crate::crons::alerting_crons`] this keeps the one-failure blips: `workspan doctor` is the
 /// "what is red right now" view, so a cron's *first* failure must still show up.
 pub(super) fn cron_findings(cfg: &Config) -> Vec<Finding> {
     let live = LiveJobs::discover(cfg, None);
@@ -78,7 +78,7 @@ mod tests {
         }
     }
 
-    /// The regression: `bn cron retire task-improve` wrote its tombstone and still `bn next` led
+    /// The regression: `workspan cron retire task-improve` wrote its tombstone and still `workspan next` led
     /// with `BREAKING — fix cron task-improve · 7 failure(s) on record`, because this attention
     /// path read `cron_status` directly and never asked whether the name still existed.
     #[test]
@@ -91,7 +91,7 @@ mod tests {
         ));
     }
 
-    /// The other direction, so the filter can't be widened into a mute: a job bn still resolves
+    /// The other direction, so the filter can't be widened into a mute: a job workspan still resolves
     /// keeps raising however old its failures are.
     #[test]
     fn a_live_cron_still_raises() {
@@ -99,7 +99,7 @@ mod tests {
         assert!(raises_here(&failing("scout", NOW - 120), &live, NOW));
     }
 
-    /// `bn doctor` is the "what is red right now" view, not the chronic-failure watchdog — unlike
+    /// `workspan doctor` is the "what is red right now" view, not the chronic-failure watchdog — unlike
     /// [`crate::crons::alerting_crons`] it must show a cron's *first* failure rather than waiting
     /// for `ALERT_MIN_FAILURES`.
     #[test]
@@ -120,10 +120,10 @@ mod tests {
         assert!(raises_here(&failing("task-improve", NOW - 60), &live, NOW));
     }
 
-    /// The end-to-end half of [`raises_here`]'s unit tests: `bn doctor` raises cron health at
+    /// The end-to-end half of [`raises_here`]'s unit tests: `workspan doctor` raises cron health at
     /// URGENT, so it has to answer the does-this-still-exist question like every other cron
     /// watchdog. It once filtered on `!ok` alone, which pinned `task-improve` — renamed to
-    /// `task-enhance`, resolvable by nothing on the machine — to the top of `bn next` as BREAKING
+    /// `task-enhance`, resolvable by nothing on the machine — to the top of `workspan next` as BREAKING
     /// with no way to clear it. This drives the real event log rather than a fixture, so it also
     /// covers the fold that reads it.
     #[test]
@@ -143,7 +143,7 @@ mod tests {
                     now,
                     4,
                     127,
-                    "bn: command not found",
+                    "workspan: command not found",
                 )
                 .expect("record a failing cron run")
             };

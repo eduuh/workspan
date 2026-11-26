@@ -23,7 +23,7 @@ mod review;
 use self::harvest::*;
 use self::picker::*;
 
-/// Dispatch `bn links` — bare picker, `bn links <query>` open, or a subcommand.
+/// Dispatch `workspan links` — bare picker, `workspan links <query>` open, or a subcommand.
 pub(crate) fn emit_links(
     cfg: &Config,
     action: Option<LinksCmd>,
@@ -82,14 +82,14 @@ pub(crate) fn emit_links(
     }
 }
 
-/// The repo the user is standing in, or `None` outside a worktree bn recognises. Never exits —
+/// The repo the user is standing in, or `None` outside a worktree workspan recognises. Never exits —
 /// links are person-scoped, so being outside a repo is normal, not an error.
 fn current_repo(cfg: &Config) -> Option<String> {
     let cwd = std::env::current_dir().ok()?;
     resolver::resolve(cfg, &cwd).ok().map(|r| r.repo)
 }
 
-/// `bn links add <url>` — store or update one link.
+/// `workspan links add <url>` — store or update one link.
 fn add_link(cfg: &Config, args: LinksAddArgs, json: bool) {
     let LinksAddArgs {
         url,
@@ -152,7 +152,7 @@ fn add_link(cfg: &Config, args: LinksAddArgs, json: bool) {
             };
             if !unknown.is_empty() && !json {
                 eprintln!(
-                    "⚠ not in your tag vocabulary: {} — saved anyway (`bn links tags` to see the set)",
+                    "⚠ not in your tag vocabulary: {} — saved anyway (`workspan links tags` to see the set)",
                     unknown.join(", ")
                 );
             }
@@ -166,7 +166,7 @@ fn add_link(cfg: &Config, args: LinksAddArgs, json: bool) {
     }
 }
 
-/// `bn links prune` — delete the links whose `--ttl` ran out.
+/// `workspan links prune` — delete the links whose `--ttl` ran out.
 fn prune(cfg: &Config, json: bool) {
     match links::prune(cfg, &today()) {
         Ok(gone) => {
@@ -188,7 +188,7 @@ fn prune(cfg: &Config, json: bool) {
     }
 }
 
-/// `bn links tag <link> +a -b c` — add and drop tags on one link.
+/// `workspan links tag <link> +a -b c` — add and drop tags on one link.
 fn tag_link(cfg: &Config, needle: &str, changes: &[String], json: bool) {
     let items = links::read(cfg);
     let id = match links::resolve(&items, needle) {
@@ -230,7 +230,7 @@ fn split_changes(changes: &[String]) -> (Vec<String>, Vec<String>) {
     (add, drop)
 }
 
-/// `bn links list` — the store in picker order, optionally narrowed.
+/// `workspan links list` — the store in picker order, optionally narrowed.
 fn list_links(
     cfg: &Config,
     query: Option<String>,
@@ -260,7 +260,7 @@ fn list_links(
     }
     if rows.is_empty() {
         if items.is_empty() {
-            println!("No links stored. `bn links add <url>` to save one.");
+            println!("No links stored. `workspan links add <url>` to save one.");
         } else {
             println!("No links match.");
         }
@@ -272,7 +272,7 @@ fn list_links(
     }
 }
 
-/// `bn links capture --category <category>` — explicitly keep the note's PR and work item.
+/// `workspan links capture --category <category>` — explicitly keep the note's PR and work item.
 fn capture(cfg: &Config, category: &str, json: bool) {
     let ctx = resolve_or_exit(cfg);
     let today = today();
@@ -332,12 +332,12 @@ fn capture(cfg: &Config, category: &str, json: bool) {
     for s in &skipped {
         eprintln!(
             "⚠ no URL could be derived for {s} — this repo's remote names no issue page; \
-             `bn links add <url>` with the full link"
+             `workspan links add <url>` with the full link"
         );
     }
 }
 
-/// `bn links tags` — the configured vocabulary and what is actually in use.
+/// `workspan links tags` — the configured vocabulary and what is actually in use.
 fn show_tags(cfg: &Config, json: bool) {
     let (vocab, source) = resolver::link_tags_with_source();
     let source = match source {
@@ -376,7 +376,7 @@ fn show_tags(cfg: &Config, json: bool) {
     }
 }
 
-/// Bare `bn links` (picker) and `bn links <query>` (direct) — resolve links, record the use,
+/// Bare `workspan links` (picker) and `workspan links <query>` (direct) — resolve links, record the use,
 /// and hand them to the browser, or to the clipboard when the picker was left with ctrl-y.
 fn open_one(
     cfg: &Config,
@@ -392,7 +392,7 @@ fn open_one(
             json,
             "links",
             "empty",
-            "No links stored. `bn links add <url>` to save one.",
+            "No links stored. `workspan links add <url>` to save one.",
         );
     }
     let (action, chosen) = match query {
@@ -409,7 +409,7 @@ fn open_one(
     open_ids(cfg, &chosen, fills, json);
 }
 
-/// `bn links group <tag>` — choose links from a picker scoped to that tag or day.
+/// `workspan links group <tag>` — choose links from a picker scoped to that tag or day.
 fn open_group(cfg: &Config, tag: &str, json: bool) {
     let items = links::read(cfg);
     let today = today();
@@ -423,7 +423,7 @@ fn open_group(cfg: &Config, tag: &str, json: bool) {
             "links",
             "not_found",
             &format!(
-                "No link is categorized, tagged or saved {tag}. `bn links add <url> --category {tag}` to start it."
+                "No link is categorized, tagged or saved {tag}. `workspan links add <url> --category {tag}` to start it."
             ),
         );
     }
@@ -526,7 +526,7 @@ fn with_tag<'a>(ranked: Vec<&'a Link>, tag: Option<&str>) -> Vec<&'a Link> {
 }
 
 
-/// `bn links copy [needle] [--tag T] [--plain]` — one link by needle, or every link with a tag.
+/// `workspan links copy [needle] [--tag T] [--plain]` — one link by needle, or every link with a tag.
 fn copy_cmd(
     cfg: &Config,
     needle: Option<String>,
@@ -561,7 +561,7 @@ fn copy_cmd(
             json,
             "links",
             "usage",
-            "Say which: `bn links copy <needle>` or `bn links copy --tag <tag>`.",
+            "Say which: `workspan links copy <needle>` or `workspan links copy --tag <tag>`.",
         ),
     };
     if ids.is_empty() {
@@ -576,7 +576,7 @@ fn copy_cmd(
 }
 
 /// Put these links on the clipboard, record each as used (sharing a link is using it), and say
-/// what happened. No clipboard tool: print the text, as `bn pr --copy` does.
+/// what happened. No clipboard tool: print the text, as `workspan pr --copy` does.
 fn copy_ids(cfg: &Config, ids: &[String], plain: bool, fills: &[(String, String)], json: bool) {
     let today = today();
     let mut picked = Vec::new();

@@ -23,7 +23,7 @@ pub use worktree::{seed_worktree_skills, SkipReason, WorktreeSkillsReport};
 
 const MANAGED_MARKER_PREFIX: &str = "<!-- bn-managed-skill: ";
 
-/// Native harness whose Agent Skills directory should receive materialized bn skills.
+/// Native harness whose Agent Skills directory should receive materialized workspan skills.
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize)]
 #[serde(rename_all = "lowercase")]
 pub enum NativeHarness {
@@ -73,7 +73,7 @@ pub struct NativeSkillsReport {
 /// the served prompt set a higher tier overrides an earlier same-named skill.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum SkillScope {
-    /// bn built-ins shipped with the server: `BN_MCP_SKILLS_DIR` (default `<cwd>/skills`).
+    /// workspan built-ins shipped with the server: `BN_MCP_SKILLS_DIR` (default `<cwd>/skills`).
     GlobalShared,
     /// Private, available in every repo: `BN_MCP_PERSONAL_SKILLS_DIR`
     /// (default `<config_dir>/skills`).
@@ -166,9 +166,9 @@ pub struct NewSkillArg {
 /// The shipped (global-shared) skill directory for `base_dir`.
 ///
 /// `BN_MCP_SKILLS_DIR` wins when exported. Otherwise prefer `base_dir/config/prompts` — the
-/// committed tier as seen from a bn checkout — but fall back to the shipped prompts
+/// committed tier as seen from a workspan checkout — but fall back to the shipped prompts
 /// ([`resolver::shipped_root`]) when that isn't a directory. The fallback is what makes this
-/// work from repositories other than bn's own checkout.
+/// work from repositories other than workspan's own checkout.
 fn shared_skills_dir(base_dir: &Path) -> PathBuf {
     if let Some(dir) = std::env::var_os("BN_MCP_SKILLS_DIR") {
         return PathBuf::from(dir);
@@ -446,7 +446,7 @@ fn harness_target(harness: NativeHarness) -> &'static dyn HarnessTarget {
     }
 }
 
-/// Materialize the effective bn skills as native Agent Skills for the requested harnesses.
+/// Materialize the effective workspan skills as native Agent Skills for the requested harnesses.
 ///
 /// Repo installs merge every available tier, preserving the normal highest-precedence winner.
 /// Global installs merge only the two global tiers. All target paths are preflighted before any
@@ -504,7 +504,7 @@ pub fn install_native_skills(
                     .map_err(|e| format!("read {}: {e}", path.display()))?;
                 if !is_managed_skill(&existing, &skill.name) {
                     return Err(format!(
-                        "refusing to overwrite non-bn skill: {}",
+                        "refusing to overwrite non-Workspan skill: {}",
                         path.display()
                     ));
                 }
@@ -602,7 +602,7 @@ pub fn has_native_install(
     })
 }
 
-/// Every native harness bn can materialize skills into — the set a source mutation refreshes.
+/// Every native harness workspan can materialize skills into — the set a source mutation refreshes.
 pub const NATIVE_HARNESSES: [NativeHarness; 2] = [NativeHarness::Claude, NativeHarness::Copilot];
 
 /// One harness root a sync could not refresh, and why.
@@ -623,29 +623,29 @@ pub struct NativeSyncReport {
 }
 
 impl NativeSyncReport {
-    /// Whether every root bn tried to refresh actually got refreshed.
+    /// Whether every root workspan tried to refresh actually got refreshed.
     pub fn complete(&self) -> bool {
         self.failures.is_empty()
     }
 }
 
-/// Re-materialize the native Agent Skills after a bn skill source file was created, edited, or
-/// deleted, so Claude and Copilot never serve a stale copy of what `bn skills` shows.
+/// Re-materialize the native Agent Skills after a workspan skill source file was created, edited, or
+/// deleted, so Claude and Copilot never serve a stale copy of what `workspan skills` shows.
 ///
 /// The **global** roots (`~/.claude/skills`, `~/.copilot/skills`) are always regenerated: those are
-/// the harnesses' user-level skill sets and a bn source mutation is exactly the moment they should
+/// the harnesses' user-level skill sets and a workspan source mutation is exactly the moment they should
 /// follow. The **repo** roots (`.claude/skills`, `.github/skills`) are refreshed only when they
 /// already hold a bn-managed skill ([`has_native_install`]) — a dashboard edit must not start
 /// committing generated files into a repo that never opted in.
 ///
 /// [`install_native_skills`] does the work for one root, so each root keeps that function's
 /// guarantees: idempotent, every path preflighted before any write, and it refuses to overwrite a
-/// same-named skill bn does not own. Deletion needs no separate pass — a managed native skill whose
+/// same-named skill workspan does not own. Deletion needs no separate pass — a managed native skill whose
 /// source is gone is swept by the same call.
 ///
 /// **Each root is installed independently**, and a failing one is collected rather than returned.
 /// The preflight is deliberately all-or-nothing *within* a root, but that must not reach across
-/// roots: `install.sh` drops an upstream `lavish` skill into `~/.claude/skills`, and bn ships a
+/// roots: `install.sh` drops an upstream `lavish` skill into `~/.claude/skills`, and workspan ships a
 /// skill of the same name, so on those machines the Claude root legitimately refuses. Batching the
 /// harnesses into one call made that refusal abort the preflight for **both**, leaving Copilot
 /// silently unsynced too — a name clash in one harness is not a reason to stop maintaining another.

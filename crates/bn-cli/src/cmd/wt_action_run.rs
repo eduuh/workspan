@@ -33,7 +33,7 @@ impl Started {
 
 /// Start one picker verb for `repo`, optionally against `branch`, right now.
 ///
-/// A verb whose job wants a branch and was given none runs against `main`, because `bn run --repo`
+/// A verb whose job wants a branch and was given none runs against `main`, because `workspan run --repo`
 /// refuses a repo without a branch and a repo script resolves through the pair.
 pub(crate) fn start_action(
     cfg: &Config,
@@ -44,7 +44,7 @@ pub(crate) fn start_action(
     let branch = branch.or(action.needs_branch.then_some("main"));
     let window = window_name(action, branch);
     let exe = std::env::current_exe()
-        .map_err(|e| format!("cannot resolve the bn executable: {e}"))?
+        .map_err(|e| format!("cannot resolve the workspan executable: {e}"))?
         .to_string_lossy()
         .into_owned();
     let mut command = format!("{} run {} --repo {}", shq(&exe), shq(action.job), shq(repo));

@@ -15,7 +15,7 @@ pub(super) fn resolve_target(
     match (repo, branch) {
         (Some(repo), Some(branch)) => Resolved { repo, branch },
         _ => {
-            fail("bn pipeline: no repo/branch — run inside a worktree, or pass --repo and --branch")
+            fail("workspan pipeline: no repo/branch — run inside a worktree, or pass --repo and --branch")
         }
     }
 }

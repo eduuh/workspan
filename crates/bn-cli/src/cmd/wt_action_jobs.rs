@@ -34,7 +34,7 @@ impl Started {
 /// Start a raw shell command for one picker verb right now, in its own tmux window in `repo`'s
 /// session — the same window mechanism [`crate::cmd::wt_action_run::start_action`] uses for a job
 /// name, but for a verb (like a single pool slot's warm/rebuild) that is a shell command rather
-/// than a `bn run <job>` name.
+/// than a `workspan run <job>` name.
 pub(crate) fn start_shell_action(
     cfg: &Config,
     label: &str,
@@ -55,7 +55,7 @@ pub(crate) fn start_shell_action(
 /// `build` — run the repo's `build.sh` for one `(repo, branch)`.
 ///
 /// The registry had no entry for the one thing every warm slot already does. `wt pool warm` shells
-/// `bn build --repo R --branch main` per slot, so the behaviour existed but had no runnable name,
+/// `workspan build --repo R --branch main` per slot, so the behaviour existed but had no runnable name,
 /// which is why "build this" could not be a picker row.
 ///
 /// `--repo`/`--branch` come from the entry's context rather than the cwd, and that is not a
@@ -80,9 +80,9 @@ pub(crate) fn job_build(cfg: &Config, ctx: Option<&Resolved>) -> i32 {
 /// machine when the repo has an `install` job.
 ///
 /// The two halves are separate existing pieces: [`crate::cmd::main_sync::sync_repo`] does the
-/// fetch and the fast-forward of both the main checkout and the main slot, and `bn build` runs the
+/// fetch and the fast-forward of both the main checkout and the main slot, and `workspan build` runs the
 /// script. Composing them beats a third implementation of "fetch and ff main", which is precisely
-/// what `sync_repo`'s own doc says `bn reset` used to hand-roll and get wrong.
+/// what `sync_repo`'s own doc says `workspan reset` used to hand-roll and get wrong.
 ///
 /// The install half is the repo's own `install` job, resolved like `build` (branch → repo →
 /// global), so only a repo that says how to install itself gets installed; for every other repo
@@ -255,7 +255,7 @@ pub(crate) fn job_wt_prune(cfg: &Config, ctx: Option<&Resolved>) -> i32 {
 
 /// `verify` — run the repo's gate (build → test → lint) against one worktree.
 ///
-/// The row-menu counterpart of `build`: `bn verify` itself is cwd-only and ends in
+/// The row-menu counterpart of `build`: `workspan verify` itself is cwd-only and ends in
 /// `std::process::exit`, so it cannot be called from a job. The two halves underneath it can be:
 /// [`crate::cmd::verify::resolve_verify_target`] takes a `Resolved` and
 /// [`crate::cmd::verify::run_verify_gate`] takes an **explicit** working directory, which is the

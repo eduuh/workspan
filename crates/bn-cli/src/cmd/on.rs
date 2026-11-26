@@ -23,7 +23,7 @@ pub(crate) fn emit_on(cfg: &Config, action: Option<OnCmd>, json: bool) -> i32 {
 
 /// Every event a rule may react to.
 ///
-/// Two logs, because bn writes to two: `bn event` and the job scripts append to the **synced
+/// Two logs, because workspan writes to two: `workspan event` and the job scripts append to the **synced
 /// metrics** log (one per machine — a rule should fire on a PR merged from the laptop too), while
 /// cron runs land in this machine's **state** log. Reacting to only one of them silently drops
 /// half the kinds a person would reasonably write a rule for.
@@ -70,7 +70,7 @@ fn list(json: bool) -> i32 {
         return 0;
     }
     if rules.is_empty() {
-        println!("No reactions. `bn on add <kind> -- <command>` adds one.");
+        println!("No reactions. `workspan on add <kind> -- <command>` adds one.");
         return 0;
     }
     for r in &rules {
@@ -293,7 +293,7 @@ fn test(kind: &str, raw_fields: &[String], json: bool) -> i32 {
     0
 }
 
-/// `reactor` — one cron-driven pass (`bn on tick`).
+/// `reactor` — one cron-driven pass (`workspan on tick`).
 ///
 /// A failing reaction is the *rule's* failure, not the job's: the tick reports which fired and
 /// how, and returning non-zero here would mark the whole cron unhealthy every time one user

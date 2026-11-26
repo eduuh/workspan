@@ -133,7 +133,7 @@ fn parse_issue_url(out: &str) -> Option<String> {
         .map(str::to_string)
 }
 
-/// `bn issue file` — file a deduped, labeled issue (or report the existing match).
+/// `workspan issue file` — file a deduped, labeled issue (or report the existing match).
 pub(crate) fn emit_issue_file(
     title: Vec<String>,
     body: Option<String>,

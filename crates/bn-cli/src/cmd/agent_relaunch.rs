@@ -192,7 +192,7 @@ pub(crate) fn decide(
 
 /// The shell command the respawned window runs.
 ///
-/// `bn agent launch` is addressed the same way `bn dispatch` addresses it — via
+/// `workspan agent launch` is addressed the same way `workspan dispatch` addresses it — via
 /// [`crate::cmd::dispatch::agent_launcher_bin`], an absolute `$HOME`-derived path — because the
 /// tmux server's PATH does not contain the bindir. Every interpolated element is single-quoted, so
 /// a branch or path with a space or apostrophe can't split the command.
@@ -215,7 +215,7 @@ pub(crate) fn launch_command(plan: &RelaunchPlan, seed_file: Option<&str>) -> St
     cmd
 }
 
-/// `bn agent relaunch <repo:branch> [--hard] [--harness <h>]`.
+/// `workspan agent relaunch <repo:branch> [--hard] [--harness <h>]`.
 pub(crate) fn emit(
     cfg: &Config,
     target: &str,
@@ -325,7 +325,7 @@ pub(crate) fn emit(
             "tmux_failed",
             &format!(
                 "could not open a tmux window for {} — the old agent was killed; it was not \
-                 restarted. Retry, or run `bn agent launch {}` in {}",
+                 restarted. Retry, or run `workspan agent launch {}` in {}",
                 plan.target,
                 plan.harness,
                 plan.worktree.display()
@@ -355,7 +355,7 @@ pub(crate) fn emit(
         println!("{}", Envelope::success("agent_relaunch", data).to_json());
     } else {
         println!(
-            "bn agent relaunch: {} — {} process(es) killed, {} restarted in {} ({})",
+            "workspan agent relaunch: {} — {} process(es) killed, {} restarted in {} ({})",
             plan.target,
             killed.processes,
             plan.harness,
@@ -380,13 +380,13 @@ fn seed_for_fresh(_cfg: &Config, plan: &RelaunchPlan) -> Option<String> {
 
 
 
-/// `bn agent relaunch-repo <repo> [--hard] [--harness <h>]` — restart every agent in a repo.
+/// `workspan agent relaunch-repo <repo> [--hard] [--harness <h>]` — restart every agent in a repo.
 ///
-/// The repair a wedged repo usually wants. `bn agent kill-repo` stops the work; this stops it and
+/// The repair a wedged repo usually wants. `workspan agent kill-repo` stops the work; this stops it and
 /// starts it again in the same worktrees, so the answer to "the whole session is stuck" does not
 /// have to be "lose it and re-dispatch by hand".
 ///
-/// Re-enters `bn agent relaunch` once per agent rather than looping the kill/lease/respawn sequence
+/// Re-enters `workspan agent relaunch` once per agent rather than looping the kill/lease/respawn sequence
 /// inline. That sequence has
 /// exactly one correct implementation and a second copy of it would drift; re-entering costs a
 /// process per agent and cannot.
@@ -412,7 +412,7 @@ pub(crate) fn emit_repo(cfg: &Config, repo: &str, hard: bool, harness: Option<&s
                 Envelope::failure("agent_relaunch_repo", "invalid_repo", &msg).to_json()
             );
         } else {
-            eprintln!("bn agent relaunch-repo: {msg}");
+            eprintln!("workspan agent relaunch-repo: {msg}");
         }
         return;
     }
@@ -430,14 +430,14 @@ pub(crate) fn emit_repo(cfg: &Config, repo: &str, hard: bool, harness: Option<&s
         .collect();
 
     let Ok(exe) = std::env::current_exe() else {
-        let msg = "cannot resolve the bn executable".to_string();
+        let msg = "cannot resolve the Workspan executable".to_string();
         if as_json {
             println!(
                 "{}",
                 Envelope::failure("agent_relaunch_repo", "no_executable", &msg).to_json()
             );
         } else {
-            eprintln!("bn agent relaunch-repo: {msg}");
+            eprintln!("workspan agent relaunch-repo: {msg}");
         }
         return;
     };
@@ -490,18 +490,18 @@ pub(crate) fn emit_repo(cfg: &Config, repo: &str, hard: bool, harness: Option<&s
         return;
     }
     if targets.is_empty() {
-        println!("bn agent relaunch-repo: {repo} — no live agents to relaunch");
+        println!("workspan agent relaunch-repo: {repo} — no live agents to relaunch");
         return;
     }
     println!(
-        "bn agent relaunch-repo: {repo} — {}/{} agent(s) restarted{}",
+        "workspan agent relaunch-repo: {repo} — {}/{} agent(s) restarted{}",
         relaunched.len(),
         targets.len(),
         if ok { " ✓" } else { "" }
     );
     for failure in &failed {
         eprintln!(
-            "bn agent relaunch-repo: {} — {}",
+            "workspan agent relaunch-repo: {} — {}",
             failure.get("target").and_then(|t| t.as_str()).unwrap_or("?"),
             failure.get("error").and_then(|e| e.as_str()).unwrap_or(""),
         );

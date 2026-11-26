@@ -47,7 +47,7 @@ pub(crate) fn section(cfg: &Config, repo: &str, branch: &str, refs: &[String]) -
             text
         }
         Err(e) => {
-            eprintln!("bn dispatch: seed context not composed ({e})");
+            eprintln!("workspan dispatch: seed context not composed ({e})");
             String::new()
         }
     }

@@ -113,7 +113,7 @@ impl fmt::Display for AgentParseError {
             Self::RecursiveRun { name } => {
                 write!(
                     f,
-                    "agent '{name}' explicitly recurses through 'bn run {name}'"
+                    "agent '{name}' explicitly recurses through 'workspan run {name}'"
                 )
             }
             Self::InvalidTemplate { source } => write!(f, "invalid template: {source}"),
@@ -444,7 +444,7 @@ pub(super) fn validate_agent_frontmatter(
 
 fn explicit_recursive_run(run: &str, name: &str) -> bool {
     let mut parts = run.split_whitespace();
-    parts.next() == Some("bn")
+    matches!(parts.next(), Some("workspan" | "ws" | "bn"))
         && parts.next() == Some("run")
         && parts.next() == Some(name)
         && parts.next().is_none()

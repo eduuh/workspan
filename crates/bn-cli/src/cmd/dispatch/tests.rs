@@ -1,4 +1,4 @@
-//! Seed-assembly guardrails for `bn dispatch`.
+//! Seed-assembly guardrails for `workspan dispatch`.
 //!
 //! Its own `tests.rs` rather than an inline module: the repo's structure gates read production
 //! `.rs` for stray prompt text and hold every file to a never-grow line ratchet, and a test that
@@ -135,7 +135,7 @@ fn explicit_investigate_uses_normal_dispatch_gates() {
     let s = seed(false, true, false, "investigate");
     assert!(s.contains("--- WORKFLOW: investigate ---"));
     assert!(s.contains("CONCURRENCY DISCIPLINE"));
-    assert_eq!(s.matches("Gate completion on `bn verify`").count(), 1);
+    assert_eq!(s.matches("Gate completion on `workspan verify`").count(), 1);
     assert!(!s.contains("You are a SCOUT"));
     assert!(s.contains("its deliverable is recorded findings, not a PR"));
 }
@@ -152,8 +152,8 @@ fn ship_solo_seed_uses_the_solo_stance_even_under_yolo() {
         assert!(!s.contains("propose a concrete plan"));
         assert!(!s.contains("unattended worktree"));
         // Exactly one completion protocol and one reflect hook, like every ship seed.
-        assert_eq!(s.matches("bn agent done --summary").count(), 1);
-        assert_eq!(s.matches("bn reflect \"skill:").count(), 1);
+        assert_eq!(s.matches("workspan agent done --summary").count(), 1);
+        assert_eq!(s.matches("workspan reflect \"skill:").count(), 1);
     }
 }
 
@@ -165,8 +165,8 @@ fn explicit_skill_ship_seed_is_interactive_by_default() {
     assert!(s.contains("--- WORKFLOW: build-from-plan ---"));
     assert!(s.contains("CONCURRENCY DISCIPLINE"));
     // Exactly one completion protocol and one reflect hook.
-    assert_eq!(s.matches("bn agent done --summary").count(), 1);
-    assert_eq!(s.matches("bn reflect \"skill:").count(), 1);
+    assert_eq!(s.matches("workspan agent done --summary").count(), 1);
+    assert_eq!(s.matches("workspan reflect \"skill:").count(), 1);
 }
 
 #[test]
@@ -178,15 +178,15 @@ fn yolo_seed_carries_the_unattended_stance() {
 
 #[test]
 fn verify_gate_renders_once_and_never_for_self_gating_workflows() {
-    // build-from-plan/execute gate step 6 on `bn verify` themselves — the envelope must not
+    // build-from-plan/execute gate step 6 on `workspan verify` themselves — the envelope must not
     // re-inject the explicit clause for them.
     let s = seed(true, true, false, "build-from-plan");
-    assert!(!s.contains("Gate completion on `bn verify`"));
+    assert!(!s.contains("Gate completion on `workspan verify`"));
     let s = seed(true, true, false, "execute");
-    assert!(!s.contains("Gate completion on `bn verify`"));
+    assert!(!s.contains("Gate completion on `workspan verify`"));
     // Other workflows get it exactly once.
     let s = seed(true, true, false, "debug");
-    assert_eq!(s.matches("Gate completion on `bn verify`").count(), 1);
+    assert_eq!(s.matches("Gate completion on `workspan verify`").count(), 1);
 }
 
 #[test]
@@ -195,14 +195,14 @@ fn plan_gate_suppresses_bootstrap_verification_and_completion() {
     // The bootstrap ("Markdown execution contract" is its sentinel phrase) must vanish: the
     // gate owns the plan file, and the two instructions contradicted each other pre-fix.
     assert!(!s.contains("Markdown execution contract"));
-    assert!(!s.contains("bn agent done --summary"));
-    assert!(!s.contains("Gate completion on `bn verify`"));
+    assert!(!s.contains("workspan agent done --summary"));
+    assert!(!s.contains("Gate completion on `workspan verify`"));
     // The appended gate then carries exactly one copy of each.
     let full = format!("{s}{}", gate(true));
-    assert_eq!(full.matches("bn agent done --summary").count(), 1);
-    assert_eq!(full.matches("Gate completion on `bn verify`").count(), 1);
+    assert_eq!(full.matches("workspan agent done --summary").count(), 1);
+    assert_eq!(full.matches("Gate completion on `workspan verify`").count(), 1);
     // And the approved branch promotes the reviewed draft to the active plan.
-    assert!(full.contains("bn plan promote sid-1"));
+    assert!(full.contains("workspan plan promote sid-1"));
     assert!(full.contains("--plan-file plans/agents/sid-1.md"));
 }
 
@@ -210,7 +210,7 @@ fn plan_gate_suppresses_bootstrap_verification_and_completion() {
 fn ungated_plan_work_seed_keeps_the_bootstrap() {
     let s = seed(true, false, false, "build-from-plan");
     assert!(s.contains("Markdown execution contract"));
-    assert!(s.contains("bn plan init"));
+    assert!(s.contains("workspan plan init"));
 }
 
 #[test]

@@ -51,7 +51,7 @@ pub(crate) fn run_recorded_job(
 
     if !cfg.job_allowed_here(job) {
         println!(
-            "bn run: skipping '{job}' — not configured to run on '{}'",
+            "workspan run: skipping '{job}' — not configured to run on '{}'",
             cfg.machine()
         );
         return 0;
@@ -76,10 +76,10 @@ pub(crate) fn run_recorded_job(
     code
 }
 
-/// The refusal for a `bn run <name>` that resolves to nothing. Shared by the pre-run guard and
+/// The refusal for a `workspan run <name>` that resolves to nothing. Shared by the pre-run guard and
 /// the post-builtin fallback so the two wordings cannot drift apart.
 fn no_such_job(job: &str) -> String {
-    format!("bn run: no job or agent '{job}' (looked branch → repo → global)")
+    format!("workspan run: no job or agent '{job}' (looked branch → repo → global)")
 }
 
 /// Run a named agent or ordinary job **in this process**. Agent manifests are resolved first:
@@ -92,7 +92,7 @@ pub(crate) fn run_job(cfg: &Config, ctx: Option<&Resolved>, job: &str) -> i32 {
     if let Some(repo) = bn_core::crons::job_repo(cfg, ctx, job) {
         if !cfg.repo_available_here(&repo) {
             println!(
-                "bn run: skipping '{job}' — repository '{repo}' is not registered and available on '{}'",
+                "workspan run: skipping '{job}' — repository '{repo}' is not registered and available on '{}'",
                 cfg.machine()
             );
             return 0;
@@ -107,7 +107,7 @@ pub(crate) fn run_job(cfg: &Config, ctx: Option<&Resolved>, job: &str) -> i32 {
     let catalog = match bn_core::agents::discover(cfg, ctx) {
         Ok(catalog) => catalog,
         Err(error) => {
-            eprintln!("bn run: invalid agent catalog: {error}");
+            eprintln!("workspan run: invalid agent catalog: {error}");
             return 2;
         }
     };
@@ -136,7 +136,7 @@ pub(crate) fn run_job(cfg: &Config, ctx: Option<&Resolved>, job: &str) -> i32 {
     let Some((scope, script)) = script else {
         if agent.is_some() {
             eprintln!(
-                "bn run: agent '{job}' has no custom `run:` and no same-name staff, native, or script job"
+                "workspan run: agent '{job}' has no custom `run:` and no same-name staff, native, or script job"
             );
         } else {
             eprintln!("{}", no_such_job(job));
@@ -197,7 +197,7 @@ pub(crate) fn emit_cron_dashboard(cfg: &Config, ctx: Option<&Resolved>, as_json:
     let wintasks = winsched::registered();
     let now = bn_core::util::now_epoch_secs();
     let catalog = bn_core::agents::discover(cfg, ctx)
-        .unwrap_or_else(|error| fail(&format!("bn cron: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan cron: {error}")));
     let declared = bn_core::crons::discover(cfg, ctx);
     let scheduler_enabled = bn_core::crons::declares_job(&declared, "agent-scheduler");
     let agent_views = if scheduler_enabled {
@@ -389,7 +389,7 @@ pub(crate) fn emit_cron_dashboard(cfg: &Config, ctx: Option<&Resolved>, as_json:
             if native_job(name).is_some() || catalog.find(name).is_some() {
                 "  (native handler)"
             } else {
-                "  (no script — `bn run` would fail)"
+                "  (no script — `workspan run` would fail)"
             }
         } else {
             ""
@@ -436,9 +436,9 @@ pub(crate) fn emit_cron_dashboard(cfg: &Config, ctx: Option<&Resolved>, as_json:
     }
 }
 
-/// `bn cron unregister <job>`: stop and unregister the systemd `--user` timer that drives a
-/// job (`bn run <job>`). The job script stays — only its schedule is removed, so it still shows
-/// in `bn cron` as not-scheduled. Re-register by re-running `jobs/systemd/install.sh`.
+/// `workspan cron unregister <job>`: stop and unregister the systemd `--user` timer that drives a
+/// job (`workspan run <job>`). The job script stays — only its schedule is removed, so it still shows
+/// in `workspan cron` as not-scheduled. Re-register by re-running `jobs/systemd/install.sh`.
 /// Show a job's most recent run: a status line plus its captured output tail (the error output
 /// for a failed run; for a prompt job, what the prompt produced).
 pub(crate) fn emit_cron_show(job: &str, as_json: bool) {
@@ -450,7 +450,7 @@ pub(crate) fn emit_cron_show(job: &str, as_json: bool) {
                     .to_json()
             );
         } else {
-            println!("'{job}' has no recorded runs — `bn cron` lists scheduled jobs");
+            println!("'{job}' has no recorded runs — `workspan cron` lists scheduled jobs");
         }
         return;
     };
@@ -481,7 +481,7 @@ pub(crate) fn emit_cron_show(job: &str, as_json: bool) {
 }
 
 /// List recent failed runs, newest first, each with its error tail — the detail behind the
-/// failure counts in `bn cron status`.
+/// failure counts in `workspan cron status`.
 pub(crate) fn emit_cron_failures(limit: usize, as_json: bool) {
     let fails = bn_core::events::recent_failures(limit);
     if as_json {
@@ -551,7 +551,7 @@ pub(crate) fn have_systemctl() -> bool {
 }
 
 /// Whether the `systemctl` binary merely *exists* (its `--version` answers), independent of the
-/// `--user` bus. Lets `bn cron register` tell "no systemd at all" (macOS / stock WSL) apart from
+/// `--user` bus. Lets `workspan cron register` tell "no systemd at all" (macOS / stock WSL) apart from
 /// "systemd present but the user bus is unreachable" and point at `loginctl enable-linger`.
 pub(crate) fn systemctl_present() -> bool {
     std::process::Command::new("systemctl")
@@ -561,7 +561,7 @@ pub(crate) fn systemctl_present() -> bool {
         .unwrap_or(false)
 }
 
-/// `bn cron register`: generate + install platform timers from the cron manifests, diffing against
+/// `workspan cron register`: generate + install platform timers from the cron manifests, diffing against
 /// what's registered so the run is idempotent. systemd hosts get real units written + enabled;
 /// elsewhere we print the plan (and the crontab lines for the supported subset) without touching
 /// the system — honest about the v1 reporting-only path off systemd.
@@ -573,7 +573,7 @@ pub(crate) fn emit_cron_register(
 ) {
     if cfg.cron_enabled_here() {
         bn_core::agents::discover(cfg, ctx)
-            .unwrap_or_else(|error| fail(&format!("bn cron register: {error}")));
+            .unwrap_or_else(|error| fail(&format!("workspan cron register: {error}")));
     }
 
     let bn_path = registered_bn_path();
@@ -830,7 +830,7 @@ pub(crate) fn emit_cron_register(
             println!(
                 "\nsystemd is present but its per-user bus isn't reachable — no timers written.\n  \
                  Start the user manager so it runs without an active login session, then re-run:\n    \
-                 loginctl enable-linger {user}\n    bn cron register"
+                 loginctl enable-linger {user}\n    workspan cron register"
             );
         } else {
             println!("\nno scheduler backend (systemd or launchd) — no timers written.");
@@ -866,8 +866,8 @@ pub(crate) fn today_epoch() -> i64 {
     bn_core::util::now_epoch_secs()
 }
 
-/// First-bn-event catch-up. On the day's first bn command, fire every `catch_up = true` cron job
-/// once, detached, via `bn run <job> --if-stale` — so a meetings/standup refresh happens whenever
+/// First-bn-event catch-up. On the day's first workspan command, fire every `catch_up = true` cron job
+/// once, detached, via `workspan run <job> --if-stale` — so a meetings/standup refresh happens whenever
 /// you start work, not at a wall-clock time you may not match. Gated to once per day by a sentinel
 /// in the state dir; the spawned children carry `--if-stale` (a no-op if their timer already ran
 /// today) and are fully detached, so this never blocks or delays the command you actually ran.
@@ -907,7 +907,7 @@ pub(crate) fn maybe_fire_catchup(cfg: &Config) {
 }
 
 /// Whether `job`'s most recent run was a success (`exit_code == 0`) that landed on today's
-/// local date — the gate behind `bn run --if-stale`. A job that has never run, last failed,
+/// local date — the gate behind `workspan run --if-stale`. A job that has never run, last failed,
 /// or last ran on a prior day is "stale" and should run again.
 pub(crate) fn ran_ok_today(job: &str) -> bool {
     let Some(run) = bn_core::events::last_run(job) else {

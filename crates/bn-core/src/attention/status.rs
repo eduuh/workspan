@@ -166,7 +166,7 @@ pub struct WindowState {
     pub blockers: bool,
 }
 
-/// Classify one in-flight item's live status. Pure over its inputs — the classic bn classifier
+/// Classify one in-flight item's live status. Pure over its inputs — the classic workspan classifier
 /// shape (cf. `jump::window_row`). Precedence: an explicit `attn_done` wins; then, with no window,
 /// grace decides launching vs orphaned; otherwise a real agent signal (waiting/working/done) is
 /// trusted, falling back to the window's done/blocker flags when the agent state is unknown.

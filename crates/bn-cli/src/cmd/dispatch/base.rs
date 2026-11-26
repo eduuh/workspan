@@ -15,13 +15,13 @@ pub(crate) struct DispatchBase {
 pub(crate) fn dispatch_base_bootstrap_message(repo: &str, base: &DispatchBase) -> Option<String> {
     if let Some(why) = &base.stale_checkout {
         return Some(format!(
-            "bn dispatch: left {repo}'s {} checkout as it is ({why}); forking from origin/{}",
+            "workspan dispatch: left {repo}'s {} checkout as it is ({why}); forking from origin/{}",
             base.branch, base.branch
         ));
     }
     (base.bootstrapped && base.origin_backed).then(|| {
         format!(
-            "bn dispatch: bootstrapped {} worktree for {repo} from origin/{}",
+            "workspan dispatch: bootstrapped {} worktree for {repo} from origin/{}",
             base.branch, base.branch
         )
     })
@@ -62,7 +62,7 @@ pub(crate) fn ensure_dispatch_base(
 ) -> Result<DispatchBase, String> {
     if !bare.is_dir() {
         return Err(format!(
-            "bare repo is missing at {} — clone it with `bn wt clone <url>`",
+            "bare repo is missing at {} — clone it with `workspan wt clone <url>`",
             bare.display()
         ));
     }
@@ -93,7 +93,7 @@ pub(crate) fn ensure_dispatch_base(
     )?;
     if String::from_utf8_lossy(&probe.stdout).trim() != "true" {
         return Err(format!(
-            "{} is not a valid bare repository — recreate it with `bn wt clone <url>`",
+            "{} is not a valid bare repository — recreate it with `workspan wt clone <url>`",
             bare.display()
         ));
     }

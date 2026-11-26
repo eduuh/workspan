@@ -139,7 +139,7 @@ pub(super) fn rm_worktree(_cfg: &Config, roots: &Roots, project: &str, arg: &str
     }
 }
 
-/// `ctrl-w` handler: warm the focused repo's pool up to its configured size via `bn wt pool warm`
+/// `ctrl-w` handler: warm the focused repo's pool up to its configured size via `workspan wt pool warm`
 /// (which, inside tmux, spawns a `pool-warm` window to build in — so this returns promptly and the
 /// picker can reload). Refuses only the refs pools don't apply to: tagged and `--root win` ones.
 pub(super) fn warm_pool(roots: &Roots, project: &str) {
@@ -163,7 +163,7 @@ pub(super) fn warm_pool(roots: &Roots, project: &str) {
 
 /// `ctrl-r` handler: release the focused *leased* slot back to the warm pool. `arg` is fzf's
 /// `{1}~{2}` (`kind~branch`); only a `poolbranch` row is releasable. Resolves the branch to its
-/// slot via [`bn_core::pool::pool_status`], then runs `bn wt pool return <slot-path>` *without*
+/// slot via [`bn_core::pool::pool_status`], then runs `workspan wt pool return <slot-path>` *without*
 /// `--force`, so an uncommitted slot is refused (the message + `hold()` survive the reload).
 pub(super) fn release_pool(cfg: &Config, roots: &Roots, project: &str, arg: &str) {
     let (kind, branch) = arg.split_once('~').unwrap_or(("", arg));
@@ -196,7 +196,7 @@ pub(super) fn release_pool(cfg: &Config, roots: &Roots, project: &str, arg: &str
         .unwrap_or(false);
     if !ok {
         eprintln!(
-            "✗ release refused for {branch} — commit/stash, or `bn wt pool return {} --force`",
+            "✗ release refused for {branch} — commit/stash, or `workspan wt pool return {} --force`",
             slot.n
         );
         crate::picker::hold();

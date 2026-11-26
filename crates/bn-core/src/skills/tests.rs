@@ -32,6 +32,20 @@ fn consolidated_skills_install_short_entries_and_keep_runtime_contracts() {
         rank(&discovered, "implement a small feature")[0].name,
         "ship-solo"
     );
+    assert_eq!(
+        rank(&discovered, "onboard a new repo")[0].name,
+        "setup-workspan"
+    );
+    let compatibility = load_skill(&cfg, &root, "setup-bn").unwrap().unwrap();
+    assert!(compatibility.body.contains("`setup-workspan` skill"));
+    assert!(temp
+        .path()
+        .join(".copilot/skills/setup-bn/SKILL.md")
+        .exists());
+    assert!(temp
+        .path()
+        .join(".copilot/skills/setup-workspan/SKILL.md")
+        .exists());
     for name in [
         "implement",
         "execute",
@@ -61,14 +75,14 @@ fn consolidated_skills_install_short_entries_and_keep_runtime_contracts() {
         assert!(detail.internal);
         assert!(entry
             .body
-            .contains(&format!("bn skills render {reference}")));
+            .contains(&format!("workspan skills render {reference}")));
         assert!(!detail.render_checked(None).unwrap().is_empty());
         for harness in [".copilot", ".claude"] {
             let native = temp
                 .path()
                 .join(format!("{harness}/skills/{name}/SKILL.md"));
             let content = std::fs::read_to_string(native).unwrap();
-            assert!(content.contains(&format!("bn skills render {reference}")));
+            assert!(content.contains(&format!("workspan skills render {reference}")));
             assert!(!temp
                 .path()
                 .join(format!("{harness}/skills/{reference}/SKILL.md"))

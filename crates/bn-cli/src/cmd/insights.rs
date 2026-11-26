@@ -12,7 +12,7 @@ pub(crate) fn emit_insights(
     if set_baseline {
         let path = match bn_core::insights::set_baseline(cfg, &ins) {
             Ok(p) => p,
-            Err(e) => fail(&format!("bn insights --set-baseline: {e}")),
+            Err(e) => fail(&format!("workspan insights --set-baseline: {e}")),
         };
         if as_json {
             println!(
@@ -40,15 +40,15 @@ pub(crate) fn emit_insights(
     }
     if write {
         let week = bn_core::util::iso_week(&ins.end)
-            .unwrap_or_else(|| fail("bn insights --write: can't derive the ISO week for today"));
+            .unwrap_or_else(|| fail("workspan insights --write: can't derive the ISO week for today"));
         let path = cfg.insights_file(&week);
         if let Some(parent) = path.parent() {
             if let Err(e) = std::fs::create_dir_all(parent) {
-                fail(&format!("bn insights --write: {e}"));
+                fail(&format!("workspan insights --write: {e}"));
             }
         }
         if let Err(e) = std::fs::write(&path, bn_core::insights::render(&ins)) {
-            fail(&format!("bn insights --write: {e}"));
+            fail(&format!("workspan insights --write: {e}"));
         }
         if as_json {
             println!(
@@ -99,7 +99,7 @@ pub(crate) fn emit_metrics(
     if snapshot {
         match bn_core::metrics::write_snapshot(cfg, &s, &now_today) {
             Ok(p) => println!("snapshot written: {}", p.display()),
-            Err(e) => fail(&format!("bn metrics --snapshot: {e}")),
+            Err(e) => fail(&format!("workspan metrics --snapshot: {e}")),
         }
         return;
     }
@@ -182,7 +182,7 @@ pub(crate) fn emit_metrics(
     );
     if s.partial.items > 0 {
         println!(
-            "  in progress    {} todo(s) at avg {:.0}%  (bn done --pct)",
+            "  in progress    {} todo(s) at avg {:.0}%  (workspan done --pct)",
             s.partial.items,
             s.partial.avg_pct.unwrap_or(0.0)
         );
@@ -391,7 +391,7 @@ pub(crate) fn emit_metrics(
     }
 }
 
-/// `bn metrics --trend` — the snapshot history as a compact table, oldest first, so the direction
+/// `workspan metrics --trend` — the snapshot history as a compact table, oldest first, so the direction
 /// over weeks is visible at a glance.
 pub(crate) fn emit_metrics_trend(cfg: &bn_core::resolver::Config, as_json: bool) {
     let snaps = bn_core::metrics::read_snapshots(cfg);
@@ -414,7 +414,7 @@ pub(crate) fn emit_metrics_trend(cfg: &bn_core::resolver::Config, as_json: bool)
         return;
     }
     if snaps.is_empty() {
-        println!("No snapshots yet — the weekly job (or `bn metrics --snapshot`) writes them.");
+        println!("No snapshots yet — the weekly job (or `workspan metrics --snapshot`) writes them.");
         return;
     }
     println!(
@@ -483,7 +483,7 @@ pub(crate) fn delta_pct(prev: Option<f64>, now: Option<f64>) -> String {
     }
 }
 
-/// `bn event <kind> --field k=v …` — append a productivity event to the synced metrics log.
+/// `workspan event <kind> --field k=v …` — append a productivity event to the synced metrics log.
 /// All-digit values become JSON numbers (so `number=52` joins with PR metrics); everything else
 /// is a string. Best-effort-friendly but reports IO errors so a cron job can surface a failure.
 /// Run `git -C <dir> <args>` and capture stdout (raw, untrimmed), or None on failure. Thin
@@ -514,7 +514,7 @@ pub(crate) fn run_ingest(cfg: &Config, ctx: &Resolved, base: &str, json: bool) {
     let wt = ingest_worktree(cfg, ctx);
     if !wt.is_dir() {
         fail(&format!(
-            "bn ingest: no worktree at {} — nothing to ingest",
+            "workspan ingest: no worktree at {} — nothing to ingest",
             wt.display()
         ));
     }
@@ -631,7 +631,7 @@ pub(crate) fn emit_event(
     let mut map = serde_json::Map::new();
     for f in fields {
         let Some((k, v)) = f.split_once('=') else {
-            eprintln!("bn event: ignoring malformed field '{f}' (expected k=v)");
+            eprintln!("workspan event: ignoring malformed field '{f}' (expected k=v)");
             continue;
         };
         let val = match v.parse::<i64>() {
@@ -654,7 +654,7 @@ pub(crate) fn emit_event(
             }
         }
         Err(e) => {
-            eprintln!("bn event: {e}");
+            eprintln!("workspan event: {e}");
             std::process::exit(1);
         }
     }

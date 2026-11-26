@@ -62,14 +62,14 @@ while :; do
   if kill -0 $fw 2>/dev/null; then
     kill $fw 2>/dev/null; wait $fw 2>/dev/null; rm -f "$l"
     if ssh -o BatchMode=yes -o ConnectTimeout=10 "$h" {alive} >/dev/null 2>&1; then
-      echo "bn: detached; the editor keeps running on $h (bn edit remote $h to come back)."
+      echo "workspan: detached; the editor keeps running on $h (workspan edit remote $h to come back)."
     else
-      echo "bn: the editor on $h has quit."
+      echo "workspan: the editor on $h has quit."
     fi
     exit 0
   fi
   wait $fw 2>/dev/null
-  echo "bn: lost the connection to $h; the editor is still running there. Reconnecting in 3s (Ctrl-C to stop)."
+  echo "workspan: lost the connection to $h; the editor is still running there. Reconnecting in 3s (Ctrl-C to stop)."
   sleep 3
 done"#,
         h = q(host),
@@ -98,17 +98,17 @@ pub(crate) fn parse_sock(stdout: &str) -> Option<String> {
         .filter(|s| s.starts_with('/'))
 }
 
-/// `bn edit remote <machine>` from inside a worktree: never returns.
+/// `workspan edit remote <machine>` from inside a worktree: never returns.
 pub(crate) fn run(cfg: &bn_core::resolver::Config, host: &str) -> ! {
     if !crate::cmd::agent::safe_ssh_host(host) {
-        eprintln!("bn edit remote: '{host}' is not an ssh host alias");
+        eprintln!("workspan edit remote: '{host}' is not an ssh host alias");
         std::process::exit(2);
     }
     let cwd = std::env::current_dir().unwrap_or_default();
     let ctx = match bn_core::resolver::resolve(cfg, &cwd) {
         Ok(ctx) => ctx,
         Err(e) => {
-            eprintln!("bn edit remote: run it inside a worktree ({e:?})");
+            eprintln!("workspan edit remote: run it inside a worktree ({e:?})");
             std::process::exit(2);
         }
     };
@@ -131,7 +131,7 @@ pub(crate) fn run(cfg: &bn_core::resolver::Config, host: &str) -> ! {
             String::from_utf8_lossy(&o.stdout).into_owned(),
         ),
         Err(e) => {
-            eprintln!("bn edit remote: ssh: {e}");
+            eprintln!("workspan edit remote: ssh: {e}");
             std::process::exit(1);
         }
     };
@@ -147,7 +147,7 @@ pub(crate) fn run(cfg: &bn_core::resolver::Config, host: &str) -> ! {
             Some(255) => format!("could not reach {host} over ssh"),
             c => format!("the remote step failed (exit {c:?})"),
         };
-        eprintln!("bn edit remote: {why}");
+        eprintln!("workspan edit remote: {why}");
         std::process::exit(1);
     };
     let local_sock = local_socket(host, &ctx.repo, &window);
@@ -157,7 +157,7 @@ pub(crate) fn run(cfg: &bn_core::resolver::Config, host: &str) -> ! {
             .args(["-c", &ui_loop(host, &remote_sock, &local_sock)])
             .exec()
     };
-    eprintln!("bn edit remote: {err}");
+    eprintln!("workspan edit remote: {err}");
     std::process::exit(127);
 }
 

@@ -263,7 +263,7 @@ impl ObservedSession<'_> {
 /// and a branch-keyed anything loses to a branch that hosts more than one agent.
 ///
 /// Every dead end then falls back to the observed session ([`ObservedSession`]) rather than
-/// refusing. This is what retires "Observed only": bn discovered the agent by reading its
+/// refusing. This is what retires "Observed only": workspan discovered the agent by reading its
 /// transcript, so it always holds a session id, and a session id is a resume key. It also dissolves
 /// most `Ambiguous` cases — that verdict exists because the *branch-keyed* channels (a window named
 /// after the branch, the note's branch-keyed `agent-session:` record) genuinely cannot tell two

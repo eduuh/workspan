@@ -98,7 +98,7 @@ pub(crate) fn git_capture(args: &[&str], dir: Option<&Path>, trim: bool) -> Opti
 /// when it is still running at the deadline (the child is killed), or when the budget is already
 /// spent before the spawn.
 ///
-/// For the read-only display surfaces that rerun on a keystroke — the `bn tat` sub-picker's side
+/// For the read-only display surfaces that rerun on a keystroke — the `workspan tat` sub-picker's side
 /// pane — where the repositories that make a call slow are exactly the ones where blocking is
 /// unacceptable: on a ~100k-file monorepo a cold `ls-files --others` walk of the untracked tree
 /// takes over two minutes, and the pane fires one per cursor move. A panel that renders `…` for a

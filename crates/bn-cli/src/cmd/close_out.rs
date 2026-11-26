@@ -99,7 +99,7 @@ pub(crate) fn run(
     closed
 }
 
-/// What `bn agent done` reported.
+/// What `workspan agent done` reported.
 struct Outcome<'a> {
     summary: &'a str,
     pr: Option<&'a str>,
@@ -114,7 +114,7 @@ fn run_forge(cfg: &Config, ctx: &Resolved, outcome: &Outcome<'_>) -> ClosedOut {
     let mut file = match store.load() {
         Ok(file) => file,
         Err(e) => {
-            eprintln!("bn agent done: could not load Forge tasks — {e}");
+            eprintln!("workspan agent done: could not load Forge tasks — {e}");
             return ClosedOut::default();
         }
     };
@@ -142,7 +142,7 @@ fn run_forge(cfg: &Config, ctx: &Resolved, outcome: &Outcome<'_>) -> ClosedOut {
         }
     }
     if let Err(e) = store.save(&file) {
-        eprintln!("bn agent done: could not update Forge task {id} — {e}");
+        eprintln!("workspan agent done: could not update Forge task {id} — {e}");
         closed = ClosedOut::default();
     }
     let pr = file
@@ -177,7 +177,7 @@ fn done_note(outcome: &Outcome<'_>, pr: Option<&str>, waiting: bool) -> String {
 }
 
 impl ClosedOut {
-    /// Print what was closed, for the human `bn agent done` surface. Silent when nothing was —
+    /// Print what was closed, for the human `workspan agent done` surface. Silent when nothing was —
     /// a completion with no governing task is the ordinary pre-task-store case, not an anomaly.
     pub(crate) fn report(&self) {
         if let Some(task) = &self.waiting_on_pr {

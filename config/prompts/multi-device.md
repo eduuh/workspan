@@ -1,12 +1,12 @@
 ---
 name: multi-device
-description: "Work across machines as one: bn tunnel mesh, which machines are up, agents that survive dropped connections, upgrades, and dev tunnels or SSH forwards to share a local port. Use when a task spans machines, or to share a running app with a phone or colleague."
-when: A task involves another machine - adding or fixing a machine, a machine missing from bn tunnels, launching or steering an agent on a Cloud PC, running a long command remotely, or upgrading bn on several machines.
+description: "Work across machines as one: workspan tunnel mesh, which machines are up, agents that survive dropped connections, upgrades, and dev tunnels or SSH forwards to share a local port. Use when a task spans machines, or to share a running app with a phone or colleague."
+when: A task involves another machine - adding or fixing a machine, a machine missing from workspan tunnels, launching or steering an agent on a Cloud PC, running a long command remotely, or upgrading workspan on several machines.
 keywords: [dev tunnel, devtunnel, share port, tailscale, ssh forward, multi-device, machines, remote, cloud-pc, tunnel, tunnels, mesh, ssh, host, launch, attach, durable, upgrade, lan]
 ---
 # Working across machines
 
-Every machine runs bn and joins one mesh of Dev Tunnels. Each machine is reachable as `ssh <machine>`, where the alias is its short hostname (`hostname -s`), and bn keeps those connections up by itself. Treat the other machines as more seats of the same desk. Nothing here needs a VPN or an open port.
+Every machine runs workspan and joins one mesh of Dev Tunnels. Each machine is reachable as `ssh <machine>`, where the alias is its short hostname (`hostname -s`), and workspan keeps those connections up by itself. Treat the other machines as more seats of the same desk. Nothing here needs a VPN or an open port.
 
 What makes the mesh:
 
@@ -19,7 +19,7 @@ What makes the mesh:
 On that machine, at a terminal:
 
 ```sh
-bn run tunnel-setup
+workspan run tunnel-setup
 ```
 
 It installs what is missing (sshd, tmux, nc, curl, ss, gh), downloads the devtunnel CLI, runs the sign-in, turns on linger, the timers and the WSL keeper, then hosts and connects. Every step prints `ok`, `done` or `NEEDS YOU` with the exact command, so running it again is also how you check a machine. Options:
@@ -27,43 +27,43 @@ It installs what is missing (sshd, tmux, nc, curl, ss, gh), downloads the devtun
 - `BN_TUNNEL_HOST=0` makes a connect-only machine: it never hosts, sshd is not installed, and the others drop it.
 - `BN_TUNNEL_LAN=1` turns on local network mode. On the same LAN, ssh goes straight to the machine and uses the tunnel only as a fallback. On WSL this needs mirrored networking and one Windows firewall rule, and setup prints both.
 
-- `BN_TUNNEL_NICK=<name>` gives the machine a nickname (letters, digits, dashes). The hostname stays its real name (`hostname` shows it). The nickname leads the terminal title and tmux status bar, shows in `bn machine tunnels`, and is an ssh alias on the other machines (in lowercase). It is saved on the machine (`~/.config/bn/tunnel.conf`) and recorded in the notes repo (`bn/tunnel.conf`, one `[machine "<hostname>"]` section each), so a rebuilt machine gets it back.
+- `BN_TUNNEL_NICK=<name>` gives the machine a nickname (letters, digits, dashes). The hostname stays its real name (`hostname` shows it). The nickname leads the terminal title and tmux status bar, shows in `workspan machine tunnels`, and is an ssh alias on the other machines (in lowercase). It is saved on the machine (`~/.config/bn/tunnel.conf`) and recorded in the notes repo (`bn/tunnel.conf`, one `[machine "<hostname>"]` section each), so a rebuilt machine gets it back.
 
-A signed-in machine enrols itself within 5 minutes even without setup. Opt out with `BN_TUNNEL_AUTO=0 bn run tunnel-setup` (saved per machine in `~/.config/bn/tunnel.conf`, not `~/.gitconfig`).
+A signed-in machine enrols itself within 5 minutes even without setup. Opt out with `BN_TUNNEL_AUTO=0 workspan run tunnel-setup` (saved per machine in `~/.config/bn/tunnel.conf`, not `~/.gitconfig`).
 
 ## Join a machine over plain ssh (a VPS, a LAN box)
 
 No Dev Tunnels account is needed when this machine can already `ssh` to the other one with a key:
 
 ```sh
-bn machine join <name> <user@host[:port]>     # e.g. bn machine join contabo root@161.97.172.122
+workspan machine join <name> <user@host[:port]>     # e.g. workspan machine join contabo root@161.97.172.122
 ```
 
 Run it once, on the machine you are on (usually the laptop). It writes a `# >>> bn mesh <name> >>>` block into `~/.ssh/config`, trusts the other machine's key here, and holds a reverse forward (`ssh -R`, tmux window `bn-tunnels:mesh-<name>`) from that machine's loopback to this machine's sshd. It also writes a block for this machine into the other one's `~/.ssh/config`, so `ssh <this-machine>` works from there even though this machine is behind NAT. It ends by proving both directions.
 
-- This machine needs an sshd for the way back: macOS Remote Login on, or bn's user-level sshd (started on demand on Debian/Ubuntu).
+- This machine needs an sshd for the way back: macOS Remote Login on, or workspan's user-level sshd (started on demand on Debian/Ubuntu).
 - `--back user@host[:port]` when this machine is reachable directly (no reverse forward); `--no-back` for one way only.
-- `bn machine mesh` shows each node: ssh each way, its bn version, its live agents. `bn machine leave <name>` undoes the join on both sides.
+- `workspan machine mesh` shows each node: ssh each way, its workspan version, its live agents. `workspan machine leave <name>` undoes the join on both sides.
 - The watchdog (`tunnel-auto`) keeps mesh nodes too: a dead forward window, a stale shared connection after sleep, or a port held by a dead session on the node is repaired within a pass. Mesh nodes show in the tmux `⇄` segment.
-- A machine on the mesh both ways is just another tunnel host to `bn agent msg`, `bn agent live --mesh` and `bn agent launch --host`.
+- A machine on the mesh both ways is just another tunnel host to `workspan agent msg`, `workspan agent live --mesh` and `workspan agent launch --host`.
 
 ## See the mesh
 
 ```sh
-bn machine tunnels
+workspan machine tunnels
 ```
 
-This lists every host on the account, including ones this machine has not connected to yet. For each it shows the route (`tunnel :<port>` or `LAN <ip>`), whether anything is hosting its tunnel (`HOST-END`), and a reason when it is down. The reason is the machine's own report when there is one ("devtunnel is signed out", "silent since 20:10"). Reports travel as `refs/heads/bn-status/<machine>` in the work-notes repo, so they still say something when the machine itself is off. It takes about 10 seconds. The `⇄` segment in the tmux status bar shows only connections whose latest watchdog check passed. Disconnected hosts stay in `bn machine tunnels`, not the bar; `⇄ ?` means the watchdog cache is stale.
+This lists every host on the account, including ones this machine has not connected to yet. For each it shows the route (`tunnel :<port>` or `LAN <ip>`), whether anything is hosting its tunnel (`HOST-END`), and a reason when it is down. The reason is the machine's own report when there is one ("devtunnel is signed out", "silent since 20:10"). Reports travel as `refs/heads/bn-status/<machine>` in the work-notes repo, so they still say something when the machine itself is off. It takes about 10 seconds. The `⇄` segment in the tmux status bar shows only connections whose latest watchdog check passed. Disconnected hosts stay in `workspan machine tunnels`, not the bar; `⇄ ?` means the watchdog cache is stale.
 
 ## Run an agent on another machine
 
 From the worktree of the branch, on this machine:
 
 ```sh
-bn agent launch claude --host <machine>
+workspan agent launch claude --host <machine>
 ```
 
-The agent starts in a tmux window on that machine (session `<repo>`, window named after the branch). If the branch has no checkout there yet, `bn wt add` makes one, which needs the branch pushed. If the branch's window is an idle shell, the agent starts in that shell, so you are back at the prompt when it exits. This terminal only attaches:
+The agent starts in a tmux window on that machine (session `<repo>`, window named after the branch). If the branch has no checkout there yet, `workspan wt add` makes one, which needs the branch pushed. If the branch's window is an idle shell, the agent starts in that shell, so you are back at the prompt when it exits. This terminal only attaches:
 
 - A dropped connection, a sleeping laptop, or a closed terminal does not stop the agent. The view attaches again by itself while the window exists.
 - Detach with the tmux prefix and `d`. Running the same command again attaches to the running agent. It never starts a second one.
@@ -72,15 +72,15 @@ The agent starts in a tmux window on that machine (session `<repo>`, window name
 ## Edit files on another machine
 
 ```sh
-bn edit remote <machine>
+workspan edit remote <machine>
 ```
 
-From the branch's worktree here. nvim runs on that machine, in a tmux window there, with that checkout's files, LSP and git. This terminal is its UI. A dropped connection reconnects to the same editor, with the same buffers and undo. `:detach` leaves it running (run the command again to come back), and `:qa` quits it. If that worktree already has a `bn edit` nvim there, you share it.
+From the branch's worktree here. nvim runs on that machine, in a tmux window there, with that checkout's files, LSP and git. This terminal is its UI. A dropped connection reconnects to the same editor, with the same buffers and undo. `:detach` leaves it running (run the command again to come back), and `:qa` quits it. If that worktree already has a `workspan edit` nvim there, you share it.
 
 ## See a plan an agent made on another machine
 
 ```sh
-bn plan view --host <machine>
+workspan plan view --host <machine>
 ```
 
 This copies the newest plan HTML artifact from that branch on the machine and opens it in the browser here (the Windows browser from WSL). No port forwarding is needed. For a live page instead (a Lavish session, a dev server on that machine), add `--port <n>`: it forwards the port, opens `http://localhost:<n>`, and forwards again after a drop until Ctrl-C. Without `--host` it opens the newest plan HTML here. A remote agent should use `workspan plan path` to locate the active plan and save HTML beside it rather than guessing a storage path.
@@ -88,10 +88,10 @@ This copies the newest plan HTML artifact from that branch on the machine and op
 ## Talk to agents on other machines
 
 ```sh
-bn agent msg <repo:branch> "..."
+workspan agent msg <repo:branch> "..."
 ```
 
-This works wherever the target runs. When the target is not live here, bn asks every mesh machine (tunnel hosts and `bn machine join` nodes) for its live agents and hands the message to the one that has it. A remote agent replies the same way, so an agent on a Cloud PC or a VPS can answer the coordinator on the laptop. A target live on two machines is refused, not guessed. Replies need the laptop to be reachable back: host a tunnel, or join the node with `bn machine join` (its reverse forward is the way back). `bn agent live --mesh` lists every agent on every machine, which is who `bn agent msg` can reach; a machine that "did not answer" is down or has no bn.
+This works wherever the target runs. When the target is not live here, workspan asks every mesh machine (tunnel hosts and `workspan machine join` nodes) for its live agents and hands the message to the one that has it. A remote agent replies the same way, so an agent on a Cloud PC or a VPS can answer the coordinator on the laptop. A target live on two machines is refused, not guessed. Replies need the laptop to be reachable back: host a tunnel, or join the node with `workspan machine join` (its reverse forward is the way back). `workspan agent live --mesh` lists every agent on every machine, which is who `workspan agent msg` can reach; a machine that "did not answer" is down or has no bn.
 
 ## Run commands on another machine
 
@@ -107,31 +107,31 @@ This works wherever the target runs. When the target is not live here, bn asks e
   ```
 
   Then wait on the exact marker the script writes (`grep -q "^job-rc=" /tmp/job.log`), in one background loop for all machines. A marker that does not match what the script prints, or a leftover log from an earlier run, makes the loop wait forever or end at once: delete the log before starting, and stop a waiter you replace.
-- A remote non-login shell has neither bn's install dirs nor nvm on its PATH (nor Homebrew on a Mac). Start with `export PATH=$HOME/.bn/bin:$HOME/.bin:$HOME/.local/bin:/opt/homebrew/bin:$PATH`, or use `bash -lc` with `source ~/.nvm/nvm.sh`.
+- A remote non-login shell has neither workspan's install dirs nor nvm on its PATH (nor Homebrew on a Mac). Start with `export PATH=$HOME/.bn/bin:$HOME/.bin:$HOME/.local/bin:/opt/homebrew/bin:$PATH`, or use `bash -lc` with `source ~/.nvm/nvm.sh`.
 - The remote login shell may be zsh, which expands a bare `=word` to a command path (`tmux list-windows -t =bn` fails with "bn not found"). Quote targets as `'=bn'`, or run the command under `sh -c`. zsh also does not split an unquoted `$var` into words, reads `$var:r` as a modifier (write `${var}:...`), and treats `(x86)` in an unquoted word as a glob.
 - PowerShell from WSL: a multi-line script breaks under `powershell.exe -Command -`; send it with `-EncodedCommand` (UTF-16LE, base64). Files in Windows repos are CRLF: edit bytes and keep the `\r\n`.
 - In this agent's own shell, `git` may be a wrapper function that fails on `/mnt/c` paths: use `command git` there.
 
 ## Work efficiently across machines
 
-- **Look before acting.** `bn machine tunnels` (about 10 seconds) says which machines are up, their names, and why one is down. Start there instead of probing each machine with ssh.
+- **Look before acting.** `workspan machine tunnels` (about 10 seconds) says which machines are up, their names, and why one is down. Start there instead of probing each machine with ssh.
 - **Git on a machine without credentials: push to it, never pull on it.** `git push ssh://<machine><repo path> <ref>:refs/remotes/origin/<ref>`, then `git merge --ff-only origin/<ref>` there. The same works for the notes repo and the nvim config. A `git pull` there hangs on a username prompt.
 - **Pick the GitHub account for https pushes.** `gh` can hold two accounts; the active one is used. A work notes repo and personal repos may need different ones: `git -c credential.helper= -c 'credential.helper=!gh auth git-credential' push https://github.com/<owner>/<repo>.git <branch>` with the right account active, or push over ssh.
 - **A notes push that GitHub rejects (GH013)** may contain a secret in an unpushed commit.
   Stop publishing and report the affected path without revealing the secret. Request credential
   revocation if exposure is suspected. Any scoped history repair requires explicit approval and
   confirmed ownership; never reset, recommit, or push shared notes automatically.
-- **Settings for one machine never go in `~/.gitconfig`.** It is synced by dotfiles to every machine. bn's tunnel settings live in `~/.config/bn/tunnel.conf`.
-- **Check the bn binary against the config.** A machine with an old `bn` and a new `bn/main` prints TOML errors and runs unknown jobs as queued tasks. The published release lags `main`; build with `./build.sh`. `bn --version` must match `git -C ~/projects/worktree/bn/main log -1 --format=%h`.
+- **Settings for one machine never go in `~/.gitconfig`.** It is synced by dotfiles to every machine. workspan's tunnel settings live in `~/.config/bn/tunnel.conf`.
+- **Check the workspan binary against the config.** A machine with an old `bn` and a new `bn/main` prints TOML errors and runs unknown jobs as queued tasks. The published release lags `main`; build with `./build.sh`. `workspan --version` must match `git -C ~/projects/worktree/bn/main log -1 --format=%h`.
 - **Test destructive recovery on a machine that can take it**, and say what it will kill first (a WSL shutdown kills running builds there).
 - **Socket paths stay under 108 bytes.** An ssh `ControlPath` or nvim socket in a deep scratch directory fails with "path too long".
 
-## Upgrade bn everywhere
+## Upgrade workspan everywhere
 
 On each machine, in its `bn/main` worktree, inside a tmux window (see above):
 
 ```sh
-git pull --ff-only && ./build.sh && bn run tunnel-setup
+git pull --ff-only && ./build.sh && workspan run tunnel-setup
 ```
 
 A machine with no GitHub credentials asks for a username on `git pull` and hangs there. Push to it from a machine that has the commits instead, then fast-forward it:
@@ -141,13 +141,13 @@ git push ssh://<machine>/home/<user>/projects/bare/bn.git origin/main:refs/remot
 ssh <machine> 'git -C ~/projects/worktree/bn/main merge --ff-only origin/main'
 ```
 
-Check with `ssh <machine> 'export PATH=$HOME/.local/bin:$PATH; bn --version'`: every machine should show the same git hash.
+Check with `ssh <machine> 'export PATH=$HOME/.local/bin:$PATH; workspan --version'`: every machine should show the same git hash.
 
-To try an unmerged branch on another machine, remember that bn's bare clones fetch only `main`: `git pull` in that branch's worktree fetches nothing new. Use `git fetch origin <branch> && git merge --ff-only FETCH_HEAD`, then `./build.sh`.
+To try an unmerged branch on another machine, remember that workspan's bare clones fetch only `main`: `git pull` in that branch's worktree fetches nothing new. Use `git fetch origin <branch> && git merge --ff-only FETCH_HEAD`, then `./build.sh`.
 
 ## Keep machines up
 
-- **WSL keeper** (`bn run wsl-keepalive`, which setup does): holds the distro open once you are signed in to Windows, and stops Windows sleeping on AC power. It fires at sign-in and every 5 minutes, so a WSL that stopped while you stayed signed in comes back within 5 minutes. Before, it only came back at your next sign-in.
+- **WSL keeper** (`workspan run wsl-keepalive`, which setup does): holds the distro open once you are signed in to Windows, and stops Windows sleeping on AC power. It fires at sign-in and every 5 minutes, so a WSL that stopped while you stayed signed in comes back within 5 minutes. Before, it only came back at your next sign-in.
 - **Boot task** (`sh wsl-keepalive.sh boot`, one UAC prompt): starts the keeper at boot, before anyone signs in, so a host comes back after an overnight Windows Update. It did not start on an Entra-joined laptop signed in with a domain account. The script removes it again in that case, so test it on each machine.
 - **Hosting a WSL machine** without the boot task: it stays down after a reboot until someone signs in.
 
@@ -155,24 +155,24 @@ To try an unmerged branch on another machine, remember that bn's bare clones fet
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| A machine is missing from `bn machine tunnels` | It has no tunnel on this account: never set up, signed out, a different devtunnel account, or bn older than the first-run fix | On it: `devtunnel user show`, upgrade bn, `bn run tunnel-setup` |
+| A machine is missing from `workspan machine tunnels` | It has no tunnel on this account: never set up, signed out, a different devtunnel account, or workspan older than the first-run fix | On it: `devtunnel user show`, upgrade bn, `workspan run tunnel-setup` |
 | `DOWN`, `HOST-END no` | Nothing hosts its tunnel: the machine is off or asleep, WSL stopped, or devtunnel is signed out there | Its report line says which. Sign in to that machine, or run `sh wsl-keepalive.sh boot` there |
-| `Permission denied (publickey)` | This machine's key is not on the GitHub account the host trusts, or the host has not re-read the keys | `bn run tunnel-setup` here, then `bn run tunnel-host` there |
-| `silent since <time>` | Its watchdog stopped reporting: off, asleep, or the watchdog died | Wake or sign in to it; check `bn machine tunnels` there |
+| `Permission denied (publickey)` | This machine's key is not on the GitHub account the host trusts, or the host has not re-read the keys | `workspan run tunnel-setup` here, then `workspan run tunnel-host` there |
+| `silent since <time>` | Its watchdog stopped reporting: off, asleep, or the watchdog died | Wake or sign in to it; check `workspan machine tunnels` there |
 | The agent view says "lost the connection" | The tunnel dropped. The agent keeps running | Wait; the watchdog rebuilds the tunnel within about a minute and the view attaches again |
-| `bn agent launch --host` says "no checkout there, and none could be made" | The branch is not pushed, so `bn wt add` there could not check it out | `git push -u origin <branch>`, then launch again |
-| `git pull` asks for a username on a remote | That machine has no GitHub credentials | Push to it over ssh (see "Upgrade bn everywhere") |
-| `bn machine tunnels` says "report not published yet" on a machine | Its notes repo cannot push (no GitHub credentials there) | `gh auth login` and `gh auth setup-git` on that machine |
-| A new nickname does not show on the other machines | They re-read nicknames on their 15-minute reconnect pass | `bn run tunnel-connect` on each of them |
-| `devtunnel` dies with "Couldn't find a valid ICU package" | A .NET program, and the machine has no libicu | Current bn wraps it; or `sudo apt-get install -y libicu-dev` (dotfiles installs it) |
-| `bn run tunnel-setup` prints TOML errors and "queued bn/run-tunnel-setup" | The installed `bn` is older than `bn/main` | `./build.sh` in `bn/main` (the published release is older still) |
-| `Host key verification failed` between two machines | The first connection needs the host key recorded; old tunnel blocks did not do it unattended | `bn run tunnel-connect` there (writes `StrictHostKeyChecking accept-new`), or `ssh <machine> true` once by hand |
+| `workspan agent launch --host` says "no checkout there, and none could be made" | The branch is not pushed, so `workspan wt add` there could not check it out | `git push -u origin <branch>`, then launch again |
+| `git pull` asks for a username on a remote | That machine has no GitHub credentials | Push to it over ssh (see "Upgrade workspan everywhere") |
+| `workspan machine tunnels` says "report not published yet" on a machine | Its notes repo cannot push (no GitHub credentials there) | `gh auth login` and `gh auth setup-git` on that machine |
+| A new nickname does not show on the other machines | They re-read nicknames on their 15-minute reconnect pass | `workspan run tunnel-connect` on each of them |
+| `devtunnel` dies with "Couldn't find a valid ICU package" | A .NET program, and the machine has no libicu | Current workspan wraps it; or `sudo apt-get install -y libicu-dev` (dotfiles installs it) |
+| `workspan run tunnel-setup` prints TOML errors and "queued bn/run-tunnel-setup" | The installed `bn` is older than `bn/main` | `./build.sh` in `bn/main` (the published release is older still) |
+| `Host key verification failed` between two machines | The first connection needs the host key recorded; old tunnel blocks did not do it unattended | `workspan run tunnel-connect` there (writes `StrictHostKeyChecking accept-new`), or `ssh <machine> true` once by hand |
 
 ## Don't
 
 - Don't run a long job over bare ssh. Use a tmux window on the remote.
-- Don't kill `bn-tunnels` windows by hand to "fix" a tunnel. The watchdog restarts a dead forward itself, and `bn machine tunnels` says what is actually wrong.
-- Don't pass a host name you did not get from `bn machine tunnels` or `~/.ssh/config`. bn refuses anything that could be read as an ssh option.
+- Don't kill `bn-tunnels` windows by hand to "fix" a tunnel. The watchdog restarts a dead forward itself, and `workspan machine tunnels` says what is actually wrong.
+- Don't pass a host name you did not get from `workspan machine tunnels` or `~/.ssh/config`. workspan refuses anything that could be read as an ssh option.
 - Don't sign a machine in to Dev Tunnels with a second account "to test". It splits the mesh in two.
 - Don't `pgrep -f`/`pkill -f` with a pattern your own command line also contains; it finds (or kills) the command doing the looking. Match on the process name and parent instead.
 - Don't leave a background waiter running after you change the job it waits for; stop it, or it waits forever on a marker that will never appear.
@@ -263,7 +263,7 @@ curl -sL https://aka.ms/DevTunnelCliInstall | bash
 devtunnel user login          # opens a browser
 ```
 
-Run it **beside** the dev server, not instead of it: `bn build start` holds the
+Run it **beside** the dev server, not instead of it: `workspan build start` holds the
 foreground and waits on both ports, so the tunnel needs its own pane or window.
 Every explicitly authorized port must already be listening; check with `ss -tln`
 — or the tunnel serves nothing and looks broken.

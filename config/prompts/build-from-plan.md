@@ -8,11 +8,11 @@ arguments:
 ---
 Continuous: {{continuous}} (true/yes/1 loops; otherwise one item then review).
 
-1. Read `bn plan status` and the plan path it reports; the plan lives beside the branch
+1. Read `workspan plan status` and the plan path it reports; the plan lives beside the branch
    note, not in the source checkout. Follow existing approval gates.
-2. Render `bn skills render build-from-plan-workflow`, passing continuous through `--arg`,
+2. Render `workspan skills render build-from-plan-workflow`, passing continuous through `--arg`,
    and follow its detailed execution and completion contract.
 3. Implement only the next approved item; record progress when it actually completes.
    Stop on a changed scope, missing approval or invalid plan.
-4. Run `bn verify` and check every done-when criterion before claiming the goal complete.
+4. Run `workspan verify` and check every done-when criterion before claiming the goal complete.
    Reverify after rebasing onto a changed base.

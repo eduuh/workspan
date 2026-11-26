@@ -5,14 +5,14 @@
 <div class="wrap">
 
 <aside class="rail">
-  <a class="rail__brand" href="index.html"><b>bn</b> workflow notes</a>
+  <a class="rail__brand" href="index.html"><b>Workspan</b> workflow notes</a>
   <p class="rail__tag">How the machine actually runs</p>
   <nav>
     <ol>
       <li><a href="index.html">Overview</a></li>
       <li><a href="01-pipeline.html">The pipeline &amp; its gates</a></li>
       <li><a href="02-dispatch.html" aria-current="page">Dispatch &amp; isolation</a></li>
-      <li><a href="03-state.html">What bn writes down</a></li>
+      <li><a href="03-state.html">What workspan writes down</a></li>
       <li><a href="04-catalog.html">The prompt catalog</a></li>
       <li><a href="05-surfaces.html">Surfaces</a></li>
     </ol>
@@ -187,7 +187,7 @@ itself survives.
 <h2>Supervision</h2>
 
 <p>
-bn reads the harnesses' own on-disk transcripts and writes nothing of its own. Claude at
+workspan reads the harnesses' own on-disk transcripts and writes nothing of its own. Claude at
 <code>~/.claude/projects/&lt;encoded-cwd&gt;/&lt;sid&gt;.jsonl</code>, Copilot at
 <code>~/.copilot/session-state/&lt;id&gt;/events.jsonl</code>.
 <span class="src">crates/bn-core/src/agent/supervise.rs:290, :524</span>
@@ -373,7 +373,7 @@ yet, so how a non-pane agent would be steered is unverified.</li>
 
 <div class="foot">
   <a href="01-pipeline.html">← The pipeline &amp; its gates</a>
-  <a href="03-state.html">Next: what bn writes down →</a>
+  <a href="03-state.html">Next: what workspan writes down →</a>
 </div>
 
 </main>

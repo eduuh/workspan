@@ -92,7 +92,7 @@ pub(crate) fn cmd_merge(cfg: &Config, flags: MergeFlags) -> bool {
                     if !r.pass {
                         ceprintln!(
                             "{RED}Refusing to merge {slug}/{branch} — gate failed. Fix and re-push, \
-                             or bypass with `bn wt merge --no-gate`.{NC}"
+                             or bypass with `workspan wt merge --no-gate`.{NC}"
                         );
                         return false;
                     }
@@ -126,7 +126,7 @@ pub(crate) fn cmd_merge(cfg: &Config, flags: MergeFlags) -> bool {
     let (_, worktree_dir) = layout(cfg);
     if cleanup_one(cfg, &wt_path, &worktree_dir, false).is_err() {
         cprintln!(
-            "{YELLOW}Merged — worktree kept (see above). Clean later with `bn wt cleanup`.{NC}"
+            "{YELLOW}Merged — worktree kept (see above). Clean later with `workspan wt cleanup`.{NC}"
         );
     }
     true
@@ -213,7 +213,7 @@ pub(crate) fn pr_mergeable(slug: &str, number: i64) -> Mergeable {
     }
 }
 
-/// The CLI flags every `bn wt merge` entry point shares. Carried as one value rather than eight
+/// The CLI flags every `workspan wt merge` entry point shares. Carried as one value rather than eight
 /// positional bools: the single-PR merge, `--all`, and `--all-repos` all take the same set, and a
 /// positional list that long is one transposed argument away from landing with the wrong gate.
 #[derive(Debug, Clone, Copy)]
@@ -711,7 +711,7 @@ pub(crate) fn cmd_merge_all(cfg: &Config, flags: MergeFlags) -> bool {
     } = flags;
     let wt_path = cwd();
     let Some(bare) = find_bare_repo(&wt_path) else {
-        ceprintln!("{RED}Not inside a worktree — run `bn wt merge --all` from within the repo{NC}");
+        ceprintln!("{RED}Not inside a worktree — run `workspan wt merge --all` from within the repo{NC}");
         return false;
     };
     let slug = match remote_for(&bare) {
@@ -755,7 +755,7 @@ pub(crate) fn cmd_merge_all(cfg: &Config, flags: MergeFlags) -> bool {
 
 /// Land every open PR of mine for `repo` (bare `bare`, GitHub `slug`) via the file-overlap-aware
 /// merge-queue, returning the outcome tally. Runs entirely off the passed repo identity — never the
-/// cwd — so it serves both the cwd-scoped `bn wt merge --all` and the cross-repo rollup. Prints
+/// cwd — so it serves both the cwd-scoped `workspan wt merge --all` and the cross-repo rollup. Prints
 /// per-PR progress but leaves the summary line to the caller.
 pub(crate) fn merge_all_in_repo(
     cfg: &Config,
@@ -931,7 +931,7 @@ fn gate_pr_head(cfg: &Config, bare: &Path, repo: &str, branch: &str) -> bool {
             if !r.pass {
                 ceprintln!(
                     "{YELLOW}Holding {repo}/{branch} — gate failed. Fix + re-push, or land with \
-                     `bn wt merge --all-repos --no-gate`.{NC}"
+                     `workspan wt merge --all-repos --no-gate`.{NC}"
                 );
             }
             r.pass
@@ -980,15 +980,15 @@ fn adversarial_gate_open(cfg: &Config, slug: &str, repo: &str, number: i64) -> b
     } else {
         ceprintln!(
             "{YELLOW}Holding {repo}#{number} — review-gate {}. Run diff-only reviewers \
-             (`bn review-gate prompt {repo} {number}`) and resolve blocking findings, or land with \
-             `bn wt merge --no-gate`.{NC}",
+             (`workspan review-gate prompt {repo} {number}`) and resolve blocking findings, or land with \
+             `workspan wt merge --no-gate`.{NC}",
             gs.summary()
         );
     }
     gs.open
 }
 
-/// `bn wt merge --all-repos` (#455): land every open PR of mine across **every configured repo** in
+/// `workspan wt merge --all-repos` (#455): land every open PR of mine across **every configured repo** in
 /// one invocation — the cross-repo rollup that closes the "cd into each repo's worktree N times"
 /// gap. Rolls through repos in a deterministic order ([`bn_core::crossrepo::cross_repo_land_order`]),
 /// gating each PR on that repo's own verify (unless `no_gate`), and prints a per-repo section plus a

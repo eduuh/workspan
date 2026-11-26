@@ -29,13 +29,13 @@ pub enum Stage {
     Consensus,
     /// Implement exactly the agreed plan.
     Execute,
-    /// `bn verify` — build + test + lint (re-verified after any rebase).
+    /// `workspan verify` — build + test + lint (re-verified after any rebase).
     Validate,
     /// Fresh-context adversarial diff review vs the acceptance criteria.
     Critique,
     /// Open / mark-ready the PR; the orchestrator lands it on merge.
     Ship,
-    /// Fold the outcome + reflections back (`bn ingest` / `evolve-skills`).
+    /// Fold the outcome + reflections back (`workspan ingest` / `evolve-skills`).
     Learn,
 }
 
@@ -90,11 +90,11 @@ impl Stage {
     /// opposed to a dispatch policy, which reports what a given worktree actually ran.
     ///
     /// `None` is a real answer, not a gap: `pickup` leases a worktree, `consensus` is reviewer
-    /// votes, `validate` is `bn verify`, and `ship` hands off to the orchestrator. None of those
+    /// votes, `validate` is `workspan verify`, and `ship` hands off to the orchestrator. None of those
     /// are a harness following a workflow, and naming a skill for them would be a decoration that
     /// reads as a fact.
     ///
-    /// Distinct from `bn dispatch`'s `dispatch_skill_name`, which answers "what does an ad-hoc
+    /// Distinct from `workspan dispatch`'s `dispatch_skill_name`, which answers "what does an ad-hoc
     /// dispatch run?" (a ship gets `build-from-plan`, which writes its own plan first). This answers
     /// "what does the nine-stage pipeline run here?", where `execute` picks up a plan that
     /// `consensus` already approved. Both are right; they are not the same question.

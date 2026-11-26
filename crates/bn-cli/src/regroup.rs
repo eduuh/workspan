@@ -12,7 +12,7 @@ use crate::Cli;
 use clap::CommandFactory;
 use std::ffi::OsString;
 
-/// `(group, sub, legacy argv)`: `bn <group> <sub> …` runs `bn <legacy…> …`.
+/// `(group, sub, legacy argv)`: `workspan <group> <sub> …` runs `workspan <legacy…> …`.
 pub(crate) const ROUTES: &[(&str, &str, &[&str])] = &[
     ("review", "plan", &["review"]),
     ("review", "diff", &["review-gate"]),
@@ -61,7 +61,7 @@ pub(crate) const ROUTES: &[(&str, &str, &[&str])] = &[
     ("tmux", "glyphs", &["glyphs"]),
 ];
 
-/// `(command, flag, legacy)`: `bn <command> … <flag> …` runs `bn <legacy> …` with the flag dropped.
+/// `(command, flag, legacy)`: `workspan <command> … <flag> …` runs `workspan <legacy> …` with the flag dropped.
 pub(crate) const FLAG_ROUTES: &[(&str, &str, &str)] = &[
     ("verify", "--rebased", "gate"),
     ("pr", "--wi", "link"),
@@ -88,8 +88,8 @@ const NEW_GROUPS: &[(&str, &str)] = &[
     ),
 ];
 
-/// Commands kept callable but off `bn --help` because only a hook, job or maintainer runs them.
-/// `gap ingest` is how the meetings cron fills the cache `bn next --fit` reads.
+/// Commands kept callable but off `workspan --help` because only a hook, job or maintainer runs them.
+/// `gap ingest` is how the meetings cron fills the cache `workspan next --fit` reads.
 const HIDDEN: &[&str] = &["release", "open", "gap"];
 
 /// Routes that exist for hooks and jobs and stay out of group help.
@@ -154,7 +154,7 @@ pub(crate) enum Plan {
     Help(String, i32),
 }
 
-/// `bn build <job> --help` is meant to reach the job, not the wrapper.
+/// `workspan build <job> --help` is meant to reach the job, not the wrapper.
 ///
 /// clap always intercepts `-h`/`--help` before `trailing_var_arg` gets a chance to keep them in
 /// the build job's trailing argv. Insert an explicit `--` only for the narrow shape that would
@@ -365,6 +365,27 @@ mod tests {
         assert!(help.contains("workspan skills find"));
         assert!(help.contains("workspan skills render"));
         assert!(!help.contains("bn skills"));
+    }
+
+    #[test]
+    fn nested_help_recommends_workspan_without_removing_compatibility() {
+        fn check(mut command: clap::Command) {
+            for subcommand in command.get_subcommands().cloned() {
+                check(subcommand);
+            }
+            let name = command.get_name().to_owned();
+            let help = command.render_long_help().to_string();
+            assert!(!help.contains("`bn "), "{name} still recommends bn: {help}");
+        }
+
+        check(command_named("workspan"));
+        for executable in ["workspan", "ws", "bn"] {
+            let Plan::Parse(argv) = plan([executable, "task", "list"].map(OsString::from).to_vec())
+            else {
+                panic!("expected task command");
+            };
+            assert!(command_named(executable).try_get_matches_from(argv).is_ok());
+        }
     }
 
     #[test]

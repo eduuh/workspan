@@ -14,11 +14,11 @@ struct Row {
     plan: RoutePlan,
 }
 
-/// `bn pipeline route [--task <id>] [--all]`.
+/// `workspan pipeline route [--task <id>] [--all]`.
 pub(crate) fn emit_pipeline_route(cfg: &Config, task: Option<&str>, all: bool, as_json: bool) {
     let file = crate::cmd::task::task_store(cfg)
         .load()
-        .unwrap_or_else(|e| fail(&format!("bn pipeline route: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan pipeline route: {e}")));
     let today = today();
 
     let selected: Vec<Task> = match task {
@@ -26,7 +26,7 @@ pub(crate) fn emit_pipeline_route(cfg: &Config, task: Option<&str>, all: bool, a
             .tasks()
             .find(|t| t.id() == Some(id))
             .cloned()
-            .unwrap_or_else(|| fail(&format!("bn pipeline route: no task {id}")))],
+            .unwrap_or_else(|| fail(&format!("workspan pipeline route: no task {id}")))],
         None => file
             .tasks()
             .filter(|t| t.is_open(&today))

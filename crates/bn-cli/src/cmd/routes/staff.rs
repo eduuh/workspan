@@ -29,7 +29,7 @@ pub(super) fn route(cfg: &Config, action: CmdStaff, json: bool) {
             if_stale,
         } => {
             if if_stale && ran_ok_today(&job) {
-                println!("bn run: skipping '{job}' — already ran successfully today (--if-stale)");
+                println!("workspan run: skipping '{job}' — already ran successfully today (--if-stale)");
                 std::process::exit(0);
             }
             let ctx = if job == "keep-warm" {
@@ -94,7 +94,7 @@ pub(super) fn route(cfg: &Config, action: CmdStaff, json: bool) {
                             "cron-retire",
                             "not_enabled",
                             &format!(
-                                "bn cron retire: not enabled on this machine ('{}')",
+                                "workspan cron retire: not enabled on this machine ('{}')",
                                 cfg.machine()
                             ),
                         );
@@ -112,7 +112,7 @@ pub(super) fn route(cfg: &Config, action: CmdStaff, json: bool) {
                             "cron-refresh-windows",
                             "not_enabled",
                             &format!(
-                                "bn cron refresh-windows: not enabled on this machine ('{}')",
+                                "workspan cron refresh-windows: not enabled on this machine ('{}')",
                                 cfg.machine()
                             ),
                         );
@@ -217,7 +217,7 @@ pub(super) fn route(cfg: &Config, action: CmdStaff, json: bool) {
             } => match mcp::parse_harness(&harness) {
                 Some(h) => mcp::init(h, with_extras, json),
                 None => fail(&format!(
-                    "bn mcp init: unknown harness '{harness}' — use 'claude' or 'copilot'"
+                    "workspan mcp init: unknown harness '{harness}' — use 'claude' or 'copilot'"
                 )),
             },
             McpCmd::Serve { orchestrate } => mcp::serve(orchestrate),

@@ -27,4 +27,4 @@ Your assignment: **{{task}}**
 5. Keep the assigned task's checklist current as workflows are fixed. For anything you cannot fix,
    record exactly what is needed on the task and PR (or an authorized issue when there is no PR).
 6. When the run ends, if the assignment names a coordinator, send it one
-   `bn agent msg` with the PR link and what was wrong. Then stop.
+   `workspan agent msg` with the PR link and what was wrong. Then stop.

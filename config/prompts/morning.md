@@ -1,6 +1,6 @@
 ---
 name: morning
-description: "Brief the start-of-day bn next queue and propose 1 to 3 actions; execute mechanical maintenance only when explicitly requested or approved. Use when starting the day or triaging the attention queue."
+description: "Brief the start-of-day workspan next queue and propose 1 to 3 actions; execute mechanical maintenance only when explicitly requested or approved. Use when starting the day or triaging the attention queue."
 when: Beginning your day, before picking a branch — the 15–30 min morning routine, across all branches.
 keywords: [triage, sweep queue, clear chores, dry run, morning, start of day, standup, sweep, priorities, inbox, review queue, blockers, ci, what now, plan my day]
 arguments:
@@ -10,7 +10,7 @@ You are running the user's start-of-day routine. This is **cross-branch** (the w
 picture), not a single branch — that's what `start-session` is for. Be fast and scannable;
 the goal is to end with 1–3 concrete things to do, not a wall of text.
 
-1. **Read the queue.** Run `bn next --json` in the shell. It is the distilled, priority-ranked
+1. **Read the queue.** Run `workspan next --json` in the shell. It is the distilled, priority-ranked
    morning signal — every actionable kind (failing crons, review asks, meetings, mentions,
    attention items, goals, blockers, …) already filtered and ordered, so read it instead of
    re-deriving anything from raw sources.
@@ -21,14 +21,14 @@ the goal is to end with 1–3 concrete things to do, not a wall of text.
    name the one missing thing (who/what) it's waiting on, since the habit is to raise these early.
 
 3. **Land the plan.** Propose the day's **1–3** highest-leverage actions, heaviest first, each one
-   line. Then offer to commit them with `bn daily add` so the day has a written target. Don't add
+   line. Then offer to commit them with `workspan daily add` so the day has a written target. Don't add
    them silently — the daily list is the user's plan.
 
 End with: the 1–3, and the single first action to take now. Keep the whole thing under ~12 lines.
 
 ## Clear the queue (was triage)
 
-You are triaging the user's `bn next` action queue: separate mechanical maintenance candidates
+You are triaging the user's `workspan next` action queue: separate mechanical maintenance candidates
 from judgment calls and report them. A briefing or triage request alone authorizes no writes.
 
 Dry-run: if `{{dry_run}}` is truthy (`true`/`yes`/`1`), this is **plan-only** — classify and
@@ -38,7 +38,7 @@ actions the user explicitly requested or approved, including an explicit mainten
 Omitting dry-run is not approval for edits, commits, pushes, PR comments, or queue acknowledgments.
 When in doubt, leave the item for the user.
 
-1. **Load the queue.** Run `bn next --json` in the shell. Each action is
+1. **Load the queue.** Run `workspan next --json` in the shell. Each action is
    `{kind, title, detail, link?, priority, age, attn_id?}`, ranked most-pressing first. `kind` is one of
    `wip`, `cron`, `attn`, `review`, `pr`, `goal`, `blocked`, `meeting`, `email`, `mention`.
    Read it; don't re-fetch anything over the network — the queue is already the distilled,
@@ -59,7 +59,7 @@ When in doubt, leave the item for the user.
    | any other kind | **judgment** | an unrecognized kind is by definition not safely mechanical. |
 
 3. **Refine the `attn` items by reading the title.** An attn `title`/`detail` that is a pure
-   mechanical chore — "rebase eduuh/bn#N", "reformat X", "re-run Y", "nudge reviewer on #N" —
+   mechanical chore — "rebase eduuh/workspan#N", "reformat X", "re-run Y", "nudge reviewer on #N" —
    is a **mechanical candidate**, not authorization to act. Anything that asks a question, names a
    tradeoff, or says "decide/choose/review/investigate" is **judgment**. If the wording is ambiguous,
    classify it **judgment**.
@@ -71,14 +71,14 @@ When in doubt, leave the item for the user.
      If it conflicts or would require unauthorized history rewriting, **stop** on that item and
      report the decision needed.
    - **Reformat / lint**: run the repo's own formatter and lint task — whatever its setup scripts
-     or `bn verify` define, not a tool you assume from the language. Commit only formatting/lint
+     or `workspan verify` define, not a tool you assume from the language. Commit only formatting/lint
      fixes, nothing else.
    - **Nudge a reviewer**: post one short, factual comment on the PR (`gh pr comment`) — a
      status ping, no new asks. One nudge per PR per run.
    - **Push** approved maintenance commits only when pushing is within the approved scope.
    After each, note the outcome (succeeded / skipped-because-conflict / no-op). Never merge,
    approve, close, force-push, or touch `main` — those are out of scope here,
-   full stop. If an `attn` item carries an `attn_id`, `bn attn ack <attn_id>` it **only** once
+   full stop. If an `attn` item carries an `attn_id`, `workspan attn ack <attn_id>` it **only** once
    its mechanical action genuinely completed; never ack a judgment item. (Other kinds carry no
    `attn_id` — they clear themselves from the queue when their underlying condition resolves.)
 

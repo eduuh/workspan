@@ -17,7 +17,7 @@ pub(super) fn resolve_authorized_repo(
                     json,
                     "dispatch",
                     "no-repo",
-                    "bn dispatch: not in a repo — pass --repo <name> to target one from anywhere",
+                    "workspan dispatch: not in a repo — pass --repo <name> to target one from anywhere",
                 )
             });
             let bare = cfg.bare_dir().join(format!("{}.git", ctx.repo));
@@ -27,7 +27,7 @@ pub(super) fn resolve_authorized_repo(
                     "dispatch",
                     "no-bare-repo",
                     &format!(
-                        "bn dispatch: no bare repo at {} — dispatch needs the bare+worktree layout",
+                        "workspan dispatch: no bare repo at {} — dispatch needs the bare+worktree layout",
                         bare.display()
                     ),
                 );
@@ -38,7 +38,7 @@ pub(super) fn resolve_authorized_repo(
             json,
             "dispatch",
             "unknown-repo",
-            &format!("bn dispatch: {error}"),
+            &format!("workspan dispatch: {error}"),
         ),
     };
 
@@ -48,7 +48,7 @@ pub(super) fn resolve_authorized_repo(
             "dispatch",
             "repo_not_enabled",
             &format!(
-                "bn dispatch: repository '{repo}' is not enabled on this machine ('{}')",
+                "workspan dispatch: repository '{repo}' is not enabled on this machine ('{}')",
                 cfg.machine()
             ),
         );

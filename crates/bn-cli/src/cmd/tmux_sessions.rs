@@ -22,7 +22,7 @@ use std::collections::BTreeSet;
 /// Sessions that are not repositories because they are not *work*.
 ///
 /// `_bn_edit` is storage — a holding pen for parked editor panes — and any other leading-underscore
-/// session is claiming the same private-namespace convention. `host:<alias>` is a `bn connect`
+/// session is claiming the same private-namespace convention. `host:<alias>` is a `workspan connect`
 /// attachment to another machine, so the work it shows lives in that machine's repos, not here.
 fn not_work(session: &str) -> bool {
     session.starts_with('_') || session.starts_with("host:")
@@ -37,7 +37,7 @@ pub(crate) struct WindowRow {
     pub name: String,
     /// The pane's foreground command — anything but a bare shell means work is happening.
     pub command: String,
-    /// Whether a bn agent has stamped this window (`@bn_agent`).
+    /// Whether a workspan agent has stamped this window (`@bn_agent`).
     pub agent: bool,
 }
 
@@ -60,7 +60,7 @@ pub(crate) enum Keep {
     Attached,
     /// A pane is running something that is not a shell.
     Busy,
-    /// A bn agent lives here.
+    /// A workspan agent lives here.
     Agent,
 }
 
@@ -147,9 +147,9 @@ fn read_sessions() -> Vec<SessionRow> {
         .collect()
 }
 
-/// `bn tmux-prune` — report, and with `--force` remove, sessions that are not repositories.
+/// `workspan tmux-prune` — report, and with `--force` remove, sessions that are not repositories.
 ///
-/// Dry run by default, like `bn reset`. Nothing here is wired to a cron or a hook: killing a
+/// Dry run by default, like `workspan reset`. Nothing here is wired to a cron or a hook: killing a
 /// session is exactly the class of action `config/crons.toml` keeps in a person's hands.
 pub(crate) fn emit_tmux_prune(cfg: &Config, force: bool, json: bool) {
     let repo_backed = crate::tat::discovery::repo_backed_sessions(cfg);
@@ -163,7 +163,7 @@ pub(crate) fn emit_tmux_prune(cfg: &Config, force: bool, json: bool) {
                 Envelope::failure("tmux_prune", "no_repo_inventory", msg).to_json()
             );
         } else {
-            eprintln!("bn tmux-prune: {msg}");
+            eprintln!("workspan tmux-prune: {msg}");
         }
         return;
     }
@@ -178,7 +178,7 @@ pub(crate) fn emit_tmux_prune(cfg: &Config, force: bool, json: bool) {
             if proc::tmux_run(&["kill-session", "-t", &format!("={}", row.name)]) {
                 killed += 1;
             } else {
-                eprintln!("bn tmux-prune: could not kill '{}'", row.name);
+                eprintln!("workspan tmux-prune: could not kill '{}'", row.name);
             }
         }
     }

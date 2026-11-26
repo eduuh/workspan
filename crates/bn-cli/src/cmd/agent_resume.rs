@@ -26,7 +26,7 @@ pub(crate) fn run_copilot_resume(
 
     const CAPTURE_LIMIT: usize = 64 * 1024;
 
-    let mut child = crate::retry::io(&format!("bn agent launch: spawn {bin}"), || {
+    let mut child = crate::retry::io(&format!("workspan agent launch: spawn {bin}"), || {
         std::process::Command::new(bin)
             .args(args)
             .stderr(Stdio::piped())

@@ -82,7 +82,7 @@ pub(crate) fn restated_subject<'a>(title: &str, canonical: &[&'a str]) -> Option
 ///
 /// Dedup scans every live item — the actionable lane, the completion/review lane, *and* items that
 /// were started/done/snoozed out of the open lane ([`live_by_key`]) — so a re-fired keyed job (a
-/// `wt-stuck` notice, a `bn agent done`, …) matches its own earlier item regardless of that item's
+/// `wt-stuck` notice, a `workspan agent done`, …) matches its own earlier item regardless of that item's
 /// current phase or the day it was raised, instead of duplicating it (#534). Only a terminal
 /// ack/remove/planned frees the key for a genuinely fresh occurrence. `today` is unused now that
 /// dedup is date-independent; it is kept for signature stability across the many callers.
@@ -290,7 +290,7 @@ pub enum PromoteError {
 /// Promote branch todo `todo_id` into an attention item — the inverse of [`plan_item`], turning
 /// existing note work into loop fuel. The note is `repo`/`branch` when both are given, else the
 /// one resolved from `base_dir` (same targeting rule as `plan_item`). The prompt is seeded terse
-/// (goal + todo text) because the launched agent reads the full note itself (`bn --cat`). Keyed
+/// (goal + todo text) because the launched agent reads the full note itself (`workspan --cat`). Keyed
 /// `attn:promote:<repo>:<branch>:<todo-id>`, so re-promoting an already-queued todo is a no-op
 /// instead of a duplicate. The todo itself stays open — the agent working the branch checks it
 /// off as part of the work.
@@ -345,7 +345,7 @@ pub fn promote_todo(
     })
 }
 
-/// Parse script input for `bn attn ingest`: either a JSON array, a single JSON object, or JSONL
+/// Parse script input for `workspan attn ingest`: either a JSON array, a single JSON object, or JSONL
 /// (one object per line). Invalid JSONL lines are ignored, matching feed ingest's tolerant shape.
 pub fn parse_ingest_items(input: &str) -> Vec<IngestItem> {
     let trimmed = input.trim_start();

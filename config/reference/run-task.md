@@ -15,7 +15,7 @@ Task: $ARGUMENTS
 Invoke a rule-advisor using Agent tool:
 - `subagent_type`: "general-purpose"
 - `description`: "Rule selection"
-- `prompt`: "You are a rule advisor. Task: $ARGUMENTS. Select the applicable rules (repo AGENTS.md/CLAUDE.md, and skills from `bn skills find <task words>`) and perform metacognitive analysis. Return JSON: taskAnalysis.essence, selectedRules (rule or skill name plus the concrete procedure), metaCognitiveGuidance.pastFailures, metaCognitiveGuidance.firstStep, warningPatterns."
+- `prompt`: "You are a rule advisor. Task: $ARGUMENTS. Select the applicable rules (repo AGENTS.md/CLAUDE.md, and skills from `workspan skills find <task words>`) and perform metacognitive analysis. Return JSON: taskAnalysis.essence, selectedRules (rule or skill name plus the concrete procedure), metaCognitiveGuidance.pastFailures, metaCognitiveGuidance.firstStep, warningPatterns."
 
 **Step 2: Utilize rule-advisor Output**
 

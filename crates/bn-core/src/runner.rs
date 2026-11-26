@@ -280,7 +280,7 @@ fn run_bounded(program: &str, args: &[&str], timeout: Duration) -> CommandOutput
 /// SIGKILL a whole process group, falling back to the child alone if the group kill fails.
 ///
 /// Public because killing only the child is not enough for the callers that need this: the thing
-/// that hangs is usually a *grandchild* (`bn dispatch` → `git fetch` → `ssh`), and reaping the
+/// that hangs is usually a *grandchild* (`workspan dispatch` → `git fetch` → `ssh`), and reaping the
 /// parent while the network-blocked grandchild lives on leaks the very process you were trying to
 /// stop. Requires the child to have been spawned with `process_group(0)`.
 #[cfg(unix)]
@@ -368,7 +368,7 @@ pub fn pr_url(runner: &dyn CommandRunner) -> Option<String> {
 }
 
 /// `gh <issue|pr> view <num> --repo <owner/repo> --json title -q .title`, or `None` on any
-/// failure (gh absent, not authed, no such item). Best-effort title lookup for `bn capture`.
+/// failure (gh absent, not authed, no such item). Best-effort title lookup for `workspan capture`.
 pub fn view_title(
     runner: &dyn CommandRunner,
     kind: &str,

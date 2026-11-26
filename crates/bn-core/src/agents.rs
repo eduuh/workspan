@@ -62,7 +62,7 @@ struct AgentFrontmatter {
     kind: Option<AgentKind>,
     #[serde(default)]
     on_calendar: Option<String>,
-    /// Also fire on the day's first bn event (`bn run <name> --if-stale`), not only on the
+    /// Also fire on the day's first workspan event (`workspan run <name> --if-stale`), not only on the
     /// `on_calendar` timer — the agent-manifest twin of `[[cron]] catch_up` (see crons.rs), for
     /// refreshes tied to *when you start work* (meetings, the m365 sweep).
     #[serde(default)]
@@ -115,10 +115,10 @@ struct AgentFrontmatter {
     /// compiles to native Copilot/Claude custom agents rather than a cron/staff gather agent.
     #[serde(default)]
     repo: Option<String>,
-    /// bn reference docs whose content is inlined into the compiled native agent body.
+    /// workspan reference docs whose content is inlined into the compiled native agent body.
     #[serde(default)]
     references: Vec<String>,
-    /// ADO repo the `bn agents bootstrap` mining run harvests review comments from.
+    /// ADO repo the `workspan agents bootstrap` mining run harvests review comments from.
     #[serde(default)]
     source_repo: Option<String>,
     /// Native worlds to compile into (`copilot`, `claude`). Empty = both.
@@ -138,17 +138,17 @@ struct AgentFrontmatter {
 /// A resolved agent definition: its metadata, the tier it was discovered in, and its body text.
 #[derive(Debug, Clone)]
 pub struct AgentDef {
-    /// The `bn run <name>` job this agent gathers with.
+    /// The `workspan run <name>` job this agent gathers with.
     pub name: String,
     /// Explicit execution contract declared by `kind:`.
     pub kind: AgentKind,
     /// systemd `OnCalendar` schedule; present for a cron agent, absent for an on-demand one.
     pub on_calendar: Option<String>,
-    /// Also fire on the day's first bn event, not only on the schedule (`catch_up:` frontmatter).
+    /// Also fire on the day's first workspan event, not only on the schedule (`catch_up:` frontmatter).
     pub catch_up: bool,
     /// Failure retry backoff in seconds. Scheduled agents default to 15 minutes.
     pub retry_after_secs: Option<i64>,
-    /// An explicit custom shell command from `run:`. When absent, `bn run <name>` resolves the
+    /// An explicit custom shell command from `run:`. When absent, `workspan run <name>` resolves the
     /// same-name staff, native, or script job without spawning a recursive child process.
     pub run: Option<String>,
     /// The gather hits the network (informational; the schedule generator carries the real gate).
@@ -193,7 +193,7 @@ pub struct AgentDef {
     /// means nothing. It changes the output contract the agent is given as well as how its card is
     /// routed, so it is declared once here rather than guessed per run.
     pub replace: bool,
-    /// Reusable bn skills available to this agent, referred to by name (loaded natively in its
+    /// Reusable workspan skills available to this agent, referred to by name (loaded natively in its
     /// harness — not invoked as slash-command prompts).
     pub skills: Vec<String>,
     /// MCP servers/tools this agent connects to.
@@ -210,9 +210,9 @@ pub struct AgentDef {
     pub host_window: Option<String>,
     /// Repo this specialist is gated to; `Some` marks the agent as a review specialist.
     pub repo: Option<String>,
-    /// bn reference docs inlined into the compiled native agent.
+    /// workspan reference docs inlined into the compiled native agent.
     pub references: Vec<String>,
-    /// ADO repo the `bn agents bootstrap` mining run harvests review comments from.
+    /// ADO repo the `workspan agents bootstrap` mining run harvests review comments from.
     pub source_repo: Option<String>,
     /// Native worlds this specialist compiles into (`copilot`/`claude`); empty = both.
     pub worlds: Vec<String>,

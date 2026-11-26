@@ -1,4 +1,4 @@
-//! `bn watch` — supervise the fleet on a loop.
+//! `workspan watch` — supervise the fleet on a loop.
 use crate::*;
 
 /// The toast line for an attention item: staff briefing cards (#265) carry the agent name as a
@@ -21,7 +21,7 @@ pub(crate) fn toast_label(source: &str, title: &str) -> String {
 ///
 /// The split matters because the queue and the toast channel want different things: **publish
 /// broadly, toast narrowly.** Warn items, agent-sourced items and completions all belong in the
-/// queue — `bn afk end`, `bn next` and the controller consumers read them — but only an open
+/// queue — `workspan afk end`, `workspan next` and the controller consumers read them — but only an open
 /// urgent item is something that stopped and needs a decision now. Classification therefore
 /// happens at the toast boundary in [`emit_watch`], not here.
 struct PublishedAttention {
@@ -59,7 +59,7 @@ fn publish_attention_wakes(today: &str, now: i64) -> PublishedAttention {
         )
         .expect("attention and completion transitions are actionable");
         if let Err(error) = queue.publish(wake) {
-            eprintln!("bn wake: publish attention wake: {error}");
+            eprintln!("workspan wake: publish attention wake: {error}");
         }
     }
     out
@@ -94,7 +94,7 @@ fn wake_class(
     }
 }
 
-/// `bn watch` — the cheap (no-LLM) wake reactor. Each pass classifies what needs you (fleet
+/// `workspan watch` — the cheap (no-LLM) wake reactor. Each pass classifies what needs you (fleet
 /// escalations + urgent attention + agent completions), publishes actionable transitions to the
 /// durable wake queue, and fires a desktop toast for new deliveries. Between passes the shared
 /// event loop waits on queue and harness-log filesystem notifications; `interval` is only the
@@ -109,7 +109,7 @@ pub(crate) fn emit_watch(cfg: &Config, once: bool, interval: u64, stuck: i64, as
     let (claude_root, copilot_root) = bn_core::agent::supervision_roots();
     let mut reactor = (!once).then(|| {
         crate::event_loop::EventLoop::with_wake_queue(
-            "bn watch",
+            "workspan watch",
             vec![crate::event_loop::Watch::file(
                 bn_core::events::log_path(),
             )],
@@ -122,7 +122,7 @@ pub(crate) fn emit_watch(cfg: &Config, once: bool, interval: u64, stuck: i64, as
             match agent_live::publish_actionable_wakes(cfg, DEFAULT_IDLE_MINS, stuck, now) {
                 Ok((_, current)) => current,
                 Err(error) => {
-                    eprintln!("bn watch: publish wake transitions: {error}");
+                    eprintln!("workspan watch: publish wake transitions: {error}");
                     0
                 }
             };
@@ -131,7 +131,7 @@ pub(crate) fn emit_watch(cfg: &Config, once: bool, interval: u64, stuck: i64, as
         let new = match queue.pending(&target) {
             Ok(items) => items,
             Err(error) => {
-                eprintln!("bn watch: read wake queue: {error}");
+                eprintln!("workspan watch: read wake queue: {error}");
                 Vec::new()
             }
         };
@@ -155,7 +155,7 @@ pub(crate) fn emit_watch(cfg: &Config, once: bool, interval: u64, stuck: i64, as
             bn_core::notify::policy::deliver_batch(
                 cfg,
                 &candidates,
-                &|n| format!("bn — {n} need you"),
+                &|n| format!("Workspan — {n} need you"),
                 " · ",
                 now,
             );
@@ -187,7 +187,7 @@ pub(crate) fn emit_watch(cfg: &Config, once: bool, interval: u64, stuck: i64, as
         if !new.is_empty() {
             let ids = new.iter().map(|item| item.event_id.clone()).collect();
             if let Err(error) = queue.acknowledge(&target, &ids) {
-                eprintln!("bn watch: acknowledge wake queue: {error}");
+                eprintln!("workspan watch: acknowledge wake queue: {error}");
             }
         }
 

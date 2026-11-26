@@ -5,7 +5,7 @@ use super::util::{home, non_empty_env};
 use super::Config;
 use std::path::PathBuf;
 
-/// The bn home root: `$BN_HOME`, else `~/.bn`. The single hub for bn's *tooling* — the source
+/// The workspan home root: `$BN_HOME`, else `~/.bn`. The single hub for workspan's *tooling* — the source
 /// checkout (`repo/`), binaries (`bin/`), config (`config/`), the jobs symlink (`jobs/`), and
 /// bn-managed repos (`repos/`) all default under here. NOTE: notes / metrics / the event log are
 /// deliberately NOT here — they live in the synced notes repo (see [`Config`]) so they cross
@@ -17,12 +17,12 @@ pub fn bn_home() -> PathBuf {
     PathBuf::from(format!("{}/.bn", home()))
 }
 
-/// The config dir holding the files bn writes for itself — the machine pin,
+/// The config dir holding the files workspan writes for itself — the machine pin,
 /// `approvals.toml` — and the install anchors (`jobs`, `agents`, `repo`). Settings do not live
 /// here; see [`config_layer_paths`].
 ///
 /// `$BN_CONFIG_DIR` wins; else `<bn_home>/config`. Native Windows keeps its platform config
-/// directory (`%APPDATA%\bn`) when that is where bn was installed and `~/.bn` was never created.
+/// directory (`%APPDATA%\bn`) when that is where workspan was installed and `~/.bn` was never created.
 pub fn config_dir() -> PathBuf {
     if let Some(d) = non_empty_env("BN_CONFIG_DIR") {
         return PathBuf::from(d);
@@ -41,7 +41,7 @@ pub fn config_dir() -> PathBuf {
     }
 }
 
-/// Directory bn's binaries (`bn`, `bn-mcp`, the workflow tools) live in. Resolution,
+/// Directory workspan's binaries (`bn`, `bn-mcp`, the workflow tools) live in. Resolution,
 /// high → low: `$BN_BIN_DIR` wins; else `<bn_home>/bin` (the new `~/.bn` layout) when `BN_HOME`
 /// is set or that dir already exists; else the legacy `~/.bin` while it still exists; else
 /// default to `<bn_home>/bin`. install.sh keeps these in step with [`config_dir`].
@@ -60,7 +60,7 @@ pub fn bin_dir() -> PathBuf {
     home_bin
 }
 
-/// The config files bn reads, lowest precedence first; a later one wins key by key.
+/// The config files workspan reads, lowest precedence first; a later one wins key by key.
 ///
 /// `$BN_CONFIG` names one file and is the whole answer when set: a test sandbox saying exactly what
 /// to read. Otherwise the shared `<notes_root>/config.toml` every machine syncs, then this
@@ -79,7 +79,7 @@ pub fn shared_config_path() -> PathBuf {
         .unwrap_or_else(|| config_root().join("config.toml"))
 }
 
-/// `<notes_root>/<machine>/config.toml`: what this machine does differently, and where bn writes
+/// `<notes_root>/<machine>/config.toml`: what this machine does differently, and where workspan writes
 /// the choices it records for this machine. `$BN_CONFIG`
 /// when set, so a sandbox's writes land in the one file it reads.
 pub fn machine_config_path() -> PathBuf {
@@ -104,7 +104,7 @@ pub fn config_root() -> PathBuf {
 /// root for test sandboxes, and `$BN_NOTES_DIR_WORK` splits the work root back out.
 ///
 /// The work root is `~/projects/notes/bn` only on a machine that has that separate work tree;
-/// everywhere else it is the personal root, so bn reads one notes tree. The retired
+/// everywhere else it is the personal root, so workspan reads one notes tree. The retired
 /// `~/projects/branch-notes-work/bn` fallback is folded into it on first use (see
 /// [`super::legacy_work`]).
 pub fn notes_roots() -> (PathBuf, PathBuf) {
@@ -145,7 +145,7 @@ pub fn machine_name() -> String {
 /// Path to the pinned machine identity — one line naming this host, written once and reused
 /// forever after. `$BN_MACHINE_FILE` wins, else `<config_dir>/machine`.
 ///
-/// Its own file rather than a setting because bn *writes* it, and because the machine's own config
+/// Its own file rather than a setting because workspan *writes* it, and because the machine's own config
 /// file is found by this name: it cannot also be a key inside that file.
 pub fn machine_file_path() -> PathBuf {
     if let Some(p) = non_empty_env("BN_MACHINE_FILE") {
@@ -154,13 +154,13 @@ pub fn machine_file_path() -> PathBuf {
     config_dir().join("machine")
 }
 
-/// Path to `approvals.toml` — the agent auto-approve policy (`bn agent answer`'s unattended half).
+/// Path to `approvals.toml` — the agent auto-approve policy (`workspan agent answer`'s unattended half).
 /// `$BN_APPROVALS` wins, else `<config_dir>/approvals.toml`.
 ///
 /// Deliberately its own document rather than an `[approve]` block in `config.toml`: it is a
 /// security-sensitive allowlist that decides which commands an agent may run without a human, it is
 /// list-shaped and edited far more often than the scalar settings around it, and keeping it
-/// separate means "what may bn approve on my behalf?" is answered by one file you can read top to
+/// separate means "what may workspan approve on my behalf?" is answered by one file you can read top to
 /// bottom. Same person-scoped, own-file pattern as `references/` and `jobs/`.
 pub fn approvals_file_path() -> PathBuf {
     if let Some(p) = non_empty_env("BN_APPROVALS") {
@@ -187,7 +187,7 @@ pub fn log_dir() -> PathBuf {
     state_dir().join("logs")
 }
 
-/// The reusable references/standards directory (`bn ref`, #623). `$BN_REFERENCES_DIR` wins
+/// The reusable references/standards directory (`workspan ref`, #623). `$BN_REFERENCES_DIR` wins
 /// (tests, explicit override); otherwise it resolves to `<work_root>/references` inside the
 /// synced notes repo via [`Config::references_dir`]. Person-scoped and cross-machine (standards
 /// apply on every host), so it is NOT keyed by `<machine>`.
@@ -198,7 +198,7 @@ pub fn references_dir() -> PathBuf {
     Config::load().references_dir()
 }
 
-/// Where a `bn links` tag vocabulary came from, so `bn links tags` can say.
+/// Where a `workspan links` tag vocabulary came from, so `workspan links tags` can say.
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub enum TagSource {
     /// `[links] tags` was set in `config.toml`.
@@ -207,10 +207,10 @@ pub enum TagSource {
     Default,
 }
 
-/// The curated tag vocabulary for `bn links` (`[links].tags` in `config.toml`), and where it
+/// The curated tag vocabulary for `workspan links` (`[links].tags` in `config.toml`), and where it
 /// came from.
 ///
-/// Loaded on call rather than cached on [`Config`]: the vocabulary is read once per `bn links
+/// Loaded on call rather than cached on [`Config`]: the vocabulary is read once per `workspan links
 /// add`, and a process-lifetime cache would be invisible to tests that swap the config file.
 ///
 /// An absent key falls back to the shipped default, so a machine whose `config.toml` predates
@@ -235,16 +235,16 @@ pub fn link_tags() -> Vec<String> {
 }
 
 /// `<worktree_dir>`: `$BN_WORKTREE_DIR`, else `~/projects/worktree`. Not a setting, for the same
-/// reason as the notes roots: nothing in a config file may move where bn looks for itself.
+/// reason as the notes roots: nothing in a config file may move where workspan looks for itself.
 pub fn worktree_dir() -> PathBuf {
     non_empty_env("BN_WORKTREE_DIR")
         .map(PathBuf::from)
         .unwrap_or_else(|| PathBuf::from(format!("{}/projects/worktree", home())))
 }
 
-/// The bn checkout whose `config/` ships bn's own prompts, agents, jobs and cron manifest.
+/// The workspan checkout whose `config/` ships workspan's own prompts, agents, jobs and cron manifest.
 ///
-/// `<worktree_dir>/bn/main` when it holds one — every machine running bn keeps it, because
+/// `<worktree_dir>/bn/main` when it holds one — every machine running workspan keeps it, because
 /// self-update installs from it — so what a machine serves follows main, not whichever checkout
 /// last ran install.sh. That anchor used to be a leasable pool slot, and a dispatch that leased the
 /// slot swapped the whole machine's prompts for its branch's (#1291). Else the `<config_dir>/repo`
@@ -293,7 +293,7 @@ pub fn jobs_dir() -> PathBuf {
     shipped_config("jobs").unwrap_or_else(|| config_dir().join("jobs"))
 }
 
-/// Directory of the shipped `bn cmd` scripts. `$BN_CMDS_DIR` wins, else the shipped
+/// Directory of the shipped `workspan cmd` scripts. `$BN_CMDS_DIR` wins, else the shipped
 /// `config/cmds`, else `<config_dir>/cmds` — the command analogue of [`jobs_dir`].
 pub fn cmds_dir() -> PathBuf {
     if let Some(d) = non_empty_env("BN_CMDS_DIR") {
@@ -313,8 +313,8 @@ pub fn agents_dir() -> PathBuf {
 }
 
 /// Root for bn-managed repos: `$BN_MANAGED_REPOS_DIR`, else `<bn_home>/repos`. Cloned bare +
-/// worktree under here (via `bn wt` with `WT_ROOT` pinned to this dir), so the layout matches
-/// every other bn worktree: `<dir>/bare/<repo>.git` + `<dir>/worktree/<repo>/<branch>`.
+/// worktree under here (via `workspan wt` with `WT_ROOT` pinned to this dir), so the layout matches
+/// every other workspan worktree: `<dir>/bare/<repo>.git` + `<dir>/worktree/<repo>/<branch>`.
 pub fn managed_repos_dir() -> PathBuf {
     if let Some(d) = non_empty_env("BN_MANAGED_REPOS_DIR") {
         return PathBuf::from(d);

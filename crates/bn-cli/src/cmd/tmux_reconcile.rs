@@ -174,7 +174,7 @@ pub(crate) fn parse_rows(out: &str) -> Vec<WinRow> {
 /// The `list-windows` format string, ordered to match [`parse_rows`].
 const WINDOW_FORMAT: &str = "#{window_id}\t#{session_name}\t#{window_name}\t#{pane_current_path}\t#{@bn_repo}\t#{@bn_branch}\t#{@bn_todos}\t#{@bn_blockers}";
 
-/// `bn tmux-reconcile [--dry-run]` — sweep every window, stamp the ones whose identity is
+/// `workspan tmux-reconcile [--dry-run]` — sweep every window, stamp the ones whose identity is
 /// confirmable, refresh their note badges, and report the ones whose name and cwd disagree.
 pub(crate) fn emit_tmux_reconcile(cfg: &Config, dry_run: bool) {
     reconcile(cfg, dry_run, true);

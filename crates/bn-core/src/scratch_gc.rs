@@ -16,7 +16,7 @@
 
 use serde::Serialize;
 
-/// The prefix [`bn pipeline investigate`] gives a sub-agent's scratch worktree. A real branch
+/// The prefix [`workspan pipeline investigate`] gives a sub-agent's scratch worktree. A real branch
 /// worktree never starts with a dot, so this is the marker that separates the two.
 pub const SCRATCH_DIR_PREFIX: &str = ".agent-";
 

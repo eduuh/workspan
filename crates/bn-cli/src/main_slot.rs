@@ -61,7 +61,7 @@ pub(crate) fn ensure(bare: &Path, worktree_dir: &Path, repo: &str) -> Option<Pat
 }
 
 /// Where picking `repo` (or its `main` branch) should land you: the main slot, else the main
-/// worktree, else the bare dir. The first two may be missing on a repo bn has not finished laying
+/// worktree, else the bare dir. The first two may be missing on a repo workspan has not finished laying
 /// out yet, and the caller still needs somewhere real to open a shell.
 ///
 /// **Creates the slot** if the repo hasn't got one, so this is for callers that are about to open
@@ -144,7 +144,7 @@ mod tests {
         assert_eq!(resolve(&bare_dir, &worktree_dir, "bn"), main);
     }
 
-    /// The one remaining way a repo has no main slot: bn has no clone of it. There is no pooling
+    /// The one remaining way a repo has no main slot: workspan has no clone of it. There is no pooling
     /// opt-out to check any more.
     #[test]
     fn a_repo_with_no_bare_clone_gets_no_main_slot() {

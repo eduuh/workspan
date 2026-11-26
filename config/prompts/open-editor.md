@@ -30,11 +30,11 @@ opened in an unattended remote session is not a visible handoff.
 2. Land the editor:
 
    ```
-   bn edit land
+   workspan edit land
    ```
 
    That creates this worktree's nvim (or restores it if it was parked), opens Diffview on
-   `<base>...HEAD`, and spawns the agent terminal. The base is resolved by bn — `origin/HEAD`, then
+   `<base>...HEAD`, and spawns the agent terminal. The base is resolved by workspan — `origin/HEAD`, then
    the branch's upstream, then `origin/main`/`main`/`origin/master`/`master` — so the diff is
    against the *remote* default branch, not a stale local one.
 
@@ -44,12 +44,12 @@ opened in an unattended remote session is not a visible handoff.
 
    It is idempotent: landing twice focuses the existing diff rather than stacking a second one.
 
-3. Tell them where it is and what to look at. `bn edit land` does **not** switch their tmux client —
+3. Tell them where it is and what to look at. `workspan edit land` does **not** switch their tmux client —
    it deliberately does not yank focus, because this often fires while they are elsewhere. So name
    the window, and give them the way back:
 
    - `prefix + e` toggles the editor pane in that window (park it and it keeps running).
-   - `prefix + backtick` or `bn jump` reaches the window itself.
+   - `prefix + backtick` or `workspan jump` reaches the window itself.
 
 4. Finish with 2–3 lines: what changed, what you want them to look at first, and anything you are
    unsure about. A diff with no pointer is a diff they have to re-derive.
@@ -62,7 +62,7 @@ the editor and its plugins run remotely. For either remote UI or SSH, keep nvim 
 the actual Codespace checkout. Do not copy files locally or mount the repository just to show a diff.
 
 1. Resolve the existing Codespace SSH alias and exact remote worktree path. Set up SSH access first
-   if needed (`bn cs connect <codespace>`); reuse the intended account and Codespace, do not create one for
+   if needed (`workspan cs connect <codespace>`); reuse the intended account and Codespace, do not create one for
    a handoff. Check the branch, dirty state and three-dot diff **there**, not in the local clone.
    Use `git diff --stat '<base>...HEAD'` from that remote worktree. Stop on an empty committed diff; surface any outstanding work
    rather than silently committing someone else's changes.
@@ -76,12 +76,12 @@ the actual Codespace checkout. Do not copy files locally or mount the repository
    The human selects the SSH alias (`cs-*` aliases appear first) and enters the **actual worktree
    path**, which may differ from the suggested `/workspaces/<repo>`. This runs nvim in the
    Codespace over `ssh -tt`, not local nvim on remote filenames. It needs remote nvim with Diffview
-   and a reachable SSH alias; it does not require a full bn install remotely.
+   and a reachable SSH alias; it does not require a full workspan install remotely.
 
    The helper currently uses `git merge-base origin/main HEAD` and opens Diffview against the
    working tree. Use it when `origin/main` is the intended base; disclose uncommitted changes if
    they appear. For another base or an exact committed-only view, use the SSH fallback below.
-   This popup is not `bn edit land`: it is not an idempotent parked editor, and quitting ends nvim.
+   This popup is not `workspan edit land`: it is not an idempotent parked editor, and quitting ends nvim.
 
 3. Without local tmux or the helper, attach a remote tmux session over SSH, then open the diff from
    the confirmed checkout. Substitute the alias, path and base below; quote actual paths:
@@ -98,7 +98,7 @@ the actual Codespace checkout. Do not copy files locally or mount the repository
    nvim command still work, but do not promise persistence. Report missing nvim/Diffview or SSH
    errors; do not claim the diff opened.
 
-   For a **verified bn-managed remote worktree layout**, `bn edit remote <alias>` is another option:
+   For a **verified bn-managed remote worktree layout**, `workspan edit remote <alias>` is another option:
    it forwards nvim's socket over SSH and attaches a local `--remote-ui`. Do not use it blindly for
    `/workspaces/...`: it resolves or creates a bn-managed checkout, not an arbitrary path. After
    attachment, open `:DiffviewOpen <base>...HEAD`; `:detach` leaves the remote editor running.
@@ -110,17 +110,17 @@ the actual Codespace checkout. Do not copy files locally or mount the repository
 
 ## When this does not apply
 
-- **Not in tmux** — local `bn edit` needs a window to put the pane in. For a Codespace, use the SSH
+- **Not in tmux** — local `workspan edit` needs a window to put the pane in. For a Codespace, use the SSH
   fallback above; otherwise summarize the diff in chat rather than pretending an editor opened.
-- **`$EDITOR` is not nvim** — landing needs nvim's `--listen` socket. bn will say so; fall back to
+- **`$EDITOR` is not nvim** — landing needs nvim's `--listen` socket. workspan will say so; fall back to
   summarizing.
 - **The editor does not answer** — a modal prompt (a plugin error leaving `Press ENTER`) blocks
-  nvim's main loop, and bn gives up after 2 seconds with *"editor did not answer"*. Report that
+  nvim's main loop, and workspan gives up after 2 seconds with *"editor did not answer"*. Report that
   honestly rather than retrying in a loop; the fix is a keystroke in that pane, not another call.
 - **The installed `bn` predates this skill** — `error: unrecognized subcommand 'edit'`, or
   other command-version mismatches. The binary
   on `$PATH` is older than the worktree you are standing in, which is what a stale
-  `worktree/bn/main` produces. Check with `bn --version` against the repo's own build. When you are
-  inside the bn repo, `./target/debug/bn edit land` uses the code in front of you and works;
+  `worktree/bn/main` produces. Check with `workspan --version` against the repo's own build. When you are
+  inside the workspan repo, `./target/debug/bn edit land` uses the code in front of you and works;
   anywhere else, say the install is stale and summarize the diff instead. Do not paper over it by
   dropping flags until something runs — that is how the two-dot trap above gets sprung.

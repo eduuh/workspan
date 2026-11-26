@@ -47,7 +47,7 @@ pub enum AgentLeaseKind {
     Dispatch,
     PipelineInvestigate,
     PipelinePlan,
-    /// The `bn control` coordination agent — reserved to the repo's controller pool slot.
+    /// The `workspan control` coordination agent — reserved to the repo's controller pool slot.
     Control,
     /// Today's agent — the day's hosted session, rooted in the configured personal-notes checkout
     /// and leased against that repo/branch like any other agent. It opens a fixed `today` window in
@@ -80,7 +80,7 @@ pub fn is_reserved_branch(branch: &str) -> bool {
 
 /// The repo's **main slot** — `…/_pool/1`, reserved and never handed out to a worker (they lease
 /// `2..=size`). It is where main-branch work happens: the checkout you land in when you pick "main"
-/// in the picker, and the `bn control` coordination agent's home. Both want the same thing, a
+/// in the picker, and the `workspan control` coordination agent's home. Both want the same thing, a
 /// detached checkout sitting at the repo's base that ships nothing of its own, which is why one
 /// reserved slot serves both.
 ///
@@ -157,11 +157,11 @@ fn validate_kind_placement(kind: AgentLeaseKind, key: &AgentLeaseKey) -> Result<
     }
     match (kind, is_controller_slot_path(worktree)) {
         (AgentLeaseKind::Control, false) => Err(format!(
-            "the bn control agent may only run in the reserved main slot (_pool/{MAIN_POOL_SLOT}), not {}",
+            "the Workspan control agent may only run in the reserved main slot (_pool/{MAIN_POOL_SLOT}), not {}",
             key.worktree
         )),
         (kind, true) if kind != AgentLeaseKind::Control => Err(format!(
-            "_pool/{MAIN_POOL_SLOT} is the reserved main slot (yours and bn control's) — a {} \
+            "_pool/{MAIN_POOL_SLOT} is the reserved main slot (yours and Workspan control's) — a {} \
              agent cannot occupy it",
             kind.label()
         )),
@@ -179,7 +179,7 @@ pub struct AgentLease {
     pub tmux_target: String,
     pub acquired_at: i64,
     /// Launched from your own words (no external link), so the approvals policy may answer its
-    /// dialogs. Only `bn dispatch` sets it; older registries read as untrusted.
+    /// dialogs. Only `workspan dispatch` sets it; older registries read as untrusted.
     #[serde(default, skip_serializing_if = "std::ops::Not::not")]
     pub trusted: bool,
 }
@@ -277,7 +277,7 @@ pub struct AgentLeaseReconcile {
     pub removed: Vec<AgentLeaseRemoval>,
 }
 
-/// Agent-lease invariant violations for `bn doctor`: every lease whose placement breaks the
+/// Agent-lease invariant violations for `workspan doctor`: every lease whose placement breaks the
 /// main-is-agent-free / controller-slot rule, rendered `repo/branch (session): reason`. Empty in a
 /// healthy fleet — the acquire-time guard in [`begin_agent_lease`] prevents new ones — so a
 /// non-empty result means a lease predating the guard or hand-edited state to reconcile. This is

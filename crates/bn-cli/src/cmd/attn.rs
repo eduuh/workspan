@@ -137,7 +137,7 @@ pub(crate) fn filter_by_type(
     for t in type_filter {
         if !bn_core::attention::TASK_TYPES.contains(&t.as_str()) {
             fail(&format!(
-                "bn attn: --type must be one of {}",
+                "workspan attn: --type must be one of {}",
                 bn_core::attention::TASK_TYPES.join(", ")
             ));
         }
@@ -148,7 +148,7 @@ pub(crate) fn filter_by_type(
         .collect()
 }
 
-/// Reorder the TO START lane by `bn next`'s ranking (`ranked_ids` = attn ids in `bn next` order) —
+/// Reorder the TO START lane by `workspan next`'s ranking (`ranked_ids` = attn ids in `workspan next` order) —
 /// one ranking brain, not two: the board's top open item IS the answer to "what now?". Items absent
 /// from the ranking (focus-suppressed, aged out) sink below the ranked ones, keeping their
 /// severity-first order among themselves.
@@ -173,8 +173,8 @@ pub(crate) fn rank_to_start(
     keyed.into_iter().map(|(_, _, item)| item).collect()
 }
 
-/// `bn attn` (no subcommand) — the three-lane board: what needs you, what's in progress, and what's
-/// left to start. Attention-items only (the cross-source needs-you queue is `bn next`/`bn jump`).
+/// `workspan attn` (no subcommand) — the three-lane board: what needs you, what's in progress, and what's
+/// left to start. Attention-items only (the cross-source needs-you queue is `workspan next`/`workspan jump`).
 pub(crate) fn emit_attn_board(cfg: &Config, type_filter: &[String], as_json: bool) {
     use bn_core::attention::Lane;
     let (classified, open) = attn_lanes();
@@ -314,7 +314,7 @@ pub(crate) fn emit_attn_board(cfg: &Config, type_filter: &[String], as_json: boo
     }
 }
 
-/// `bn attn status` — a compact one-line fragment for the tmux badge: `2 working · 1 stuck · 1
+/// `workspan attn status` — a compact one-line fragment for the tmux badge: `2 working · 1 stuck · 1
 /// done · 3 to-start`. Empty when the list is clear. Counts in-flight by lane + the to-start total.
 pub(crate) fn emit_attn_status() {
     use bn_core::attention::WorkStatus;
@@ -374,14 +374,14 @@ pub(crate) fn emit_attn_add(
 ) {
     if !bn_core::attention::SEVERITIES.contains(&severity) {
         fail(&format!(
-            "bn attn add: --severity must be one of {}",
+            "workspan attn add: --severity must be one of {}",
             bn_core::attention::SEVERITIES.join(", ")
         ));
     }
     if let Some(m) = mode {
         if !bn_core::attention::MODES.contains(&m) {
             fail(&format!(
-                "bn attn add: --mode must be one of {}",
+                "workspan attn add: --mode must be one of {}",
                 bn_core::attention::MODES.join(", ")
             ));
         }
@@ -391,7 +391,7 @@ pub(crate) fn emit_attn_add(
     let prompt = read_dash_stdin(prompt);
     if matches!(mode, Some("assist") | Some("auto")) && prompt.as_deref().unwrap_or("").is_empty() {
         fail(&format!(
-            "bn attn add: --mode {} needs a --prompt (what should the agent do?)",
+            "workspan attn add: --mode {} needs a --prompt (what should the agent do?)",
             mode.unwrap_or("")
         ));
     }
@@ -412,7 +412,7 @@ pub(crate) fn emit_attn_add(
         },
         &today(),
     )
-    .unwrap_or_else(|e| fail(&format!("bn attn add: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan attn add: {e}")));
     if as_json {
         println!(
             "{}",
@@ -429,17 +429,17 @@ pub(crate) fn emit_attn_ingest(source: &str, severity: &str, replace: bool, as_j
     use std::io::Read;
     if !bn_core::attention::SEVERITIES.contains(&severity) {
         fail(&format!(
-            "bn attn ingest: --severity must be one of {}",
+            "workspan attn ingest: --severity must be one of {}",
             bn_core::attention::SEVERITIES.join(", ")
         ));
     }
     let mut input = String::new();
     if std::io::stdin().read_to_string(&mut input).is_err() {
-        fail("bn attn ingest: failed to read stdin");
+        fail("workspan attn ingest: failed to read stdin");
     }
     let items = bn_core::attention::parse_ingest_items(&input);
     let out = bn_core::attention::ingest(&items, source, severity, replace, &today())
-        .unwrap_or_else(|e| fail(&format!("bn attn ingest: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan attn ingest: {e}")));
     if as_json {
         println!(
             "{}",
@@ -469,7 +469,7 @@ pub(crate) fn emit_attn_to_notify(as_json: bool) {
 /// Shared tail for the six attention "resolve" mutations
 /// (notified/ack/snooze/update/remove/done): print the JSON envelope, else the human `success`
 /// line when the mutation hit an item, else fail as not-found. `success` is the fully-rendered
-/// human line; `noun` names what was missing in the not-found error (`bn attn <cmd>: <noun> <id>`).
+/// human line; `noun` names what was missing in the not-found error (`workspan attn <cmd>: <noun> <id>`).
 pub(crate) fn emit_attn_resolve(
     cmd: &str,
     noun: &str,
@@ -486,13 +486,13 @@ pub(crate) fn emit_attn_resolve(
     } else if ok {
         println!("{success}");
     } else {
-        fail(&format!("bn attn {cmd}: {noun} {id}"));
+        fail(&format!("workspan attn {cmd}: {noun} {id}"));
     }
 }
 
 pub(crate) fn emit_attn_notified(id: &str, as_json: bool) {
     let ok = bn_core::attention::mark_notified(id)
-        .unwrap_or_else(|e| fail(&format!("bn attn notified: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan attn notified: {e}")));
     emit_attn_resolve(
         "notified",
         "no item",
@@ -504,7 +504,7 @@ pub(crate) fn emit_attn_notified(id: &str, as_json: bool) {
 }
 
 pub(crate) fn emit_attn_ack(id: &str, as_json: bool) {
-    let ok = bn_core::attention::ack(id).unwrap_or_else(|e| fail(&format!("bn attn ack: {e}")));
+    let ok = bn_core::attention::ack(id).unwrap_or_else(|e| fail(&format!("workspan attn ack: {e}")));
     emit_attn_resolve(
         "ack",
         "no open item",
@@ -517,7 +517,7 @@ pub(crate) fn emit_attn_ack(id: &str, as_json: bool) {
 
 pub(crate) fn emit_attn_snooze(id: &str, until: &str, as_json: bool) {
     let ok = bn_core::attention::snooze(id, until)
-        .unwrap_or_else(|e| fail(&format!("bn attn snooze: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan attn snooze: {e}")));
     emit_attn_resolve(
         "snooze",
         "no item",
@@ -551,14 +551,14 @@ pub(crate) fn emit_attn_update(
         && prompt.is_none()
     {
         fail(
-            "bn attn update: nothing to update — pass at least one of \
+            "workspan attn update: nothing to update — pass at least one of \
              --title/--severity/--link/--repo/--branch/--detail/--mode/--prompt",
         );
     }
     if let Some(s) = severity {
         if !bn_core::attention::SEVERITIES.contains(&s) {
             fail(&format!(
-                "bn attn update: --severity must be one of {}",
+                "workspan attn update: --severity must be one of {}",
                 bn_core::attention::SEVERITIES.join(", ")
             ));
         }
@@ -566,7 +566,7 @@ pub(crate) fn emit_attn_update(
     if let Some(m) = mode {
         if !bn_core::attention::MODES.contains(&m) {
             fail(&format!(
-                "bn attn update: --mode must be one of {}",
+                "workspan attn update: --mode must be one of {}",
                 bn_core::attention::MODES.join(", ")
             ));
         }
@@ -584,7 +584,7 @@ pub(crate) fn emit_attn_update(
         mode,
         prompt.as_deref(),
     )
-    .unwrap_or_else(|e| fail(&format!("bn attn update: {e}")));
+    .unwrap_or_else(|e| fail(&format!("workspan attn update: {e}")));
     emit_attn_resolve(
         "update",
         "no item",
@@ -597,7 +597,7 @@ pub(crate) fn emit_attn_update(
 
 pub(crate) fn emit_attn_remove(id: &str, as_json: bool) {
     let ok =
-        bn_core::attention::remove(id).unwrap_or_else(|e| fail(&format!("bn attn remove: {e}")));
+        bn_core::attention::remove(id).unwrap_or_else(|e| fail(&format!("workspan attn remove: {e}")));
     emit_attn_resolve(
         "remove",
         "no item",
@@ -633,13 +633,13 @@ pub(crate) fn agent_prompt(cfg: &Config, base: &std::path::Path, id: &str, promp
         serde_json::Value::String(prompt.to_string()),
     );
     bn_core::skills::render_required(cfg, base, "attention-completion", Some(&args))
-        .unwrap_or_else(|error| fail(&format!("bn attn start: {error}")))
+        .unwrap_or_else(|error| fail(&format!("workspan attn start: {error}")))
 }
 
 /// Open the item's worktree window, mark it in-flight, and — when `agent` — launch (`auto`, which
 /// submits + runs unattended with the tool bypass) or stage (`assist`, interactive) the harness
 /// with its prompt. An item must already carry a repo and branch; repo-less work stays queued until
-/// task enhancement assigns it. `None` if the target window couldn't be opened. Shared by `bn attn
+/// task enhancement assigns it. `None` if the target window couldn't be opened. Shared by `workspan attn
 /// start --agent` and the `attention-auto-trigger` job.
 pub(crate) fn run_attn_start(
     cfg: &Config,
@@ -657,7 +657,7 @@ pub(crate) fn run_attn_start_attributed(
 ) -> Option<StartOutcome> {
     if item.repo.is_none() && item.branch.is_none() {
         eprintln!(
-            "bn attn start: item {} has no repo/branch; enhance or assign it before starting",
+            "workspan attn start: item {} has no repo/branch; enhance or assign it before starting",
             item.id
         );
         return None;
@@ -673,7 +673,7 @@ pub(crate) fn run_attn_start_attributed(
     match bn_core::pipeline::stage::transition(cfg, &ctx, stage) {
         Err(e) => {
             eprintln!(
-                "bn attn start: failed to enter pipeline stage {stage} for {repo}/{branch}: {e}"
+                "workspan attn start: failed to enter pipeline stage {stage} for {repo}/{branch}: {e}"
             );
             return None;
         }
@@ -681,7 +681,7 @@ pub(crate) fn run_attn_start_attributed(
         // precisely the wasted worktree the gate exists to prevent.
         Ok(decision) if !decision.admits() => {
             eprintln!(
-                "bn attn start: {}",
+                "workspan attn start: {}",
                 decision.refusal_line().unwrap_or_default()
             );
             return None;
@@ -734,17 +734,17 @@ pub(crate) fn run_attn_start_attributed(
 /// Start item `id`: open/switch to its worktree tmux window and mark it in-flight (the IN PROGRESS
 /// lane). The item needs a repo/branch to have a window. With `agent`, also launch the harness
 /// seeded with the item's prompt — `auto` submits it, `assist` stages it — appending the
-/// `bn attn done` instruction (the human gate: the agent reports done, you ack).
+/// `workspan attn done` instruction (the human gate: the agent reports done, you ack).
 pub(crate) fn emit_attn_start(cfg: &Config, id: &str, agent: bool, as_json: bool) {
     let Some(item) = bn_core::attention::get(id) else {
-        fail(&format!("bn attn start: no item {id}"));
+        fail(&format!("workspan attn start: no item {id}"));
     };
     if item.repo.is_some() != item.branch.is_some() {
-        fail("bn attn start: item must carry both repo and branch, or neither");
+        fail("workspan attn start: item must carry both repo and branch, or neither");
     }
     if agent && item.repo.is_some() && item.prompt.as_deref().filter(|p| !p.is_empty()).is_none() {
         eprintln!(
-            "bn attn start --agent: item {id} has no prompt to run (set --mode assist|auto with --prompt)"
+            "workspan attn start --agent: item {id} has no prompt to run (set --mode assist|auto with --prompt)"
         );
     }
     let repo = item.repo.clone();
@@ -752,11 +752,11 @@ pub(crate) fn emit_attn_start(cfg: &Config, id: &str, agent: bool, as_json: bool
     let Some(outcome) = run_attn_start(cfg, &item, agent) else {
         match (&repo, &branch) {
             (Some(repo), Some(branch)) => fail(&format!(
-                "bn attn start: couldn't open a worktree for {repo}/{branch} \
+                "workspan attn start: couldn't open a worktree for {repo}/{branch} \
                  (bare repo or branch missing locally?)"
             )),
             _ => fail(
-                "bn attn start: item has no repo/branch; enhance or assign it before starting",
+                "workspan attn start: item has no repo/branch; enhance or assign it before starting",
             ),
         }
     };
@@ -811,7 +811,7 @@ pub(crate) fn human_secs(secs: i64) -> String {
     }
 }
 
-/// `bn attn metrics` — the attention lifecycle rollup: how much the list took on and cleared, and
+/// `workspan attn metrics` — the attention lifecycle rollup: how much the list took on and cleared, and
 /// how long items sat in-flight. Read from the local `attn_*` events (not the synced PR scorecard).
 pub(crate) fn emit_attn_metrics(window: i64, as_json: bool) {
     let now = bn_core::util::now_epoch_secs();
@@ -855,13 +855,13 @@ pub(crate) fn emit_attn_promote(
     use bn_core::attention::PromoteError;
     if !bn_core::attention::MODES.contains(&mode) {
         fail(&format!(
-            "bn attn promote: --mode must be one of {}",
+            "workspan attn promote: --mode must be one of {}",
             bn_core::attention::MODES.join(", ")
         ));
     }
     if !bn_core::attention::SEVERITIES.contains(&severity) {
         fail(&format!(
-            "bn attn promote: --severity must be one of {}",
+            "workspan attn promote: --severity must be one of {}",
             bn_core::attention::SEVERITIES.join(", ")
         ));
     }
@@ -877,18 +877,18 @@ pub(crate) fn emit_attn_promote(
         &today(),
     ) {
         Ok(v) => v,
-        Err(PromoteError::NoTodo) => fail(&format!("bn attn promote: no open todo {todo_id}")),
+        Err(PromoteError::NoTodo) => fail(&format!("workspan attn promote: no open todo {todo_id}")),
         Err(PromoteError::TodoDone) => fail(&format!(
-            "bn attn promote: {todo_id} is already done — nothing to queue"
+            "workspan attn promote: {todo_id} is already done — nothing to queue"
         )),
         Err(PromoteError::NoTarget(resolver::ContextError::PartialTarget)) => {
-            fail("bn attn promote: repo and branch must be given together")
+            fail("workspan attn promote: repo and branch must be given together")
         }
         Err(PromoteError::NoTarget(resolver::ContextError::NotInGitRepo)) => {
-            fail("bn attn promote: not in a git repo — pass --repo and --branch")
+            fail("workspan attn promote: not in a git repo — pass --repo and --branch")
         }
-        Err(PromoteError::Read(e)) => fail(&format!("bn attn promote: read note: {e}")),
-        Err(PromoteError::Write(e)) => fail(&format!("bn attn promote: {e}")),
+        Err(PromoteError::Read(e)) => fail(&format!("workspan attn promote: read note: {e}")),
+        Err(PromoteError::Write(e)) => fail(&format!("workspan attn promote: {e}")),
     };
     if as_json {
         println!(
@@ -957,11 +957,11 @@ pub(crate) fn emit_attn_done(id: &str, notes: Option<&str>, link: Option<&str>, 
     // `--notes -` reads a long summary from stdin.
     let notes = read_dash_stdin(notes);
     let ok = bn_core::attention::mark_done(id, notes.as_deref(), link)
-        .unwrap_or_else(|e| fail(&format!("bn attn done: {e}")));
+        .unwrap_or_else(|e| fail(&format!("workspan attn done: {e}")));
     emit_attn_resolve(
         "done",
         "no item",
-        &format!("Marked {id} done — awaiting review (`bn attn ack {id}` to close)"),
+        &format!("Marked {id} done — awaiting review (`workspan attn ack {id}` to close)"),
         id,
         ok,
         as_json,
@@ -974,17 +974,17 @@ pub(crate) fn emit_attn_plan(cfg: &Config, id: &str, section: &str, as_json: boo
     let cwd = std::env::current_dir().unwrap_or_default();
     let out = match bn_core::attention::plan_item(cfg, &cwd, id, section, &today()) {
         Ok(v) => v,
-        Err(bn_core::attention::PlanError::NoItem) => fail(&format!("bn attn plan: no item {id}")),
+        Err(bn_core::attention::PlanError::NoItem) => fail(&format!("workspan attn plan: no item {id}")),
         Err(bn_core::attention::PlanError::NoTarget(resolver::ContextError::PartialTarget)) => {
-            fail("bn attn plan: repo and branch must be given together")
+            fail("workspan attn plan: repo and branch must be given together")
         }
         Err(bn_core::attention::PlanError::NoTarget(resolver::ContextError::NotInGitRepo)) => {
-            fail("bn attn plan: not in a git repo — item carries no repo/branch to target")
+            fail("workspan attn plan: not in a git repo — item carries no repo/branch to target")
         }
         Err(bn_core::attention::PlanError::Add(e)) => {
             fail_json(as_json, "attn plan", "task-write", &e.to_string());
         }
-        Err(bn_core::attention::PlanError::Resolve(e)) => fail(&format!("bn attn plan: {e}")),
+        Err(bn_core::attention::PlanError::Resolve(e)) => fail(&format!("workspan attn plan: {e}")),
     };
     let todo = out.todo;
     let ctx = out.ctx;
@@ -1015,7 +1015,7 @@ pub(crate) fn emit_attn_plan(cfg: &Config, id: &str, section: &str, as_json: boo
     }
 }
 
-/// `bn attn dispatch <id>` (#460) — start an agent on attention item `id` through `bn dispatch`,
+/// `workspan attn dispatch <id>` (#460) — start an agent on attention item `id` through `workspan dispatch`,
 /// then resolve it off the list. The agent's item is the item's link when that names an issue or
 /// PR, else its title ([`bn_core::attention::dispatch_subject`]), bound to the task the item names
 /// when it names one. Targets the item's own repo when it carries one, else `--repo`, else the
@@ -1029,7 +1029,7 @@ pub(crate) fn emit_attn_dispatch(
     use bn_core::attention;
 
     let Some(item) = attention::get(id) else {
-        fail(&format!("bn attn dispatch: no item {id}"));
+        fail(&format!("workspan attn dispatch: no item {id}"));
     };
     // Repo: the item's own, else --repo, else the current worktree's.
     let repo = match item
@@ -1043,7 +1043,7 @@ pub(crate) fn emit_attn_dispatch(
             match resolver::resolve(cfg, &cwd) {
                 Ok(ctx) => ctx.repo,
                 Err(_) => fail(
-                    "bn attn dispatch: item carries no repo and not in a git repo — pass --repo",
+                    "workspan attn dispatch: item carries no repo and not in a git repo — pass --repo",
                 ),
             }
         }
@@ -1054,7 +1054,7 @@ pub(crate) fn emit_attn_dispatch(
         .task(attention::task_id_of(&item))
         .launch();
     if let Err(e) = launched {
-        fail(&format!("bn attn dispatch: could not start an agent: {e}"));
+        fail(&format!("workspan attn dispatch: could not start an agent: {e}"));
     }
     // Fold the item off the attention list, recording where the work went.
     let trail = bn_core::orchestrate::derive_id(&subject);

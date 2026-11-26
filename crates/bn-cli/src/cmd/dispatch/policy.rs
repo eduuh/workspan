@@ -99,7 +99,7 @@ pub(crate) fn plan_gate_enabled(request: PlanGate, configured: bool, yolo: bool)
 /// switch: it defaults **off**, so the ordinary ship lane runs a single session on the `ship-solo`
 /// workflow (investigate → implement → review as bounded subagents, human-gated on ambiguity)
 /// rather than fanning the work across a fresh session per pipeline stage. Set it true to restore
-/// the nine-stage pipeline as the default `bn dispatch` entry; the `bn pipeline` state machine is
+/// the nine-stage pipeline as the default `workspan dispatch` entry; the `workspan pipeline` state machine is
 /// unchanged and always reachable directly.
 ///
 /// Pure so the seed-assembly tests can pin the routing table: without the `skill` arm every
@@ -118,7 +118,7 @@ pub(crate) fn routes_to_pipeline_investigate(
 /// The inference is a three-way guess over `skill` and cannot express `consensus`,
 /// `validate`, `critique`, `ship` or `learn` at all: every one of them lands on `execute` and
 /// silently borrows that stage's model, effort and harness. That is fine for a hand-typed
-/// `bn dispatch`, where those stages are not what anyone means, and wrong for a pipeline that walks
+/// `workspan dispatch`, where those stages are not what anyone means, and wrong for a pipeline that walks
 /// a task through all nine — so a producer that knows its stage passes `--stage` and is believed.
 pub(crate) fn dispatch_pipeline_stage(
     declared: Option<bn_core::pipeline::stage::Stage>,

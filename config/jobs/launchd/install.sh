@@ -20,13 +20,13 @@ if [ ! -x "$bn_bin" ]; then
   if command -v bn >/dev/null 2>&1; then
     bn_bin="$(command -v bn)"
   else
-    echo "bn-launchd: bn not found (looked for $HOME/.config/bn/bn and \`bn\` on PATH)." >&2
-    echo "  Install bn first (run ./install.sh), then re-run this script." >&2
+    echo "bn-launchd: workspan not found (looked for $HOME/.config/bn/bn and \`bn\` on PATH)." >&2
+    echo "  Install workspan first (run ./install.sh), then re-run this script." >&2
     exit 1
   fi
 fi
 
 "$bn_bin" cron register
 
-echo "bn-launchd: registered via \`bn cron register\`. Loaded agents:"
+echo "bn-launchd: registered via \`workspan cron register\`. Loaded agents:"
 launchctl list | grep com.bn || true

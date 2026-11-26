@@ -35,7 +35,7 @@ were dropped to keep the tree lean.
   open/editor commands, and clean up the fzf pipe. Copies use `tmux_osc52`.
 - Selected-text opening uses `workflow/bin/tmux-open-selection.py` with selection
   on stdin, never substituted into shell syntax. Browser/file opening goes through
-  `bn open`, searches are URL-encoded, and editor opening creates a separate popup
+  `workspan open`, searches are URL-encoded, and editor opening creates a separate popup
   instead of typing a command into a running agent. Search-key parsing supports
   dashed names such as `M-s`. Selection-end and clipboard-copy keys are preserved.
 

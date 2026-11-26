@@ -30,7 +30,7 @@ fn discover_specialists(cfg: &Config, base: &std::path::Path) -> Vec<bn_core::ag
 fn discover_catalog(cfg: &Config, base: &Path) -> bn_core::agents::AgentCatalog {
     let ctx = bn_core::resolver::resolve(cfg, base).ok();
     bn_core::agents::discover(cfg, ctx.as_ref())
-        .unwrap_or_else(|error| fail(&format!("bn agents: {error}")))
+        .unwrap_or_else(|error| fail(&format!("workspan agents: {error}")))
 }
 
 /// Strictly load every effective agent manifest visible from `base`.
@@ -74,14 +74,14 @@ pub(crate) fn emit_agent_render(
     stdin: bool,
 ) {
     let values = read_argument_map(args_json, args_file, stdin)
-        .unwrap_or_else(|error| fail(&format!("bn agents render: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan agents render: {error}")));
     let catalog = discover_catalog(cfg, base);
     let agent = catalog
         .require(name)
-        .unwrap_or_else(|error| fail(&format!("bn agents render: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan agents render: {error}")));
     let rendered = agent
         .render(Some(&values))
-        .unwrap_or_else(|error| fail(&format!("bn agents render: {error}")));
+        .unwrap_or_else(|error| fail(&format!("workspan agents render: {error}")));
     print!("{rendered}");
 }
 
@@ -176,7 +176,7 @@ pub(crate) fn emit_agent_show(
     let specialists = discover_specialists(cfg, base);
     let Some(spec) = specialists.iter().find(|a| a.name == name) else {
         fail(&format!(
-            "bn agents show: no specialist named '{name}' — try `bn agents` to list them"
+            "workspan agents show: no specialist named '{name}' — try `workspan agents` to list them"
         ));
     };
     let harness = if claude {
@@ -234,17 +234,17 @@ pub(crate) fn emit_agent_new(
             } else {
                 println!("Created specialist: {}", path.display());
                 println!(
-                    "Next: `bn agents bootstrap {name}` to mine its review standards, then \
-                     `bn agents install`."
+                    "Next: `workspan agents bootstrap {name}` to mine its review standards, then \
+                     `workspan agents install`."
                 );
             }
         }
-        Err(e) => fail(&format!("bn agents new: {e}")),
+        Err(e) => fail(&format!("workspan agents new: {e}")),
     }
 }
 
 /// Resolve the install `base` and `NativeScope`: repo-scoped uses the cwd (needs a git repo);
-/// global uses the checkout bn ships from (`resolver::shipped_root`, so `install.sh` is
+/// global uses the checkout workspan ships from (`resolver::shipped_root`, so `install.sh` is
 /// cwd-independent), falling back to the cwd.
 fn install_base(repo_scope: bool) -> (std::path::PathBuf, NativeScope) {
     if repo_scope {
@@ -265,7 +265,7 @@ pub(crate) fn emit_agents_install(
 ) {
     let harnesses = match parse_harnesses(harness) {
         Ok(h) => h,
-        Err(e) => fail(&format!("bn agents install: {e}")),
+        Err(e) => fail(&format!("workspan agents install: {e}")),
     };
     let home = dirs::home_dir().unwrap_or_default();
     let (base, scope) = install_base(repo_scope);
@@ -312,7 +312,7 @@ pub(crate) fn emit_agents_install(
                 );
             }
         }
-        Err(e) => fail(&format!("bn agents install: {e}")),
+        Err(e) => fail(&format!("workspan agents install: {e}")),
     }
 }
 
@@ -325,7 +325,7 @@ pub(crate) fn emit_agents_uninstall(
 ) {
     let harnesses = match parse_harnesses(harness) {
         Ok(h) => h,
-        Err(e) => fail(&format!("bn agents uninstall: {e}")),
+        Err(e) => fail(&format!("workspan agents uninstall: {e}")),
     };
     let home = dirs::home_dir().unwrap_or_default();
     let (base, scope) = install_base(repo_scope);
@@ -346,7 +346,7 @@ pub(crate) fn emit_agents_uninstall(
                 println!("Removed {} bn-managed agent file(s)", removed.len());
             }
         }
-        Err(e) => fail(&format!("bn agents uninstall: {e}")),
+        Err(e) => fail(&format!("workspan agents uninstall: {e}")),
     }
 }
 
@@ -357,12 +357,12 @@ pub(crate) fn emit_agent_bootstrap(cfg: &Config, base: &std::path::Path, name: &
     let specialists = discover_specialists(cfg, base);
     let Some(spec) = specialists.iter().find(|a| a.name == name) else {
         fail(&format!(
-            "bn agents bootstrap: no specialist named '{name}' — try `bn agents` to list them"
+            "workspan agents bootstrap: no specialist named '{name}' — try `workspan agents` to list them"
         ));
     };
     let Some(source_repo) = spec.source_repo.as_deref().filter(|s| !s.trim().is_empty()) else {
         fail(&format!(
-            "bn agents bootstrap: specialist '{name}' has no `source_repo:` to mine — add one to \
+            "workspan agents bootstrap: specialist '{name}' has no `source_repo:` to mine — add one to \
              its source file"
         ));
     };
@@ -373,7 +373,7 @@ pub(crate) fn emit_agent_bootstrap(cfg: &Config, base: &std::path::Path, name: &
          (run the mine-review-standards skill)"
     );
     let dispatch = format!(
-        "bn dispatch \"{goal}\" --name mine-{ref_name} --skill mine-review-standards"
+        "workspan dispatch \"{goal}\" --name mine-{ref_name} --skill mine-review-standards"
     );
 
     if json {
@@ -397,12 +397,12 @@ pub(crate) fn emit_agent_bootstrap(cfg: &Config, base: &std::path::Path, name: &
 
     println!("Bootstrap plan for specialist '{name}':");
     println!("  source repo (ADO):  {source_repo}");
-    println!("  writes reference:   {ref_name}  (bn ref {ref_name})");
+    println!("  writes reference:   {ref_name}  (workspan ref {ref_name})");
     println!("  mining skill:       mine-review-standards");
     println!();
     println!("Deploy the mining agent (a separate dispatched agent), then reinstall:");
     println!("  {dispatch}");
-    println!("  bn agents install");
+    println!("  workspan agents install");
 }
 
 #[cfg(test)]

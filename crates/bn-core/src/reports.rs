@@ -119,7 +119,7 @@ pub struct StandDay {
     pub achievements: Vec<AchievementLine>,
 }
 
-/// `bn stand`: what was achieved yesterday and today. The "what did I get done" counterpart to
+/// `workspan stand`: what was achieved yesterday and today. The "what did I get done" counterpart to
 /// standup's "what's the plan" — completed goals + logged achievements across both days.
 #[derive(Debug, Serialize)]
 pub struct Stand {
@@ -223,8 +223,8 @@ pub fn standup(cfg: &Config, today: &str) -> Standup {
 /// when there's no quarter, no flagged goal, or the read fails.
 /// The start date of the weekly window: `today - since` days when given, else back to the
 /// most recent configured anchor weekday strictly before today (so on the anchor day you
-/// see the full prior week). Shared with [`crate::insights`] so `bn insights` anchors its
-/// window exactly like `bn weekly`.
+/// see the full prior week). Shared with [`crate::insights`] so `workspan insights` anchors its
+/// window exactly like `workspan weekly`.
 pub fn window_start(cfg: &Config, today: &str, since: Option<i64>) -> String {
     if let Some(days) = since {
         return util::add_days(today, -days.max(0)).unwrap_or_else(|| today.to_string());
@@ -329,7 +329,7 @@ fn dxi_trend(cfg: &Config, start: &str, end: &str) -> Option<DxiTrend> {
     })
 }
 
-/// Text render for `bn weekly`, the 1-1 prep artifact.
+/// Text render for `workspan weekly`, the 1-1 prep artifact.
 pub fn render_weekly(w: &Weekly) -> String {
     let mut out = format!(
         "Weekly review — {} … {}  ({} completed)\n",
@@ -434,7 +434,7 @@ fn dur(hours: f64) -> String {
 
 // ---- Wrap digest (#98) ---------------------------------------------------------------
 
-/// A PR that merged today (the `bn close` prompt list in the wrap digest).
+/// A PR that merged today (the `workspan close` prompt list in the wrap digest).
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct MergedPr {
     pub number: u64,
@@ -442,7 +442,7 @@ pub struct MergedPr {
     pub url: String,
 }
 
-/// A commit on the current branch today with no corresponding note update — the `bn sync`
+/// A commit on the current branch today with no corresponding note update — the `workspan sync`
 /// hand-off. Carries the short hash + subject.
 #[derive(Debug, Clone, PartialEq, Serialize)]
 pub struct UnnotedCommit {
@@ -469,7 +469,7 @@ pub struct WrapDigest {
     pub branches_touched: Vec<String>,
     /// Today's commits on the current branch that the current note didn't capture.
     pub unnoted_commits: Vec<UnnotedCommit>,
-    /// PRs that merged today → `bn close` prompts.
+    /// PRs that merged today → `workspan close` prompts.
     pub merged_prs: Vec<MergedPr>,
     /// Open todos across active branch notes.
     pub open_todos: Vec<OpenTodo>,
@@ -554,7 +554,7 @@ fn branches_touched_today(today: &str, runner: &dyn CommandRunner) -> Vec<String
 }
 
 /// Today's commits on the current branch, via `git log --since=<today> --pretty=…`. Same
-/// `%h\x1f%s` shape `bn sync` uses, so a subject with any printable delimiter is safe.
+/// `%h\x1f%s` shape `workspan sync` uses, so a subject with any printable delimiter is safe.
 fn commits_today(today: &str, runner: &dyn CommandRunner) -> Vec<UnnotedCommit> {
     let since = format!("--since={today}");
     let out = runner.git(&["log", &since, "--pretty=format:%h\x1f%s"]);
@@ -615,7 +615,7 @@ fn merged_today(today: &str, runner: &dyn CommandRunner) -> Vec<MergedPr> {
         .collect()
 }
 
-/// Text render for `bn wrap` — the end-of-day digest, read-aloud friendly. Sections with no
+/// Text render for `workspan wrap` — the end-of-day digest, read-aloud friendly. Sections with no
 /// content are omitted; an all-empty digest renders a single "clean day" line (callers should
 /// stay silent instead of pushing it).
 pub fn render_wrap(w: &WrapDigest) -> String {
@@ -633,14 +633,14 @@ pub fn render_wrap(w: &WrapDigest) -> String {
     }
 
     if !w.unnoted_commits.is_empty() {
-        out.push_str("\nUn-noted commits (→ bn sync)\n");
+        out.push_str("\nUn-noted commits (→ workspan sync)\n");
         for c in &w.unnoted_commits {
             out.push_str(&format!("  {} {}\n", c.hash, c.subject));
         }
     }
 
     if !w.merged_prs.is_empty() {
-        out.push_str("\nMerged today (→ bn close)\n");
+        out.push_str("\nMerged today (→ workspan close)\n");
         for p in &w.merged_prs {
             out.push_str(&format!("  ✓ #{} {}  → {}\n", p.number, p.title, p.url));
         }
@@ -662,7 +662,7 @@ pub fn render_wrap(w: &WrapDigest) -> String {
     out
 }
 
-/// The copy-paste-ready one-liner for `bn standup --copy` (#99): yesterday's done count, today's
+/// The copy-paste-ready one-liner for `workspan standup --copy` (#99): yesterday's done count, today's
 /// plan count, and the first blocker if any — the line you paste into the standup channel.
 pub fn standup_line(s: &Standup) -> String {
     let done = s.yesterday.as_ref().map(|y| y.completed.len()).unwrap_or(0);

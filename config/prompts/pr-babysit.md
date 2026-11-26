@@ -28,4 +28,4 @@ Your assignment: **{{task}}**
    `gh pr checks <n> --watch`. Green: comment one line on the PR ("Merged main and resolved
    <files>" or "Fixed <check>: <cause>") and update the assigned task's checklist.
 3. When the pass ends, if the assignment names a coordinator, send it one
-   `bn agent msg`: which PRs are now ready, which are blocked and why. Then stop.
+   `workspan agent msg`: which PRs are now ready, which are blocked and why. Then stop.

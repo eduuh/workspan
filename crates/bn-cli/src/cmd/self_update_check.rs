@@ -15,7 +15,7 @@
 //! what "loud" means for something that runs at midnight.
 use std::path::Path;
 
-/// The bn subcommand each supervised service needs, paired with the unit that would be installed
+/// The workspan subcommand each supervised service needs, paired with the unit that would be installed
 /// for it. If the unit is on the box, the binary has to be able to run it.
 const SERVICES: [(&str, &str); 1] = [("com.bn.routine", "routine")];
 

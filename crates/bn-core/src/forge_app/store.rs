@@ -53,13 +53,13 @@ struct Entry {
 struct Snapshot {
     /// Activity id -> entry.
     entries: HashMap<String, Entry>,
-    /// bn id -> activity id.
+    /// workspan id -> activity id.
     by_bn_id: HashMap<String, String>,
     /// Identity (uid) of a task this store created -> the activity it became, so saving the same
     /// in-memory file twice does not create it twice.
     created: HashMap<String, String>,
     goals: Option<Vec<GoalRow>>,
-    /// The highest bn id this store knows was assigned: the mark plus everything loaded or
+    /// The highest workspan id this store knows was assigned: the mark plus everything loaded or
     /// created since.
     max_id: u64,
     /// Whether a load has run. `claim` and `note` load only a store that never has, so they
@@ -118,12 +118,12 @@ impl ForgeTaskStore {
     }
 
     /// The Forge tools behind this store, for callers that need more than the task list (the
-    /// claim sweep, `bn forge status`).
+    /// claim sweep, `workspan forge status`).
     pub fn api(&self) -> io::Result<&dyn ForgeApi> {
         self.api.as_deref().ok_or_else(super::missing_token_error)
     }
 
-    /// The activity id behind bn id `id`, as of the last load.
+    /// The activity id behind workspan id `id`, as of the last load.
     pub fn activity_id(&self, id: &str) -> Option<String> {
         self.snap().by_bn_id.get(id).cloned()
     }
@@ -258,7 +258,7 @@ impl ForgeTaskStore {
     }
 }
 
-/// A task's identity for the created-activity map: its uid, else its bn id.
+/// A task's identity for the created-activity map: its uid, else its workspan id.
 fn identity(task: &Task) -> Option<String> {
     task.uid()
         .map(|u| format!("uid:{u}"))

@@ -27,7 +27,7 @@ use std::path::PathBuf;
 /// One of the repo's own scripts, as found on disk.
 #[derive(Debug, Clone, PartialEq, Eq)]
 pub(in crate::tat) struct RepoScript {
-    /// The job name — the file name without `.sh`, and what `bn run` resolves.
+    /// The job name — the file name without `.sh`, and what `workspan run` resolves.
     pub(in crate::tat) name: String,
     /// Which tier it came from. Shown on the row, since a committed `.bn/jobs` script and a
     /// notes-synced one are maintained in different places.
@@ -76,7 +76,7 @@ fn offerable(name: &str) -> bool {
 
 /// The scripts the picker offers for `repo`, in tier order then by name.
 ///
-/// The context is resolved the way `bn run --repo R --branch main` will resolve it at execution
+/// The context is resolved the way `workspan run --repo R --branch main` will resolve it at execution
 /// (`resolve_target` lowercases the repo), so the directories searched here are the directories
 /// the run will search then. Only the Repo and Project tiers are read: the three global
 /// tiers hold machine jobs, not this repo's verbs, and this runs on every 700ms repaint.
@@ -301,7 +301,7 @@ mod tests {
         assert_eq!(script.scope, Scope::Repo);
         assert!(
             script.needs_branch,
-            "the branch is what makes `bn run --repo` accept it"
+            "the branch is what makes `workspan run --repo` accept it"
         );
         assert_eq!(resolve("script:a|b"), None);
         assert_eq!(resolve("no-such-verb"), None);

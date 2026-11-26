@@ -5,7 +5,7 @@ when: Writing tests, designing test strategies, or reviewing test quality.
 keywords: [testing-principles, testing, principles, language-agnostic, including, tdd, test, quality, coverage, standards, design, patterns]
 ---
 1. Read the repository's existing test strategy and affected test suite.
-2. Load `bn skills render testing-principles-reference` for the full standards.
+2. Load `workspan skills render testing-principles-reference` for the full standards.
 3. Test the introduced or fixed behavior and meaningful edge cases. Use a failing-before/
    passing-after check when practical; do not restate constants or framework behavior,
    invent coverage thresholds, or fix unrelated tests.
