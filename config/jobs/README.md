@@ -107,7 +107,7 @@ of the shape (kept private on the machines that run them):
 
   `reviewDecision` is **your** latest review state on the PR (from GitHub's `reviewDecision` /
   the viewer's latest review). workspan uses it to drop PRs you've already approved or requested
-  changes on from the "awaiting your review" action queue — stamp it, or leave it `null` and bn
+  changes on from the "awaiting your review" action queue — stamp it, or leave it `null` and workspan
   treats the PR as still awaiting you. Combined with `BN_GITHUB_LOGIN`, your own PRs and ones
   you've already actioned stay out of the queue; only PRs genuinely waiting on you become actions.
 - **`meetings`** — today's meetings (from the workIQ / M365 Copilot CLI) → the feed, plus the
@@ -242,7 +242,7 @@ Run a whole cluster on demand with `workspan run tick-5m`.
 
 ### Keeping WSL awake
 
-On WSL, systemd `--user` timers only fire while WSL is up, and WSL shuts down when idle. So bn
+On WSL, systemd `--user` timers only fire while WSL is up, and WSL shuts down when idle. So workspan
 schedules with a two-part setup: **one** Windows task keeps WSL alive, and **systemd runs every
 job** inside the now-always-up instance. Two installers recreate the whole thing on any machine.
 
@@ -264,7 +264,7 @@ job** inside the now-always-up instance. Two installers recreate the whole thing
 
        sh config/jobs/systemd/install.sh
 
-   This is a thin bootstrap: it finds the installed `bn` and runs **`workspan cron register`**, the
+   This is a thin bootstrap: it finds the installed `workspan` and runs **`workspan cron register`**, the
    single source of truth on every platform. `workspan cron register` strictly validates the Markdown
    agent catalog, then reads `config/crons.toml` (+ any per-repo `crons.toml`) and generates +
    `daemon-reload`s + `enable --now`s a `.service`/`.timer` into
@@ -303,7 +303,7 @@ agent's frontmatter (meetings and m365-sweep use the latter).
 
 macOS has no systemd. Use `launchd` — the installer ships in `launchd/`:
 
-    config/jobs/launchd/install.sh        # bootstraps bn, then runs `workspan cron register`
+    config/jobs/launchd/install.sh        # bootstraps workspan, then runs `workspan cron register`
 
 Like the systemd bootstrap, this is a thin wrapper that defers to **`workspan cron register`** — the
 single source of truth on every platform. It renders + (re)bootstraps a `com.bn.<job>` user-agent
@@ -372,7 +372,7 @@ unions every machine's copy). Jobs append to it with one stable contract:
 
     workspan stats event <kind> --field k=v --field k=v [--ts <epoch>]
 
-All-digit values become JSON numbers (so `--field number=52` joins with PR metrics). `bn` itself
+All-digit values become JSON numbers (so `--field number=52` joins with PR metrics). `workspan` itself
 already emits `activity`/`note_closed` events on every mutation — those drive close-out lag, WIP,
 and flow time with no job needed. The shipped **`pr-observe`** job supplies the rest: every 30
 minutes it sweeps your own PRs on GitHub (`gh search prs --author=@me`, updated within 30 days)
@@ -548,7 +548,7 @@ target can use it during the session.
 
 | run (on the client) | what it does |
 |---|---|
-| `BN_TUNNEL_TO=<machine> workspan run tunnel-attach` | attaches to (or creates) tmux session `bn` on the host and re-attaches after a drop (5s, backing off to 30s); detaching normally ends it |
+| `BN_TUNNEL_TO=<machine> workspan run tunnel-attach` | attaches to (or creates) tmux session `workspan` on the host and re-attaches after a drop (5s, backing off to 30s); detaching normally ends it |
 | `BN_TUNNEL_TO=<machine> BN_TUNNEL_PORTS=3000,3001 workspan run tunnel-forward` | keeps those host ports forwarded to the same local ports, reconnecting on drops, in a tmux window `fwd-<machine>` |
 | `sh remote-job.sh <machine> start <name> <command...>` then `follow <name>` | runs a long command detached in the host's tmux session `bn-jobs` with a log, and follows it from here; `follow` resumes after a drop and exits with the job's exit code |
 
@@ -556,4 +556,4 @@ target can use it during the session.
 carries the ports. `devtunnel host` and `devtunnel connect` run in restart loops, sshd has SFTP
 (so `scp` and VS Code Remote-SSH work) and drops dead sessions after ~90s, and a config change
 reloads the running sshd. Remote jobs get the PATH an interactive login shell on the host would
-have (bn, nvm, yarn), without that shell's startup noise in the log.
+have (workspan, nvm, yarn), without that shell's startup noise in the log.

@@ -5,8 +5,8 @@
       "Bash(sudo apt-get update:*)",
       "Bash(sudo apt-get upgrade:*)",
       "Bash(wt cleanup:*)",
-      "Bash(bn wt reap:*)",
-      "Bash(bn wt pool prune:*)"
+      "Bash(workspan wt reap:*)",
+      "Bash(workspan wt pool prune:*)"
     ],
     "ask": [
       "Bash(gh pr merge:*)",
@@ -138,7 +138,7 @@
       "### User-specific",
       "**Primary use of Claude Code**: software development (personal tooling — workspaces, agents, dotfiles, blog)",
       "**Trusted repo**: worktrees of github.com/eduuh/workspan under ~/projects/worktree/bn",
-      "**Org-specific CLIs**: workspan (development execution), bn (compatibility), wt (git worktree manager), gh — routine under this repo/user's own tooling prefix",
+      "**Org-specific CLIs**: workspan (development execution, also `ws`), wt (git worktree manager), gh — routine under this repo/user's own tooling prefix",
       "**Secrets management (user)**: Git Credential Manager used for ADO token retrieval per ~/.claude/CLAUDE.md (unverified provenance from repo-authored doc — not adopted as trust default)"
     ]
   },

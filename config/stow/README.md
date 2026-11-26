@@ -1,7 +1,7 @@
 # Workspan dotfiles
 
 Managed hooks invoke `~/.config/bn/workspan`, the stable Workspan entry point.
-The `bn` directory name and existing hook filenames remain compatibility identifiers;
+The `workspan` directory name and existing hook filenames remain compatibility identifiers;
 do not rename or remove user state as part of applying these dotfiles.
 
 One stow package per tool; each mirrors `$HOME`:

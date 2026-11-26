@@ -88,7 +88,7 @@ Forge data by hand unless they ask.
    started it, its repository resolves to a clone on this machine, `[machine] repos` allows that
    repo, and this machine holds fewer than `--max` (default 1) claimed tasks that have no PR yet.
    Forge's `claim_activity` is atomic, so two machines never both win; the loser moves on silently.
-   The winner writes `repo:<local clone name>` and comments `claimed by bn@<node>`.
+   The winner writes `repo:<local clone name>` and comments `claimed by workspan@<node>`.
 3. **Start.** The sweep starts each claim with `workspan dispatch --task <id>` in that clone, which binds
    the task's `branch:` and launches the agent. From there it is an ordinary wip task: a SMART gate
    refusal comments `needs more detail: ...` on the task, and every stage change comments

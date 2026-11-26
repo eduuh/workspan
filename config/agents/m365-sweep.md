@@ -1,6 +1,6 @@
 ---
 name: m365-sweep
-requires_repo: bn
+requires_repo: workspan
 kind: command
 on_calendar: "Mon..Fri *-*-* 14:55:00"
 catch_up: true

@@ -32,5 +32,5 @@ not a second implementation pipeline. Recipes and verified adapter behavior are 
    regression test and rerun the original repro plus the repository's relevant checks.
 7. **Clean up.** Remove only your breakpoints and listeners, restore exception settings,
    and detach from attached processes with `terminateDebuggee = false`. Terminate only your
-   disposable launched processes. Preserve the user's editor, save redacted evidence in bn,
+   disposable launched processes. Preserve the user's editor, save redacted evidence in workspan,
    and report tested behavior separately from unverified configurations or missing tools.

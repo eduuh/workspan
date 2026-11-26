@@ -8,4 +8,4 @@ Use Workspan's CLI for execution and task state: `workspan discover`,
 `workspan agent live`. Mark a task done with `workspan task do <id>` only when its criteria
 are met. Entire owns session history. Retained MCP command/link/reference tools may be used
 when available; inspect their actual schemas rather than guessing names or arguments.
-(`bn_ref_append` -> `workspan ref append`).
+(`workspan_ref_append` -> `workspan ref append`).

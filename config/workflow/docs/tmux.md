@@ -18,7 +18,7 @@ Segments collapse when they have nothing to say.
 | `!N` / `?N` / `+N` | Other retained failures, unknown outcomes, or additional running commands in this worktree. |
 | `⎇ <branch> ↑n ↓m ●k` | Git: branch, commits ahead `↑` / behind `↓`, dirty file count `●` (faint `●` when clean). |
 
-**Window tabs.** The active window has a blue pill, inactive ones are dim. Each carries its bn
+**Window tabs.** The active window has a blue pill, inactive ones are dim. Each carries its workspan
 state and, independently, a short command-run badge:
 
 | Badge | Meaning |
@@ -36,7 +36,7 @@ state and, independently, a short command-run badge:
 
 Agent/note badges and the window → worktree link (`@bn_repo`/`@bn_branch`) are refreshed by
 `workspan tmux reconcile`, which runs on every client attach and on the 5-minute cron. Window options do
-not survive a tmux-resurrect restore, and the badges are otherwise written only to the window bn
+not survive a tmux-resurrect restore, and the badges are otherwise written only to the window workspan
 happened to run in — so without the sweep a note edited by an agent in another window never reaches
 that window's tab. Run it by hand to see its decisions:
 
@@ -373,7 +373,7 @@ session note. Entire owns captured session history.
 | `workspan plan migrate` | Convert legacy note todo/done-when sections into `plans/active.md`. |
 
 Plan-mode agent launches start the agent first, then split the same tmux window vertically and open
-the bn-owned plan `.md` beside the running agent. That keeps the worktree for code and the bn
+the bn-owned plan `.md` beside the running agent. That keeps the worktree for code and the workspan
 system for planning artifacts, and it keeps the same plan usable across machines through
 note-relative paths.
 
@@ -444,7 +444,7 @@ note-relative paths.
 
 # `workspan` (development execution)
 
-`install.sh` installs `workspan` on PATH with `bn` as an executable compatibility alias.
+`install.sh` installs `workspan` on PATH with `workspan` as an executable compatibility alias.
 Tasks, agents, plans, verification, and machines are Workspan's responsibility. Entire owns
 captured sessions and checkpoints; no session note is initialized for a branch.
 

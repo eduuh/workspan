@@ -1,6 +1,6 @@
 ---
 name: attention-agent
-requires_repo: bn
+requires_repo: workspan
 kind: staff
 on_calendar: "*-*-* 0/2:00:00"
 opt_in: true

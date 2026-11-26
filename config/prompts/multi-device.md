@@ -108,7 +108,7 @@ This works wherever the target runs. When the target is not live here, workspan 
 
   Then wait on the exact marker the script writes (`grep -q "^job-rc=" /tmp/job.log`), in one background loop for all machines. A marker that does not match what the script prints, or a leftover log from an earlier run, makes the loop wait forever or end at once: delete the log before starting, and stop a waiter you replace.
 - A remote non-login shell has neither workspan's install dirs nor nvm on its PATH (nor Homebrew on a Mac). Start with `export PATH=$HOME/.bn/bin:$HOME/.bin:$HOME/.local/bin:/opt/homebrew/bin:$PATH`, or use `bash -lc` with `source ~/.nvm/nvm.sh`.
-- The remote login shell may be zsh, which expands a bare `=word` to a command path (`tmux list-windows -t =bn` fails with "bn not found"). Quote targets as `'=bn'`, or run the command under `sh -c`. zsh also does not split an unquoted `$var` into words, reads `$var:r` as a modifier (write `${var}:...`), and treats `(x86)` in an unquoted word as a glob.
+- The remote login shell may be zsh, which expands a bare `=word` to a command path (`tmux list-windows -t =workspan` fails with "workspan not found"). Quote targets as `'=bn'`, or run the command under `sh -c`. zsh also does not split an unquoted `$var` into words, reads `$var:r` as a modifier (write `${var}:...`), and treats `(x86)` in an unquoted word as a glob.
 - PowerShell from WSL: a multi-line script breaks under `powershell.exe -Command -`; send it with `-EncodedCommand` (UTF-16LE, base64). Files in Windows repos are CRLF: edit bytes and keep the `\r\n`.
 - In this agent's own shell, `git` may be a wrapper function that fails on `/mnt/c` paths: use `command git` there.
 
@@ -122,7 +122,7 @@ This works wherever the target runs. When the target is not live here, workspan 
   revocation if exposure is suspected. Any scoped history repair requires explicit approval and
   confirmed ownership; never reset, recommit, or push shared notes automatically.
 - **Settings for one machine never go in `~/.gitconfig`.** It is synced by dotfiles to every machine. workspan's tunnel settings live in `~/.config/bn/tunnel.conf`.
-- **Check the workspan binary against the config.** A machine with an old `bn` and a new `bn/main` prints TOML errors and runs unknown jobs as queued tasks. The published release lags `main`; build with `./build.sh`. `workspan --version` must match `git -C ~/projects/worktree/bn/main log -1 --format=%h`.
+- **Check the workspan binary against the config.** A machine with an old `workspan` and a new `bn/main` prints TOML errors and runs unknown jobs as queued tasks. The published release lags `main`; build with `./build.sh`. `workspan --version` must match `git -C ~/projects/worktree/bn/main log -1 --format=%h`.
 - **Test destructive recovery on a machine that can take it**, and say what it will kill first (a WSL shutdown kills running builds there).
 - **Socket paths stay under 108 bytes.** An ssh `ControlPath` or nvim socket in a deep scratch directory fails with "path too long".
 
@@ -155,7 +155,7 @@ To try an unmerged branch on another machine, remember that workspan's bare clon
 
 | Symptom | Cause | Fix |
 |---|---|---|
-| A machine is missing from `workspan machine tunnels` | It has no tunnel on this account: never set up, signed out, a different devtunnel account, or workspan older than the first-run fix | On it: `devtunnel user show`, upgrade bn, `workspan run tunnel-setup` |
+| A machine is missing from `workspan machine tunnels` | It has no tunnel on this account: never set up, signed out, a different devtunnel account, or workspan older than the first-run fix | On it: `devtunnel user show`, upgrade workspan, `workspan run tunnel-setup` |
 | `DOWN`, `HOST-END no` | Nothing hosts its tunnel: the machine is off or asleep, WSL stopped, or devtunnel is signed out there | Its report line says which. Sign in to that machine, or run `sh wsl-keepalive.sh boot` there |
 | `Permission denied (publickey)` | This machine's key is not on the GitHub account the host trusts, or the host has not re-read the keys | `workspan run tunnel-setup` here, then `workspan run tunnel-host` there |
 | `silent since <time>` | Its watchdog stopped reporting: off, asleep, or the watchdog died | Wake or sign in to it; check `workspan machine tunnels` there |
@@ -165,7 +165,7 @@ To try an unmerged branch on another machine, remember that workspan's bare clon
 | `workspan machine tunnels` says "report not published yet" on a machine | Its notes repo cannot push (no GitHub credentials there) | `gh auth login` and `gh auth setup-git` on that machine |
 | A new nickname does not show on the other machines | They re-read nicknames on their 15-minute reconnect pass | `workspan run tunnel-connect` on each of them |
 | `devtunnel` dies with "Couldn't find a valid ICU package" | A .NET program, and the machine has no libicu | Current workspan wraps it; or `sudo apt-get install -y libicu-dev` (dotfiles installs it) |
-| `workspan run tunnel-setup` prints TOML errors and "queued bn/run-tunnel-setup" | The installed `bn` is older than `bn/main` | `./build.sh` in `bn/main` (the published release is older still) |
+| `workspan run tunnel-setup` prints TOML errors and "queued bn/run-tunnel-setup" | The installed `workspan` is older than `bn/main` | `./build.sh` in `bn/main` (the published release is older still) |
 | `Host key verification failed` between two machines | The first connection needs the host key recorded; old tunnel blocks did not do it unattended | `workspan run tunnel-connect` there (writes `StrictHostKeyChecking accept-new`), or `ssh <machine> true` once by hand |
 
 ## Don't

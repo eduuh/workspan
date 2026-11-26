@@ -3,7 +3,7 @@
 #
 # Usage: voice-check.sh <file> [file...]
 #
-# Reads the rules in `bn ref writing-voice`. Code blocks and YAML frontmatter are
+# Reads the rules in `workspan ref writing-voice`. Code blocks and YAML frontmatter are
 # stripped before checking, so a command with an em-dash flag or a YAML list is
 # never flagged. Line numbers refer to the original file.
 #

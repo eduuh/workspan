@@ -184,7 +184,7 @@ bn_tunnel_github_keys() {
   curl -fsS --max-time 20 "https://github.com/$1.keys" 2>/dev/null | grep -E '^(ssh-ed25519|ssh-rsa|ecdsa-sha2-)'
 }
 
-# bn_tunnel_hosts <devtunnel> -- every bn host tunnel on this account, one "<tunnel-id> <machine>"
+# bn_tunnel_hosts <devtunnel> -- every workspan host tunnel on this account, one "<tunnel-id> <machine>"
 # per line. The machine name rides in the tunnel description (labels are lowercased).
 # Fails when the account could not be listed, so a caller never mistakes "offline" for "no hosts".
 bn_tunnel_hosts() {
@@ -287,7 +287,7 @@ bn_tunnel_lan_labels() {
 
 # Machine reports. Each machine publishes a few lines about its own tunnel state (tunnel-auto) as
 # a one-commit ref, refs/heads/bn-status/<machine>, in the synced work-notes repo, and every other
-# machine can read them (bn tunnels). Git rather than the Dev Tunnels account because the failure
+# machine can read them (workspan tunnels). Git rather than the Dev Tunnels account because the failure
 # worth reporting most (devtunnel signed out) is the one that stops a machine writing to the
 # account; and a machine that is off still has its last report, with its time.
 
@@ -313,7 +313,7 @@ bn_tunnel_report_push() {
   _g=$(bn_tunnel_notes_git) || return 1
   _b=$(git -C "$_g" hash-object -w "$2") || return 1
   _t=$(printf '100644 blob %s\ttunnels.status\n' "$_b" | git -C "$_g" mktree) || return 1
-  _c=$(GIT_AUTHOR_NAME=bn GIT_AUTHOR_EMAIL=bn@localhost GIT_COMMITTER_NAME=bn GIT_COMMITTER_EMAIL=bn@localhost \
+  _c=$(GIT_AUTHOR_NAME=workspan GIT_AUTHOR_EMAIL=workspan@localhost GIT_COMMITTER_NAME=workspan GIT_COMMITTER_EMAIL=workspan@localhost \
     git -C "$_g" commit-tree "$_t" -m "tunnel report: $1") || return 1
   bn_tunnel_git "$_g" push -q --force origin "${_c}:refs/heads/bn-status/$1"
 }
@@ -326,7 +326,7 @@ bn_tunnel_reports_fetch() {
   echo "$_g"
 }
 
-# bn_tunnel_ports <devtunnel> <tunnel-id> -- the ports the tunnel forwards, one per line. A bn
+# bn_tunnel_ports <devtunnel> <tunnel-id> -- the ports the tunnel forwards, one per line. A workspan
 # host tunnel carries exactly one: the host's SSH port.
 bn_tunnel_ports() {
   "$1" port list "$2" -j 2>/dev/null | awk -F: '/"portNumber"/ { gsub(/[ ,]/, "", $2); print $2 }'

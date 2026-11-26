@@ -1,18 +1,18 @@
 #!/bin/sh
 # build-machine-setup -- turn this machine into a remote build machine in one command.
 #
-# Run ON the new machine (WSL on a Cloud PC, say), after dotfiles set up bn, gh and the repo's git
+# Run ON the new machine (WSL on a Cloud PC, say), after dotfiles set up workspan, gh and the repo's git
 # credentials:
-#   BN_SETUP_REPO=myrepo BN_SETUP_URL=<clone url> bn run build-machine-setup
+#   BN_SETUP_REPO=myrepo BN_SETUP_URL=<clone url> workspan run build-machine-setup
 # (a private wrapper usually sets those; see the work jobs tier). Idempotent: every step checks
 # first and says ok / done / NEEDS YOU, so re-running it is how you check a machine.
 #
 # Steps:
 #   1. machine config: [machine] cron = true and the repo listed; [pool] scheduled includes it;
-#      with BN_SETUP_WORK=1 the shared [work] work_repos lists it too (so bn finds the private
+#      with BN_SETUP_WORK=1 the shared [work] work_repos lists it too (so workspan finds the private
 #      build script). Missing that sent a new machine's first warm to a scaffolded placeholder.
-#   2. linger, so the user's systemd (and every bn timer) runs with nobody signed in;
-#   3. bn's timers (`bn cron register`), with self-update paused again afterwards;
+#   2. linger, so the user's systemd (and every workspan timer) runs with nobody signed in;
+#   3. bn's timers (`workspan cron register`), with self-update paused again afterwards;
 #   4. on WSL: the Windows keeper (wsl-keepalive) so the distro, tmux and tunnels stay up;
 #   5. hosting the Dev Tunnel (tunnel-host), so the laptop finds it within a minute;
 #   6. the repo's bare clone, shallow and blobless by default (BN_SETUP_CLONE_DEPTH /
@@ -40,12 +40,12 @@ needs() { echo "  NEEDS YOU  $*"; left="$left
 left=""
 [ -n "$REPO" ] || { echo "build-machine-setup: set BN_SETUP_REPO (e.g. myrepo)" >&2; exit 2; }
 case "$REPO$BRANCH" in *[!A-Za-z0-9_.-]*) echo "build-machine-setup: bad repo or branch name" >&2; exit 2 ;; esac
-command -v bn >/dev/null 2>&1 || { echo "build-machine-setup: workspan is not installed (run dotfiles setup first)" >&2; exit 1; }
+command -v workspan >/dev/null 2>&1 || { echo "build-machine-setup: workspan is not installed (run dotfiles setup first)" >&2; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "build-machine-setup: python3 is needed to edit workspan's config" >&2; exit 1; }
 echo "build-machine-setup: $ME for $REPO"
 
 # --- 1. config --------------------------------------------------------------------
-# bn has no config-set command; python3 edits the TOML without disturbing what is there, and only
+# workspan has no config-set command; python3 edits the TOML without disturbing what is there, and only
 # writes when something changes (a backup is kept next to the file).
 notes="$HOME/projects/branch-notes"
 edit_toml() { # <file> <python snippet over dict `d`>; prints "changed" when it wrote
@@ -112,11 +112,11 @@ else
 fi
 
 # --- 3. timers --------------------------------------------------------------------
-if bn cron register >/dev/null 2>&1; then
-  bn cron unregister self-update >/dev/null 2>&1
-  ok "bn timers registered (self-update paused)"
+if workspan cron register >/dev/null 2>&1; then
+  workspan cron unregister self-update >/dev/null 2>&1
+  ok "workspan timers registered (self-update paused)"
 else
-  needs "bn cron register failed; run it by hand to see why"
+  needs "workspan cron register failed; run it by hand to see why"
 fi
 
 # --- 4. WSL keeper ------------------------------------------------------------------
@@ -142,7 +142,7 @@ elif [ -z "$URL" ]; then
 else
   echo "  ...   cloning $REPO (depth $DEPTH, filter $FILTER); this takes a while"
   if (cd "$HOME/projects" && GCM_INTERACTIVE=never WT_CLONE_DEPTH="$DEPTH" WT_CLONE_FILTER="$FILTER" \
-      WT_FETCH_REFSPEC="+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" bn wt clone "$URL" >/dev/null 2>&1); then
+      WT_FETCH_REFSPEC="+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" workspan wt clone "$URL" >/dev/null 2>&1); then
     done_ "$REPO cloned"
   else
     needs "$REPO clone failed; check its git credentials, then re-run this"

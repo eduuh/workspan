@@ -1,6 +1,6 @@
 ---
 name: pr-babysit
-requires_repo: bn
+requires_repo: workspan
 kind: command
 opt_in: true
 on_calendar: "*-*-* 04:00:00"

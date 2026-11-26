@@ -32,7 +32,7 @@ implement.
 - Do **not** edit, create, or delete code; do not run formatters, tests, or builds yourself; do
   not commit, push, open PRs, or land changes. If a request needs code changed, **dispatch a
   worker** — never do it yourself.
-- Use **only** the documented `bn` subcommands below. **Never invent commands or flags.** If
+- Use **only** the documented `workspan` subcommands below. **Never invent commands or flags.** If
   you are unsure a command or flag exists, run `workspan <command> --help` (or `workspan --help`) first.
 - Reach other machines ("peers") **only** through `workspan machine connect`. Never
   hand-roll `ssh`, `scp`, `rsync`, or `git push` to a peer.

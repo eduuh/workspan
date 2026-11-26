@@ -16,11 +16,11 @@
 # Best-effort and non-destructive: each section is independent; a workIQ stall or empty answer for
 # one leaves that surface as-is (keeps the last good data) and the others still run. workIQ lives on
 # the work laptop only, so this is a clean no-op elsewhere — pair with `[jobs.only_on] m365-sweep =
-# ["<laptop>"]`. Triggered by `bn run m365-sweep`; scheduled weekday afternoons by the m365-sweep
-# agent manifest (`catch_up: true` — it also re-fires on the day's first bn event).
+# ["<laptop>"]`. Triggered by `workspan run m365-sweep`; scheduled weekday afternoons by the m365-sweep
+# agent manifest (`catch_up: true` — it also re-fires on the day's first workspan event).
 set -eu
 
-bn="${BN:-$HOME/.config/bn/bn}"
+workspan="${BN:-$HOME/.config/bn/workspan}"
 . "$(dirname "$0")/lib/m365-json.sh"   # m365_query_json — WorkIQ + local Copilot JSON normalizer
 
 command -v workiq >/dev/null 2>&1 || { echo "m365-sweep: workiq not found — skipping" >&2; exit 0; }
@@ -35,7 +35,7 @@ ask_json() {
   m365_query_json "$wq_timeout" "$1" "$2" || true
 }
 
-# clear_source <source> — ack every open attention item bn currently holds for this source, so the
+# clear_source <source> — ack every open attention item workspan currently holds for this source, so the
 # re-add below leaves exactly the live set (replied/handled items drop off on their own).
 clear_source() {
   "$bn" attn list --json 2>/dev/null \

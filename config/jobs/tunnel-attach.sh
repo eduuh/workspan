@@ -3,16 +3,16 @@
 # there, and re-attach automatically when the connection drops.
 #
 # Run on the machine you connect FROM, in a terminal:
-#   BN_TUNNEL_TO=<machine> bn run tunnel-attach      (or: sh tunnel-attach.sh <machine> [session])
+#   BN_TUNNEL_TO=<machine> workspan run tunnel-attach      (or: sh tunnel-attach.sh <machine> [session])
 # Needs the `Host <machine>` entry tunnel-connect writes. Pair: tunnel-host / tunnel-connect.
 #
 # The remote tmux session keeps running whatever the link does, so a drop loses nothing: this
 # loop just reconnects (5s, then backing off to 30s) and puts you back where you were.
 # Detaching normally (prefix d) or exiting the session ends the loop. The remote command runs in a
-# login shell, so bn and nvm are on PATH. Port forwards from BN_TUNNEL_PORTS (tunnel-connect) come
+# login shell, so workspan and nvm are on PATH. Port forwards from BN_TUNNEL_PORTS (tunnel-connect) come
 # along with every attach.
 #
-# Env: BN_TUNNEL_TO (target machine), BN_TUNNEL_SESSION (remote tmux session, default bn).
+# Env: BN_TUNNEL_TO (target machine), BN_TUNNEL_SESSION (remote tmux session, default workspan).
 set -u
 
 TO="${1:-${BN_TUNNEL_TO:-}}"

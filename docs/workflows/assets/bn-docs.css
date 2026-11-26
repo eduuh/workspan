@@ -1,5 +1,5 @@
 @charset "utf-8";
-/* bn workflow docs — shared shell.
+/* workspan workflow docs — shared shell.
    Self-contained: system fonts only, no network fetches, works over file://. */
 
 :root {

@@ -117,10 +117,10 @@ the actual Codespace checkout. Do not copy files locally or mount the repository
 - **The editor does not answer** — a modal prompt (a plugin error leaving `Press ENTER`) blocks
   nvim's main loop, and workspan gives up after 2 seconds with *"editor did not answer"*. Report that
   honestly rather than retrying in a loop; the fix is a keystroke in that pane, not another call.
-- **The installed `bn` predates this skill** — `error: unrecognized subcommand 'edit'`, or
+- **The installed `workspan` predates this skill** — `error: unrecognized subcommand 'edit'`, or
   other command-version mismatches. The binary
   on `$PATH` is older than the worktree you are standing in, which is what a stale
   `worktree/bn/main` produces. Check with `workspan --version` against the repo's own build. When you are
-  inside the workspan repo, `./target/debug/bn edit land` uses the code in front of you and works;
+  inside the workspan repo, `./target/debug/workspan edit land` uses the code in front of you and works;
   anywhere else, say the install is stale and summarize the diff instead. Do not paper over it by
   dropping flags until something runs — that is how the two-dot trap above gets sprung.

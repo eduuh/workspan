@@ -1,6 +1,6 @@
 ---
 name: red-main
-requires_repo: bn
+requires_repo: workspan
 kind: command
 opt_in: true
 on_calendar: "*:0/30"

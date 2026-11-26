@@ -1,6 +1,6 @@
 ---
 name: task-triage
-requires_repo: bn
+requires_repo: workspan
 kind: command
 on_calendar: "*-*-* 07:30:00"
 run: "workspan task triage --agent task-triage"

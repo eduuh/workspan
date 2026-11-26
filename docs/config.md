@@ -1,6 +1,6 @@
 # Configuration
 
-Workspan uses the existing configuration layout during the `bn` compatibility period.
+Workspan uses the existing configuration layout during the `workspan` compatibility period.
 `BN_*` variables and `~/.config/bn` remain supported; do not move live state just to rename the CLI.
 The historical `notes_root` name below still describes shared configuration/storage locations,
 not a session-note requirement. Entire owns session history; Workspan retains configuration,

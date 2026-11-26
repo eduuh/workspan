@@ -19,7 +19,7 @@
 ## Talk to other agents
 
 - Live agents are listed by `workspan agent live` (this machine) and `workspan agent live --mesh` (every machine); their `target` is `repo:branch`. Ask one for something with `workspan agent msg <repo:branch> "..."`; it lands as that agent's next prompt.
-- A prompt starting `[bn msg from <repo:branch>]` is another agent asking you (the wire prefix remains compatible). Do what it asks, then answer with the same command, addressed to that sender. Keep both directions to one message each.
+- A prompt starting `[workspan msg from <repo:branch>]` is another agent asking you (the wire prefix remains compatible). Do what it asks, then answer with the same command, addressed to that sender. Keep both directions to one message each.
 
 ## Across machines
 

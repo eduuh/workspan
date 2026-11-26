@@ -1,9 +1,9 @@
 #!/usr/bin/env pwsh
-# install.ps1 — register the ONE Windows Task Scheduler task bn needs on WSL: a keepalive.
+# install.ps1 — register the ONE Windows Task Scheduler task workspan needs on WSL: a keepalive.
 #
 # Why one task: systemd --user timers inside WSL only fire while WSL is running, and WSL shuts
-# down when idle. This task boots WSL and runs `bn run ensure-tmux`, which opens a repository's
-# own tmux session — and that server keeps WSL alive afterwards. With WSL held up, every other bn
+# down when idle. This task boots WSL and runs `workspan run ensure-tmux`, which opens a repository's
+# own tmux session — and that server keeps WSL alive afterwards. With WSL held up, every other workspan
 # job (refresh-all, pr-observe, pr-queue, commit-notes) runs from systemd inside WSL
 # (config/jobs/systemd/install.sh). So Windows schedules exactly one thing; systemd schedules the rest.
 #
@@ -29,7 +29,7 @@ foreach ($old in 'BN Daily tmux', 'BN Commit Notes') {
     }
 }
 
-$bn     = "/home/$WslUser/.config/bn/bn"
+$bn     = "/home/$WslUser/.config/bn/workspan"
 $action = New-ScheduledTaskAction -Execute 'wsl.exe' `
             -Argument "-d $Distro -u $WslUser -- $bn run ensure-tmux"
 

@@ -1,8 +1,8 @@
 {
   "mcpServers": {
-    "bn": {
+    "workspan": {
       "type": "stdio",
-      "command": "bn",
+      "command": "workspan",
       "args": ["mcp", "serve"]
     }
   }

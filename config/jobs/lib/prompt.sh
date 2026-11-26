@@ -11,13 +11,13 @@
 #   BN_PROMPT_TIMEOUT  seconds before giving up on copilot (default: 60)
 
 # Under a systemd timer / Windows Task Scheduler the login-shell PATH is absent, so copilot
-# (~/.local/bin) and bn (~/.bin) aren't found. Prepend them; harmless when already present.
+# (~/.local/bin) and workspan (~/.bin) aren't found. Prepend them; harmless when already present.
 PATH="$HOME/.local/bin:$HOME/.bin:$PATH"
 export PATH
 
 . "$(dirname "$0")/lib/realpath.sh"   # bn_realpath — portable `readlink -f`
 
-# Make `bn skills render` find the repo's committed config/prompts/ dir regardless of cwd (cron
+# Make `workspan skills render` find the repo's committed config/prompts/ dir regardless of cwd (cron
 # runs in an arbitrary directory). The job lives at <repo>/config/jobs/<job>.sh, so config/prompts/ is one
 # sibling below config/. A personal skill in ~/.config/bn/skills still shadows it (global-personal > global-shared).
 if [ -z "${BN_MCP_SKILLS_DIR:-}" ]; then

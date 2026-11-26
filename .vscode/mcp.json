@@ -1,11 +1,11 @@
 {
   "servers": {
-    "bn": {
+    "workspan": {
       "args": [
         "mcp",
         "serve"
       ],
-      "command": "bn",
+      "command": "workspan",
       "type": "stdio"
     }
   }

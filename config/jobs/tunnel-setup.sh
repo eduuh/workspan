@@ -1,5 +1,5 @@
 #!/bin/sh
-# tunnel-setup -- put this machine on the tunnel mesh in one command:  bn run tunnel-setup
+# tunnel-setup -- put this machine on the tunnel mesh in one command:  workspan run tunnel-setup
 #
 # tunnel-auto enrols a machine by itself once everything it needs is there; this installs what is
 # missing and does the steps that need a person, so a new machine takes one run. Idempotent: every
@@ -15,9 +15,9 @@
 #   7. on WSL: the Windows keeper (wsl-keepalive), and on a host the boot task that brings it back
 #      after a reboot before anyone signs in (one UAC prompt, at a terminal only);
 #   8. host this machine and connect it to every other host.
-# A machine nobody needs to reach: `BN_TUNNEL_HOST=0 bn run tunnel-setup` makes it connect-only
+# A machine nobody needs to reach: `BN_TUNNEL_HOST=0 workspan run tunnel-setup` makes it connect-only
 # (BN_TUNNEL_HOST=1 undoes it), and sshd is not installed.
-# Local network mode is opt-in: `BN_TUNNEL_LAN=1 bn run tunnel-setup` turns it on for this machine
+# Local network mode is opt-in: `BN_TUNNEL_LAN=1 workspan run tunnel-setup` turns it on for this machine
 # (BN_TUNNEL_LAN=0 turns it off) and, on WSL, checks the two
 # things Windows needs for it: mirrored networking and the firewall rule for the port.
 # It ends with the things left for a person, if any, and exits 1 when there are some.
@@ -49,7 +49,7 @@ case "${BN_TUNNEL_AUTO:-}" in
   0) bn_tunnel_set tunnelAuto off ;;
   1) bn_tunnel_set tunnelAuto "" ;;
 esac
-# A nickname for this machine: what bn tunnels, the tmux status bar and `ssh <nick>` use on every
+# A nickname for this machine: what workspan tunnels, the tmux status bar and `ssh <nick>` use on every
 # machine. The hostname stays the real name. BN_TUNNEL_NICK= (empty) clears it.
 if [ -n "${BN_TUNNEL_NICK+set}" ]; then
   n=$BN_TUNNEL_NICK
@@ -74,7 +74,7 @@ command -v nc   >/dev/null 2>&1 || pkgs="$pkgs netcat-openbsd"
 command -v curl >/dev/null 2>&1 || pkgs="$pkgs curl"
 command -v ss   >/dev/null 2>&1 || pkgs="$pkgs iproute2"
 command -v gh   >/dev/null 2>&1 || pkgs="$pkgs gh"
-# devtunnel is a .NET program and needs libicu; without it bn wraps it to run without (lib/tunnel.sh).
+# devtunnel is a .NET program and needs libicu; without it workspan wraps it to run without (lib/tunnel.sh).
 command -v ldconfig >/dev/null 2>&1 && ! ldconfig -p 2>/dev/null | grep -q libicuuc && pkgs="$pkgs libicu-dev"
 if [ -z "$pkgs" ]; then
   ok "packages (sshd tmux nc curl ss gh)"
@@ -134,10 +134,10 @@ fi
 # --- 6. timers ----------------------------------------------------------------------
 if systemctl --user list-timers --all 2>/dev/null | grep -q 'bn-tunnel-auto'; then
   ok "tunnel-auto timer"
-elif command -v bn >/dev/null 2>&1 && bn cron register >/dev/null 2>&1; then
-  done_ "bn timers registered"
+elif command -v workspan >/dev/null 2>&1 && workspan cron register >/dev/null 2>&1; then
+  done_ "workspan timers registered"
 else
-  needs "bn cron register   (run it by hand to see why it failed)"
+  needs "workspan cron register   (run it by hand to see why it failed)"
 fi
 
 # --- 7. WSL keeper ------------------------------------------------------------------
@@ -212,7 +212,7 @@ elif [ "$lan" = 1 ]; then
   elif [ "$("$PS" -NoProfile -NonInteractive -Command "(Get-NetFirewallHyperVRule -Name 'bn-ssh-$port' -ErrorAction SilentlyContinue | Measure-Object).Count" 2>/dev/null | tr -dc '0-9')" = 1 ]; then
     ok "local network mode (port $port on $(bn_tunnel_lan_ip), allowed through Windows)"
   else
-    needs "allow port $port through Windows, from an elevated PowerShell: New-NetFirewallHyperVRule -Name bn-ssh-$port -DisplayName 'bn ssh $port' -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts $port"
+    needs "allow port $port through Windows, from an elevated PowerShell: New-NetFirewallHyperVRule -Name bn-ssh-$port -DisplayName 'workspan ssh $port' -Direction Inbound -VMCreatorId '{40E0AC32-46A5-438A-A0B2-2B479E8F2E90}' -Protocol TCP -LocalPorts $port"
   fi
 fi
 

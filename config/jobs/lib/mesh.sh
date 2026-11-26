@@ -4,7 +4,7 @@
 #
 # A node is a managed block in ~/.ssh/config, the same shape as tunnel-connect's:
 #   # >>> bn mesh <name> >>>  ...  # <<< bn mesh <name> <<<
-# so `bn agent msg`'s relay, `bn machine tunnels` and tunnel-auto treat both kinds alike.
+# so `workspan agent msg`'s relay, `workspan machine tunnels` and tunnel-auto treat both kinds alike.
 #
 # The machine that joins is often behind NAT (a laptop), and the node could not ssh back to answer.
 # So join also holds a reverse forward open (ssh -R) from the node's loopback to this machine's
@@ -114,7 +114,7 @@ bn_mesh_user_sshd() {
   [ -f "$_st/host_ed25519" ] || ssh-keygen -q -t ed25519 -N '' -f "$_st/host_ed25519"
   if [ ! -f "$_st/sshd_config" ]; then
     cat > "$_st/sshd_config" <<EOF
-# Written by bn mesh (the return path for mesh nodes). Loopback only.
+# Written by workspan mesh (the return path for mesh nodes). Loopback only.
 Port $(bn_tunnel_port_for "$(bn_mesh_self)")
 ListenAddress 127.0.0.1
 HostKey $_st/host_ed25519
