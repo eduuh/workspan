@@ -28,7 +28,8 @@ done
 # tmux sessions must be named: an unnamed one gets a number instead of its repo.
 for c in "tmux" "tmux new -d" "tmux new-session -d -c /tmp" "tmux -L x new-session -d" \
   "env -u TMUX tmux new-session -d" "cd x && tmux new -d" "bash -c \"tmux new-session -d\"" \
-  "id=\$(tmux new-session -d -P)" "tmux kill-server; tmux new-session -d"; do
+  "id=\$(tmux new-session -d -P)" "tmux kill-server; tmux new-session -d" \
+  "sh -c 'tmux new -d'" "bash -lc \"cd x && tmux new -d\"" "zsh -c 'tmux'"; do
   check "claude: $c" deny "$(claude "$c")"
   check "copilot: $c" deny "$(copilot "$c")"
 done
@@ -36,7 +37,9 @@ done
 for c in "tmux new-session -d -s workspan" "tmux new -A -s main" "tmux new -ds repo" \
   "tmux new-session -d -c \"/x y\" -s repo" "tmux -L x new-session -d -s t" "tmux ls" \
   "tmux new-window -d -t workspan: -n build" "which tmux" "grep tmux file" \
-  "ls ~/.bin/tmux/" "tmux has-session -t x || tmux new-session -d -s x"; do
+  "ls ~/.bin/tmux/" "tmux has-session -t x || tmux new-session -d -s x" \
+  "echo \"tmux new -d\"" "jq -n --arg c \"tmux new -d\" '{}'" "git commit -m 'fix: tmux new -d; tmux'" \
+  "echo 'a; tmux new -d' && ls" "printf '%s' \"x | tmux\"" "grep -n \"\\\"tmux new\\\"\" f"; do
   check "claude: $c" allow "$(claude "$c")"
   check "copilot: $c" allow "$(copilot "$c")"
 done
