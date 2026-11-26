@@ -102,6 +102,7 @@ pub const COMMANDS: &[CommandSchema] = &[
             "repos[].repo: string — the repo name",
             "repos[].git_dir: string — absolute path to <name>.git",
             "repos[].default_branch: string — the bare repo's HEAD",
+            "repos[].remote: string|null — remote.origin.url, when the clone has one",
             "repos[].branches: number — local branch count",
             "repos[].worktrees: number — registered worktree count",
             "repos[].last_commit: string — relative age of the default branch's tip",

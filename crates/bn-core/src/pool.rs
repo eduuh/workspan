@@ -287,7 +287,7 @@ pub fn pool_size(cfg: &Config, repo: &str) -> usize {
 
 /// The worktree root the pool slots live under, honoring `$WT_ROOT` (the `wtw` wrapper's override)
 /// exactly as `bn-cli`'s `wt::layout` does, else the resolved `cfg.worktree_dir`.
-fn worktree_root(cfg: &Config) -> PathBuf {
+pub(crate) fn worktree_root(cfg: &Config) -> PathBuf {
     match std::env::var("WT_ROOT") {
         Ok(root) if !root.is_empty() => PathBuf::from(root).join("worktree"),
         _ => cfg.worktree_dir.clone(),
@@ -398,7 +398,7 @@ pub fn pooled_repos(cfg: &Config) -> Vec<String> {
 }
 
 /// The bare-clone root, honoring `$WT_ROOT` exactly as [`worktree_root`] does.
-fn bare_root(cfg: &Config) -> PathBuf {
+pub(crate) fn bare_root(cfg: &Config) -> PathBuf {
     match std::env::var("WT_ROOT") {
         Ok(root) if !root.is_empty() => PathBuf::from(root).join("bare"),
         _ => cfg.bare_dir(),
