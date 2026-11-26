@@ -8,6 +8,16 @@ use crate::*;
 
 #[derive(Subcommand, Debug)]
 pub(crate) enum AgentCmd {
+    /// Stop workspan from starting paid agent sessions on this machine: dispatch, plan reviewers,
+    /// task agents, review and attention windows, pipeline stages and session resumes all refuse
+    /// until `workspan agent unpause`. Harnesses you start yourself are not affected.
+    Pause {
+        /// Why, shown in every refusal.
+        #[arg(default_value = "")]
+        reason: String,
+    },
+    /// Allow workspan to start agent sessions again.
+    Unpause,
     /// Recent agent sessions for a branch (default — same as bare `workspan agent`). Resolves the
     /// current worktree, or pass --repo/--branch to target another.
     Sessions {

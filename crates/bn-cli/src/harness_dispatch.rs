@@ -16,12 +16,27 @@ fn copilot_credit_cap(raw: Option<&str>) -> Option<&str> {
         .filter(|v| v.parse::<f64>().is_ok_and(|n| n > 0.0))
 }
 
+/// Exit with an `agents-paused` error when `workspan agent pause` is in effect.
+pub(crate) fn refuse_if_agents_paused(json: bool, command: &str) {
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        crate::fail_json(
+            json,
+            command,
+            "agents-paused",
+            &format!("workspan {command}: {refusal}"),
+        );
+    }
+}
+
 pub(crate) fn harness_command(
     harness: &str,
     prompt: &str,
     model: Option<&str>,
     session_id: Option<&str>,
-) -> Option<std::process::Command> {
+) -> Result<std::process::Command, String> {
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        return Err(refusal);
+    }
     let mut c = match harness {
         "copilot" => {
             let mut c = std::process::Command::new("copilot");
@@ -40,7 +55,11 @@ pub(crate) fn harness_command(
             c.args(bn_core::mcp::Harness::Claude.autonomy_args());
             c
         }
-        _ => return None,
+        _ => {
+            return Err(format!(
+                "unknown harness '{harness}' (use: copilot | claude)"
+            ))
+        }
     };
     // Only pass `--model` when the configured id is one this harness accepts; an id it rejects
     // (e.g. bn's dotted claude-opus-4.8 handed to Claude Code) would park the agent on "model does
@@ -55,7 +74,7 @@ pub(crate) fn harness_command(
             c.args(["--session-id", sid]);
         }
     }
-    Some(c)
+    Ok(c)
 }
 
 pub(crate) fn dispatch_capture(
@@ -271,6 +290,21 @@ fn visible_script(
 mod tests {
     use super::*;
     use bn_core::test_support::EnvGuard;
+
+    #[test]
+    fn paused_agents_refuse_the_harness_command() {
+        bn_core::test_support::with_state_dir_path(|_| {
+            assert!(harness_command("claude", "hi", None, None).is_ok());
+            bn_core::agent_pause::pause("saving tokens").unwrap();
+            let refusal = harness_command("claude", "hi", None, None).unwrap_err();
+            assert!(
+                refusal.contains("agents are paused (saving tokens)"),
+                "{refusal}"
+            );
+            bn_core::agent_pause::unpause().unwrap();
+            assert!(harness_command("claude", "hi", None, None).is_ok());
+        });
+    }
 
     #[test]
     fn credit_cap_accepts_only_positive_numbers() {

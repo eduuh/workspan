@@ -223,6 +223,7 @@ pub(crate) fn emit(
     harness: Option<&str>,
     as_json: bool,
 ) -> ! {
+    crate::harness_dispatch::refuse_if_agents_paused(as_json, "agent relaunch");
     let fail = |code: &str, msg: &str| -> ! { fail_json(as_json, "agent_relaunch", code, msg) };
 
     // Availability-gate an explicit harness before anything else: an org-disabled claude must be a
@@ -403,6 +404,7 @@ fn seed_for_fresh(_cfg: &Config, plan: &RelaunchPlan) -> Option<String> {
 /// partial relaunch is a real state the operator has to be able to see, not something to average
 /// into a single boolean.
 pub(crate) fn emit_repo(cfg: &Config, repo: &str, hard: bool, harness: Option<&str>, as_json: bool) {
+    crate::harness_dispatch::refuse_if_agents_paused(as_json, "agent relaunch");
     let repo = repo.trim();
     if repo.is_empty() || repo.contains(':') {
         let msg = format!("invalid repo '{repo}' (expected a bare repo name, not repo:branch)");

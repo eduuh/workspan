@@ -63,6 +63,10 @@ pub(crate) fn launch_sub_investigator(
     question: &str,
     quiet: bool,
 ) -> bool {
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        eprintln!("workspan pipeline: {refusal}");
+        return false;
+    }
     let Some(parent_wt) = stage_worktree(cfg, ctx) else {
         return false;
     };
@@ -188,6 +192,10 @@ pub(crate) fn launch_plan_agent(
     findings: &[String],
     quiet: bool,
 ) -> bool {
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        eprintln!("workspan pipeline: {refusal}");
+        return false;
+    }
     let Some(wt_path) = stage_worktree(cfg, ctx) else {
         return false;
     };

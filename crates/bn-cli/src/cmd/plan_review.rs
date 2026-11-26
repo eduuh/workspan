@@ -530,7 +530,6 @@ fn run_review_agents(
             for spec in chunk {
                 let command = agent_review_prompt(cfg, review, spec).and_then(|prompt| {
                     crate::harness_dispatch::harness_command(harness, &prompt, model, None)
-                        .ok_or_else(|| format!("unknown harness '{harness}' (use: copilot | claude)"))
                 });
                 handles.push((
                     spec.reviewer.clone(),

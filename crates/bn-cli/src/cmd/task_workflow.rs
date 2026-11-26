@@ -58,13 +58,9 @@ fn run_task_agent(cfg: &Config, label: &str, packet: &str, dry_run: bool) -> Tas
     }
 
     let harness = agent.harness.as_deref().unwrap_or("copilot");
-    let Some(cmd) =
+    let cmd =
         crate::harness_dispatch::harness_command(harness, &prompt, agent.model.as_deref(), None)
-    else {
-        fail(&format!(
-            "workspan task {label}: unknown harness '{harness}' (use copilot | claude)"
-        ));
-    };
+            .unwrap_or_else(|error| fail(&format!("workspan task {label}: {error}")));
     let session = agent.requires_repo.as_deref().unwrap_or("bn");
     let (success, output, combined) = crate::harness_dispatch::dispatch_visible(
         cmd,
