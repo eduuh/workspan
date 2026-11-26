@@ -15,11 +15,23 @@ fn controller_launch_env(controller_id: Option<&str>, worker_session_id: Option<
         && worker_session_id.is_none_or(|value| value.trim().is_empty())
 }
 
-/// A hook command that runs this workspan with `args`, quoted for the harness's shell.
+/// The workspan a hook runs: the `<config_dir>/workspan` anchor install.sh keeps pointed at the live
+/// binary, else this binary. Hooks outlive the launch, so pinning this binary's own path broke every
+/// running session the moment a reinstall moved or renamed it (the `bn` -> `workspan` rename left
+/// each hook calling a deleted `.../prod/bn`).
+fn hook_executable(anchor: &std::path::Path, current: Option<std::path::PathBuf>) -> String {
+    if anchor.exists() {
+        return anchor.to_string_lossy().into_owned();
+    }
+    current.map_or_else(|| "workspan".to_string(), |path| path.to_string_lossy().into_owned())
+}
+
+/// A hook command that runs the live workspan with `args`, quoted for the harness's shell.
 fn bn_hook_command(args: &str) -> String {
-    let executable = std::env::current_exe()
-        .map(|path| path.to_string_lossy().into_owned())
-        .unwrap_or_else(|_| "workspan".to_string());
+    let executable = hook_executable(
+        &resolver::config_dir().join("workspan"),
+        std::env::current_exe().ok(),
+    );
     #[cfg(windows)]
     {
         format!("& '{}' {args}", executable.replace('\'', "''"))
@@ -298,5 +310,18 @@ mod tests {
             assert!(written.contains(event), "{event} missing: {written}");
         }
         assert!(!written.contains("links harvest"), "{written}");
+    }
+
+    /// Hooks call the stable anchor when it exists, so a reinstall that moves or renames the binary
+    /// does not break the sessions already running; without one they fall back to this binary.
+    #[test]
+    fn hooks_prefer_the_install_anchor_over_this_binary() {
+        let dir = tempfile::tempdir().expect("tempdir");
+        let anchor = dir.path().join("workspan");
+        let current = Some(std::path::PathBuf::from("/builds/prod/bn"));
+        assert_eq!(hook_executable(&anchor, current.clone()), "/builds/prod/bn");
+        std::fs::write(&anchor, "").expect("anchor");
+        assert_eq!(hook_executable(&anchor, current), anchor.to_string_lossy());
+        assert_eq!(hook_executable(&dir.path().join("missing"), None), "workspan");
     }
 }
