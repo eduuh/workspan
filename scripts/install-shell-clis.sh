@@ -1,9 +1,9 @@
 #!/usr/bin/env bash
 
-# Shell productivity companions for the workflow layer — not required by bn itself, but they pay
+# Shell productivity companions for the workflow layer — not required by workspan itself, but they pay
 # for themselves on top of it: zoxide for jumping between pool-slot worktrees by fragment, bat for
 # reading task/plan output with highlighting, eza for a quick tree of active worktrees, and
-# delta as git's diff pager for `bn why` / review-gate diffs. Sourced by install.sh and its check.
+# delta as git's diff pager for `workspan why` / review-gate diffs. Sourced by install.sh and its check.
 # Full mode installs these by default; --shell-clis / BN_INSTALL_SHELL_CLIS=1 enables core mode.
 #
 # Non-fatal by design, same posture as install-tmux.sh's build step: a missing tool here

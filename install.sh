@@ -10,7 +10,7 @@
 #   Full mode also installs graphify (via uv) and its Claude + Copilot skills. BN_SKIP_GRAPHIFY=1
 #            skips it.
 #   --force-home  replace real files that config/stow/ tracks (old copy kept as <file>.bak-<time>) and
-#            unmanaged skills bn would otherwise skip (moved to ~/.cache/bn/skill-backups/).
+#            unmanaged skills workspan would otherwise skip (moved to ~/.cache/bn/skill-backups/).
 #            Also BN_FORCE_HOME=1. Without it, a real file you wrote is left alone.
 # The Rust crates have zero tmux dependency; the tmux layer is opt-in glue on top.
 #
@@ -57,7 +57,7 @@ if [ "$shell_clis" = "auto" ]; then
   fi
 fi
 
-# bn home — the single hub for tooling: source (repo/), binaries (bin/), config (config/),
+# workspan home — the single hub for tooling: source (repo/), binaries (bin/), config (config/),
 # the jobs symlink, and bn-managed repos (repos/). New + fresh installs default to ~/.bn;
 # an existing legacy install (~/.config/bn present, ~/.bn absent, BN_HOME unset) stays put so
 # a plain re-run never surprise-migrates a daily driver. Notes/metrics/state are NOT here —
@@ -104,11 +104,11 @@ if [ "$layout" = "home" ] && [ "$cfgdir" != "$legacy_cfg" ]; then
   fi
 fi
 echo "workspan layout: $layout (home=$bn_home, config=$cfgdir, bin=$bindir)"
-# Canonicalize to an absolute path so the stable anchor below (~/.config/bn/bn) never
-# records a relative or symlinked bindir. Reject a temp dir outright: bn must be installed
+# Canonicalize to an absolute path so the stable anchor below (~/.config/bn/workspan) never
+# records a relative or symlinked bindir. Reject a temp dir outright: workspan must be installed
 # somewhere persistent, or the anchor dangles the moment the temp dir is reaped — silently
-# bricking every tmux-bar bn call (tmux-status, attn badge, cron). This is the failure that
-# left ~/.config/bn/bn pointing at a deleted temporary directory.
+# bricking every tmux-bar workspan call (tmux-status, attn badge, cron). This is the failure that
+# left ~/.config/bn/workspan pointing at a deleted temporary directory.
 bindir="$(cd "$bindir" && pwd -P)"
 case "$bindir" in
   /tmp/* | /var/tmp/* | /private/tmp/* | */tmp.??????????/*)
@@ -119,7 +119,7 @@ case "$bindir" in
 esac
 
 # --- core: the Rust engine ------------------------------------------------------
-# Rust bn is the only implementation: the zsh bn it grew out of is gone, so every command
+# Rust workspan is the only implementation: the zsh workspan it grew out of is gone, so every command
 # lives in the binary and an unknown one is a clap error rather than a pass-through.
 #
 # Binaries come from the latest versioned GitHub release, never from a compile here. Every merge
@@ -149,12 +149,12 @@ atomic_install() {
   cp "$src" "$tmp" && chmod 0755 "$tmp" && mv -f "$tmp" "$dst" || { rm -f "$tmp"; return 1; }
 }
 
-# Download the prebuilt bn and bn-mcp for this platform from the latest GitHub release.
+# Download the prebuilt workspan and workspan-mcp for this platform from the latest GitHub release.
 # Non-zero on any missing tool, unknown platform, or unusable asset — and each failure says which
 # one it was. There is no local-compile fallback behind this any more, so a silent return would
 # leave the person at the keyboard guessing between five different causes.
 download_release() {
-  local target tmp app archive url bin src bn_src=""
+  local target tmp app archive url bin src workspan_src="" mcp_src=""
   if ! command -v tar >/dev/null 2>&1; then
     echo "error: tar not found — cannot unpack the release archives." >&2
     return 1
@@ -193,25 +193,27 @@ download_release() {
       return 1
     fi
   done
-  for bin in bn bn-mcp; do
+  # Releases published before the rename ship the same binaries as bn/bn-mcp.
+  for bin in workspan workspan-mcp; do
     src=$(find "$tmp" -type f -name "$bin" -perm -u+x | head -n1)
+    [ -n "$src" ] || src=$(find "$tmp" -type f -name "${bin/workspan/bn}" -perm -u+x | head -n1)
     if [ -z "$src" ]; then
       echo "error: the release archives for $target contain no $bin binary." >&2
       rm -rf "$tmp"
       return 1
     fi
-    if [ "$bin" = "bn" ]; then bn_src="$src"; fi
+    if [ "$bin" = "workspan" ]; then workspan_src="$src"; else mcp_src="$src"; fi
   done
   # A GNU/Linux archive can exist yet need a newer glibc than this machine has. Probe before
   # replacing anything, so a binary that cannot run here never lands on top of one that does.
-  if ! "$bn_src" --version >/dev/null 2>&1; then
+  if ! "$workspan_src" --version >/dev/null 2>&1; then
     echo "error: the downloaded workspan will not run here (usually a glibc older than the one the" >&2
     echo "       release was built against). Compile the checkout instead: ./build.sh" >&2
     rm -rf "$tmp"
     return 1
   fi
-  for bin in bn bn-mcp; do
-    src=$(find "$tmp" -type f -name "$bin" -perm -u+x | head -n1)
+  for bin in workspan workspan-mcp; do
+    if [ "$bin" = "workspan" ]; then src="$workspan_src"; else src="$mcp_src"; fi
     if ! atomic_install "$src" "$bindir/$bin"; then
       echo "error: could not place $bin into $bindir." >&2
       rm -rf "$tmp"
@@ -219,7 +221,7 @@ download_release() {
     fi
   done
   rm -rf "$tmp"
-  echo "Installed prebuilt workspan + bn-mcp ($target) from the latest release."
+  echo "Installed prebuilt workspan + workspan-mcp ($target) from the latest release."
 }
 
 # Place the binaries ./build.sh has just compiled. That script re-enters this one with
@@ -228,7 +230,7 @@ download_release() {
 install_built_binaries() {
   # build.sh exports the profile it compiled with; its default is Cargo.toml's `local`.
   local target_dir="${BN_INSTALL_TARGET_DIR:-$repo/target/bn-install}/${BN_INSTALL_PROFILE:-local}" bin
-  for bin in bn bn-mcp; do
+  for bin in workspan workspan-mcp; do
     if [ ! -x "$target_dir/$bin" ]; then
       echo "error: $target_dir/$bin is missing." >&2
       echo "       --from-build is internal; run ./build.sh to compile and install this checkout." >&2
@@ -236,11 +238,11 @@ install_built_binaries() {
     fi
   done
   # Copy, don't symlink: a symlink into the target dir breaks on `cargo clean`,
-  # silently bricking the live `bn`. Re-run ./build.sh after source changes to refresh.
-  for bin in bn bn-mcp; do
+  # silently bricking the live `workspan`. Re-run ./build.sh after source changes to refresh.
+  for bin in workspan workspan-mcp; do
     atomic_install "$target_dir/$bin" "$bindir/$bin"
   done
-  echo "Installed workspan + bn-mcp into $bindir from $target_dir (source build)."
+  echo "Installed workspan + workspan-mcp into $bindir from $target_dir (source build)."
 }
 
 if [ "$from_build" = "1" ]; then
@@ -256,7 +258,7 @@ else
 fi
 
 # Sweep the retired bash fallback: older installs symlinked $bindir/bn-bash at the repo's zsh
-# `bn`, which no longer exists. Left alone it is a dangling symlink on every upgraded box.
+# `workspan`, which no longer exists. Left alone it is a dangling symlink on every upgraded box.
 rm -f "$bindir/bn-bash"
 
 # Remove the retired wrapper only when it is the guard installed by bn. Never touch a user's own
@@ -266,22 +268,18 @@ if [ -f "$bindir/tmux" ] && grep -q "refuse destructive kill verbs" "$bindir/tmu
   echo "Removed the retired tmux guard from $bindir"
 fi
 
-# Stable binary anchor: the tmux status bar (and tmux-lib) call bn by absolute path
-# because the tmux server's PATH lacks $bindir. ~/.config/bn/bn is bindir-independent,
-# so the config never hardcodes ~/.bin vs ~/.local/bin. Created in the core path too,
-# so `bn cron`/`bn tmux-status` badges work on a core-only (no-tmux) box.
-# Guard: never anchor to a missing target — a dangling anchor fails silently in every bar
-# call. If the binary isn't there, something upstream went wrong; fail loud instead.
-if [ ! -x "$bindir/bn" ]; then
-  echo "error: $bindir/bn is missing or not executable; refusing to link $cfgdir/bn." >&2
-  exit 1
-fi
-ln -sfn "$bindir/bn" "$cfgdir/bn"
+# Stable binary anchor: the tmux status bar (and tmux-lib) call workspan by absolute path because
+# the tmux server's PATH lacks $bindir. $cfgdir/workspan is bindir-independent, so the config never
+# hardcodes ~/.bin vs ~/.local/bin. Created in the core path too, so `workspan cron` and
+# `workspan tmux-status` badges work on a core-only (no-tmux) box. workspan_install_links refuses
+# to anchor to a missing binary: a dangling anchor fails silently in every bar call.
+source "$repo/scripts/install-workspan.sh"
+workspan_install_links "$bindir" "$cfgdir"
 
 # --- retire the queue-dispatcher units of older installs -------------------------------------------
-# Older bn ran a machine-wide queue dispatcher, first under these systemd/launchd units and later as
+# Older workspan ran a machine-wide queue dispatcher, first under these systemd/launchd units and later as
 # a resident loop of its own. Both are gone: crons and scheduled agents fire through launchd/systemd
-# straight into `bn run <job>`. A unit left from an older install would keep restarting a `bn queue`
+# straight into `workspan run <job>`. A unit left from an older install would keep restarting a `workspan queue`
 # command that no longer exists, so an install is the moment to take it away. Idempotent and quiet
 # when there is nothing to do.
 deregister_legacy_services() {
@@ -315,15 +313,15 @@ deregister_legacy_services() {
 }
 deregister_legacy_services
 
-# Neutralize any older bn sitting earlier on PATH than the one just installed. Installing to a
-# dir that PATH resolves *after* another dir holding a bn means `bn` keeps running stale even
+# Neutralize any older workspan sitting earlier on PATH than the one just installed. Installing to a
+# dir that PATH resolves *after* another dir holding a workspan means `workspan` keeps running stale even
 # though the install succeeded — the exact "I built the latest but nothing changed" trap, and it
 # reports success the whole way. Repoint every such copy at the freshly installed binary so PATH
 # order can't serve a stale bn.
 #
 # This used to check only ~/.bin, which missed the case it was written for: the documented escape
 # hatch for a stow-managed ~/.bin is BN_BIN_DIR=~/.local/bin, so the stale copy lands in
-# ~/.local/bin — a dir this never looked at. One machine ran a day-old `bn` in every shell while
+# ~/.local/bin — a dir this never looked at. One machine ran a day-old `workspan` in every shell while
 # cron ran the current build through the anchor. So walk PATH itself rather than guessing which
 # dir is the offender, and keep ~/.bin in the sweep even when it isn't on the installer's PATH
 # (an interactive shell's PATH is usually longer than a script's).
@@ -345,7 +343,7 @@ for candidate in ${path_dirs[@]+"${path_dirs[@]}"} "$HOME/.bin"; do
   case ":$shadow_dirs:" in *":$candidate_real:"*) continue ;; esac
   shadow_dirs="$shadow_dirs:$candidate_real"
 
-  for b in bn bn-mcp; do
+  for b in workspan workspan-mcp; do
     if [ -e "$candidate/$b" ] || [ -L "$candidate/$b" ]; then
       ln -sfn "$bindir/$b" "$candidate/$b"
       echo "Repointed $candidate/$b -> $bindir/$b (was shadowing the current binary on PATH)"
@@ -353,16 +351,13 @@ for candidate in ${path_dirs[@]+"${path_dirs[@]}"} "$HOME/.bin"; do
   done
 done
 
-atomic_install "$repo/config/workflow/bin/setup-entire.sh" "$bindir/bn-setup-entire"
 atomic_install "$repo/config/workflow/bin/setup-entire.sh" "$bindir/workspan-setup-entire"
-source "$repo/scripts/install-workspan.sh"
-bn_install_workspan "$bindir" "$cfgdir"
 
-# Cron job scripts live in-repo (version-controlled); `bn run` resolves them via this path.
+# Cron job scripts live in-repo (version-controlled); `workspan run` resolves them via this path.
 ln -sfn "$shipped/config/jobs" "$cfgdir/jobs"
 echo "Linked $cfgdir/jobs -> $shipped/config/jobs"
 
-# Strict self-describing agents (config/agents/<name>.md) live in-repo too; `bn` resolves the
+# Strict self-describing agents (config/agents/<name>.md) live in-repo too; `workspan` resolves the
 # shipped tier through this symlink. Every manifest declares command/staff/hosted/specialist;
 # Their `on_calendar` values are not fired while scheduled agents are disabled (see crons.toml).
 ln -sfn "$shipped/config/agents" "$cfgdir/agents"
@@ -370,15 +365,15 @@ echo "Linked $cfgdir/agents -> $shipped/config/agents"
 
 # Invocable prompts (config/prompts/<name>.md) are the shipped tier the MCP prompt resolver serves
 # as slash commands. No symlink needed: `global_skill_dirs()` reaches them through the stable
-# `$cfgdir/repo` anchor (linked below) as `$cfgdir/repo/config/prompts`, so `bn mcp serve` serves them
+# `$cfgdir/repo` anchor (linked below) as `$cfgdir/repo/config/prompts`, so `workspan mcp serve` serves them
 # in any launch mode. `$cfgdir/skills` is left alone as the user's *personal* skill tier.
 
 # The shipped cron manifest (config/crons.toml) — resolved via config_dir()/crons.toml.
 ln -sfn "$shipped/config/crons.toml" "$cfgdir/crons.toml"
 echo "Linked $cfgdir/crons.toml -> $shipped/config/crons.toml"
 
-# No config step: bn runs on built-in defaults, and settings live in the notes tree
-# (docs/config.md). An old $cfgdir/config.toml moves there the first time the new bn runs.
+# No config step: workspan runs on built-in defaults, and settings live in the notes tree
+# (docs/config.md). An old $cfgdir/config.toml moves there the first time the new workspan runs.
 
 # --- external runtime dependencies --------------------------------------------
 # The Rust core has no tmux/fzf dependency, but the full workflow intentionally keeps those
@@ -551,57 +546,57 @@ fi
 # --- validate Markdown agents + register cron timers (idempotent) ----------------
 # Catalog errors are migration errors, not an optional integration failure: print the exact
 # manifest path and stop before installing a scheduler that would fail every minute.
-if ! "$bindir/bn" agents validate; then
+if ! "$bindir/workspan" agents validate; then
   echo "error: invalid Markdown agent catalog; fix the manifest above and re-run install.sh" >&2
   # Most often the manifest is fine and the *binary* is behind it. install.sh links this
-  # checkout's config/agents but installs bn from the published release, so a platform whose
-  # release assets have gone stale gets a bn that has never heard of a field main added since.
+  # checkout's config/agents but installs workspan from the published release, so a platform whose
+  # release assets have gone stale gets a workspan that has never heard of a field main added since.
   # Compare the two before editing anything the checkout is right about.
   echo "       If the manifest matches main, this is version skew: the installed workspan is" >&2
-  echo "       $("$bindir/bn" --version 2>/dev/null || echo unknown)" >&2
+  echo "       $("$bindir/workspan" --version 2>/dev/null || echo unknown)" >&2
   echo "       while config/agents comes from this checkout. Build the checkout instead: ./build.sh" >&2
   exit 1
 fi
 
-# Pick up crons.toml additions/changes automatically — no manual `bn cron register` after an
+# Pick up crons.toml additions/changes automatically — no manual `workspan cron register` after an
 # install or update. Scheduled agents are disabled, so no timer fires manifest schedules. Diffs against what's
 # registered, so it only touches what changed; on a non-systemd host it just reports the plan.
 # Platform timer installation remains non-fatal; catalog validation above does not.
-"$bindir/bn" cron register || true
+"$bindir/workspan" cron register || true
 
 echo "Completion: add to ~/.zshrc -> source <(workspan completion zsh)"
 echo "Wrappers:   add to ~/.zshrc -> source <(workspan shell-init zsh)   # claude|copilot start inside Workspan"
 echo "            (nothing is appended for you — your rc is usually a symlink into a dotfiles repo."
 echo "             'workspan doctor' warns while the wrappers are missing, inactive, or shadowed.)"
 
-# --- register the bn MCP server globally for MCP clients (Claude Code + VS Code Copilot + Copilot
+# --- register the workspan MCP server globally for MCP clients (Claude Code + VS Code Copilot + Copilot
 # CLI) ---------------------------------------------------------------------------------------------
-# bn's MCP tools are served by a per-worktree **stdio** launcher: each client spawns `bn mcp serve`,
+# bn's MCP tools are served by a per-worktree **stdio** launcher: each client spawns `workspan mcp serve`,
 # which derives its (repo, branch) scope from the client's cwd, so no per-call headers or running
-# server are needed. Registering at *user* scope means every repo gets the current-worktree bn
-# tools + session-safe skill prompts without a per-project .mcp.json. `bn` must be on PATH for
+# server are needed. Registering at *user* scope means every repo gets the current-worktree workspan
+# tools + session-safe skill prompts without a per-project .mcp.json. `workspan` must be on PATH for
 # clients to spawn it. The launcher is untokened (#523), so no credential is written.
 register_mcp() {
   command -v jq >/dev/null 2>&1 || { echo "Skipped global MCP registration (jq not found)."; return; }
   local tmp
-  local tools='["bn_cmd","bn_links_search","bn_links_add","bn_ref","bn_ref_append"]'
+  local tools='["workspan_cmd","workspan_links_search","workspan_links_add","workspan_ref","workspan_ref_append"]'
 
-  # Spawn bn by ABSOLUTE path, never the bare name. A GUI-launched client (Claude Desktop, VS Code
+  # Spawn workspan by ABSOLUTE path, never the bare name. A GUI-launched client (Claude Desktop, VS Code
   # from the Dock) inherits none of the shell PATH — its PATH is /usr/bin:/bin:/usr/sbin:/sbin, so
   # `command: "bn"` simply fails to start and the client shows an MCP server that never connects.
   # An absolute path is also immune to a stale shadowing copy earlier on PATH. Prefer the stable
   # $cfgdir/workspan anchor: it survives the binary moving
   # between $bindir layouts.
-  local bn_cmd="$cfgdir/workspan"
-  [ -x "$bn_cmd" ] || bn_cmd="$bindir/workspan"
+  local workspan_cmd="$cfgdir/workspan"
+  [ -x "$workspan_cmd" ] || workspan_cmd="$bindir/workspan"
 
   # nvim-mcp — the editor MCP server (buffers, LSP diagnostics, definitions, references, rename),
-  # registered next to bn wherever it is installed. Absolute path for the same reason bn is: a
+  # registered next to workspan wherever it is installed. Absolute path for the same reason workspan is: a
   # GUI-launched client inherits none of the shell PATH. `--connect auto` discovers the nvim
   # running in the client's git root, so one user-scope entry covers every repo and no
   # machine-local socket path is ever written.
   #
-  # bn deliberately does not install it. The binary and the nvim plugin must come from the SAME
+  # workspan deliberately does not install it. The binary and the nvim plugin must come from the SAME
   # commit — released 0.7.2 globs /tmp for sockets while the plugin on main registers them under
   # $XDG_RUNTIME_DIR, so a crates.io binary paired with a git plugin discovers nothing, silently.
   # Upstream's own lazy.nvim spec builds the binary from the checked-out plugin
@@ -619,7 +614,7 @@ register_mcp() {
   local cc="$HOME/.claude.json"
   [ -f "$cc" ] || echo '{}' > "$cc"
   tmp=$(mktemp)
-  if jq --arg bn "$bn_cmd" '.mcpServers.bn = {type: "stdio", command: $bn, args: ["mcp","serve"]}' \
+  if jq --arg ws "$workspan_cmd" 'del(.mcpServers.bn) | .mcpServers.workspan = {type: "stdio", command: $ws, args: ["mcp","serve"]}' \
         "$cc" > "$tmp" 2>/dev/null; then
     mv "$tmp" "$cc"; echo "Registered workspan MCP for Claude Code (user scope) -> $cc"
   else
@@ -655,7 +650,7 @@ register_mcp() {
     # treat a missing or whitespace-only file as an empty object
     grep -q '[^[:space:]]' "$f" 2>/dev/null || echo '{}' > "$f"
     tmp=$(mktemp)
-    if jq --arg bn "$bn_cmd" '.servers.bn = {type: "stdio", command: $bn, args: ["mcp","serve"]}' \
+    if jq --arg ws "$workspan_cmd" 'del(.servers.bn) | .servers.workspan = {type: "stdio", command: $ws, args: ["mcp","serve"]}' \
           "$f" > "$tmp" 2>/dev/null; then
       mv "$tmp" "$f"; echo "Registered workspan MCP for VS Code Copilot -> $f"; wrote=1
     else
@@ -686,7 +681,7 @@ register_mcp() {
     local dcfg="$desktop_dir/claude_desktop_config.json"
     grep -q '[^[:space:]]' "$dcfg" 2>/dev/null || echo '{}' > "$dcfg"
     tmp=$(mktemp)
-    if jq --arg bn "$bn_cmd" '.mcpServers.bn = {command: $bn, args: ["mcp","serve"]}' \
+    if jq --arg ws "$workspan_cmd" 'del(.mcpServers.bn) | .mcpServers.workspan = {command: $ws, args: ["mcp","serve"]}' \
           "$dcfg" > "$tmp" 2>/dev/null; then
       mv "$tmp" "$dcfg"; echo "Registered workspan MCP for Claude Desktop -> $dcfg"
     else
@@ -702,8 +697,8 @@ register_mcp() {
     mkdir -p "$HOME/.copilot"
     grep -q '[^[:space:]]' "$cli" 2>/dev/null || echo '{}' > "$cli"
     tmp=$(mktemp)
-    if jq --argjson tools "$tools" --arg bn "$bn_cmd" \
-          '.mcpServers.bn = {type: "local", command: $bn, args: ["mcp","serve"], tools: $tools}' \
+    if jq --argjson tools "$tools" --arg ws "$workspan_cmd" \
+          'del(.mcpServers.bn) | .mcpServers.workspan = {type: "local", command: $ws, args: ["mcp","serve"], tools: $tools}' \
           "$cli" > "$tmp" 2>/dev/null; then
       mv "$tmp" "$cli"; echo "Registered workspan MCP for GitHub Copilot CLI -> $cli"
     else
@@ -711,7 +706,7 @@ register_mcp() {
     fi
     if [ -n "$nvim_mcp_cmd" ]; then
       tmp=$(mktemp)
-      # `tools: ["*"]` — unlike bn, whose surface is deliberately trimmed to the session tools,
+      # `tools: ["*"]` — unlike workspan, whose surface is deliberately trimmed to the session tools,
       # every nvim tool is worth having: which ones matter depends entirely on the task.
       if jq --arg nv "$nvim_mcp_cmd" \
             '.mcpServers.nvim = {type: "local", command: $nv, args: ["--connect","auto"], tools: ["*"]}' \
@@ -726,20 +721,20 @@ register_mcp() {
 register_mcp
 
 # --- your own user-scoped MCP servers, declared in config.toml -------------------------------
-# register_mcp above covers the two servers install.sh knows by name (bn, nvim-mcp). Anything
+# register_mcp above covers the two servers install.sh knows by name (workspan, nvim-mcp). Anything
 # else personal — an authenticated remote endpoint, a private gateway — is declared under
-# [mcp.servers.<name>] in the shared <notes_root>/config.toml and wired by `bn mcp sync-user`,
+# [mcp.servers.<name>] in the shared <notes_root>/config.toml and wired by `workspan mcp sync-user`,
 # which writes it into the same four client configs. Because that config.toml syncs between
 # machines, declaring a server once is what makes it exist on every machine you install on.
 #
 # --no-prompt is deliberate: installs run piped and unattended, so a server whose credential is
 # missing is reported and skipped rather than blocking the install waiting on a terminal. The
-# operator finishes those by running `bn mcp sync-user` interactively once per machine.
+# operator finishes those by running `workspan mcp sync-user` interactively once per machine.
 register_user_mcp() {
-  local bn_cmd="$cfgdir/bn"
-  [ -x "$bn_cmd" ] || bn_cmd="$bindir/bn"
-  [ -x "$bn_cmd" ] || return 0
-  "$bn_cmd" mcp sync-user --no-prompt || echo "warning: workspan mcp sync-user failed (continuing)" >&2
+  local workspan_cmd="$cfgdir/workspan"
+  [ -x "$workspan_cmd" ] || workspan_cmd="$bindir/workspan"
+  [ -x "$workspan_cmd" ] || return 0
+  "$workspan_cmd" mcp sync-user --no-prompt || echo "warning: workspan mcp sync-user failed (continuing)" >&2
 }
 register_user_mcp
 
@@ -763,12 +758,12 @@ echo "Linked $cfgdir/repo -> $shipped"
 
 # Copilot CLI and Claude Code both load *native* Agent Skills (~/.copilot/skills/<name>/SKILL.md,
 # ~/.claude/skills/<name>/SKILL.md), so (re)generate both roots here from the shipped prompts
-# (config/prompts) plus any personal skills. Claude also gets these over MCP via `bn mcp serve`; the
+# (config/prompts) plus any personal skills. Claude also gets these over MCP via `workspan mcp serve`; the
 # native copies keep slash commands in step with the installed skill sources.
 # Idempotent and safe (only ever touches bn-managed SKILL.md files), and a harness whose
-# root holds a same-named skill bn doesn't own is skipped rather than failing the other.
-# --force-home: a same-named skill bn does not own (no bn-managed marker) is moved aside to
-# ~/.cache/bn/skill-backups/<time>/ first, so `bn skills install` can replace it.
+# root holds a same-named skill workspan doesn't own is skipped rather than failing the other.
+# --force-home: a same-named skill workspan does not own (no bn-managed marker) is moved aside to
+# ~/.cache/bn/skill-backups/<time>/ first, so `workspan skills install` can replace it.
 if [ "$force_home" = "1" ]; then
   skill_backup="$HOME/.cache/bn/skill-backups/$(date +%Y%m%d%H%M%S)"
   for prompt in "$shipped"/config/prompts/*.md; do
@@ -784,7 +779,7 @@ if [ "$force_home" = "1" ]; then
     done
   done
 fi
-if "$bindir/bn" skills install >/dev/null 2>&1; then
+if "$bindir/workspan" skills install >/dev/null 2>&1; then
   echo "Regenerated ~/.copilot/skills and ~/.claude/skills from workspan skills (slash commands)"
 else
   echo "note: 'workspan skills install' skipped/failed; native slash-command skills not refreshed" >&2
@@ -796,7 +791,7 @@ fi
 # ~/.agents/skills and symlinks it into ~/.claude/skills; Claude Code and Copilot CLI both read
 # those roots natively, so one install serves both harnesses. Best-effort: needs npx, and a
 # failed entry is reported, never fatal. Names must not collide with bn's own skills, because
-# `bn skills install` refuses to overwrite a skill it does not own. One `<repo-or-url> <skill>` per
+# `workspan skills install` refuses to overwrite a skill it does not own. One `<repo-or-url> <skill>` per
 # line. Merge-conflict resolution is pinned to the last revision before upstream removed it.
 # Set BN_SKIP_UPSTREAM_SKILLS=1 to skip.
 install_upstream_skills() {
@@ -838,13 +833,13 @@ EOF_SKILLS
 install_upstream_skills
 
 # graphify CLI + its upstream skill for Claude Code and Copilot CLI (scripts/install-graphify.sh).
-# After `bn skills install`, so graphify's own skill replaces any older bn-managed copy.
+# After `workspan skills install`, so graphify's own skill replaces any older bn-managed copy.
 # shellcheck source=scripts/install-graphify.sh
 source "$repo/scripts/install-graphify.sh"
 bn_install_graphify
 
 # One global instructions file for both harnesses: config/AGENTS.md, read through the repo anchor
-# so it follows the checkout bn was installed from.
+# so it follows the checkout workspan was installed from.
 # Copilot CLI reads ~/.copilot/copilot-instructions.md, so that becomes a symlink to it; Claude
 # Code reads ~/.claude/CLAUDE.md, which gets one idempotent `@` import line. A real
 # copilot-instructions.md the user wrote is never replaced.
@@ -884,17 +879,17 @@ bn_install_stow "$cfgdir/repo/config/stow" "$HOME" "$force_home"
 # agents (~/.copilot/agents/<name>.agent.md + ~/.claude/agents/<name>.md), so a running
 # Copilot/Claude session discovers them under `/agent`. Their source `.md` files live in the
 # personal overlay ($BN_OVERLAY_DIR, default the personal-notes `bn/agents` dir) layered on top of
-# the notes roots, so `bn agents new --scope global-personal` writes them into personal-notes and
+# the notes roots, so `workspan agents new --scope global-personal` writes them into personal-notes and
 # they sync across machines. (Re)compile them here from the discovered specialist sources.
 # Idempotent, guarded, and prunes stale bn-managed agent files.
-if "$bindir/bn" agents install >/dev/null 2>&1; then
+if "$bindir/workspan" agents install >/dev/null 2>&1; then
   echo "Regenerated ~/.copilot/agents + ~/.claude/agents from workspan review specialists"
 else
   echo "note: 'workspan agents install' skipped/failed; review specialists not refreshed" >&2
 fi
 
-# The worktree/session/agent helpers are now native bn subcommands (`bn tat`/`bn wt clone`/
-# `bn agent launch`) — nothing extra to put on PATH here.
+# The worktree/session/agent helpers are now native workspan subcommands (`workspan tat`/`workspan wt clone`/
+# `workspan agent launch`) — nothing extra to put on PATH here.
 
 # Own ~/.tmux.conf: a symlink to the in-repo config keeps it live-editable (edit the repo
 # file, reload tmux — no reinstall). Back up any pre-existing real file once.

@@ -1,17 +1,17 @@
 #!/bin/bash
-# Exercise every non-interactive `bn tat` stage the way fzf invokes it — the hidden `--pick-stage`
+# Exercise every non-interactive `workspan tat` stage the way fzf invokes it — the hidden `--pick-stage`
 # callbacks, one call per row kind the sub-picker paints, every guarded refusal, and `kill` on a
 # throwaway session. Read-only apart from that session: nothing here leases or removes.
 #
-# Runs against the bn repo itself, on a machine with the bare+worktree layout and a warm pool.
+# Runs against the workspan repo itself, on a machine with the bare+worktree layout and a warm pool.
 # stdin is not a TTY, so `hold()` returns at once and a refusal cannot hang the run.
 #
-#   scripts/try-tat-stages.sh                 # uses target/release/bn
+#   scripts/try-tat-stages.sh                 # uses target/release/workspan
 #   B=/path/to/bn scripts/try-tat-stages.sh   # another binary (the installed one, an old build)
 #   OUT=/tmp/x scripts/try-tat-stages.sh      # keep every stage's full output under OUT/
 set -u
 REPO_DIR="$(cd "$(dirname "$0")/.." && pwd)"
-B="${B:-$REPO_DIR/target/release/bn}"
+B="${B:-$REPO_DIR/target/release/workspan}"
 OUT="${OUT:-$(mktemp -d)}"
 REPO=bn
 [ -x "$B" ] || { echo "build first:  cd $REPO_DIR && cargo build --release -p bn-cli" >&2; exit 1; }

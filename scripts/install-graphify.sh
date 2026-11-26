@@ -3,7 +3,7 @@
 # graphify (PyPI `graphifyy`, two y's) turns a repo into a queryable knowledge graph so agents ask
 # the graph instead of re-reading files. Sourced by install.sh and its check. Full mode installs the
 # CLI with uv and registers graphify's own skill for both harnesses (~/.claude/skills/graphify,
-# ~/.copilot/skills/graphify); upstream owns that skill, so bn ships no copy of it. Per-repo hooks
+# ~/.copilot/skills/graphify); upstream owns that skill, so workspan ships no copy of it. Per-repo hooks
 # stay opt-in through the setup-bn skill. Set BN_SKIP_GRAPHIFY=1 to skip.
 #
 # Best-effort, same posture as the upstream skills: no uv or a failed step is a warning, never

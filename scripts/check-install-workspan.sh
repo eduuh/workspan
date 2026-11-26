@@ -6,97 +6,71 @@ tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
 export HOME="$tmp/home" PATH="$tmp/bin:/usr/bin:/bin"
 mkdir -p "$tmp/bin" "$tmp/config" "$HOME"
-printf '#!/bin/sh\nprintf "compatibility\\n"\n' > "$tmp/bin/bn"
-chmod +x "$tmp/bin/bn"
-bn_install_workspan "$tmp/bin" "$tmp/config"
-[ "$("$tmp/bin/workspan")" = compatibility ]
-[ "$("$tmp/config/workspan")" = compatibility ]
-[ "$("$tmp/bin/ws")" = compatibility ]
+fake() { printf '#!/bin/sh\necho "%s"\n' "$2" > "$1"; chmod +x "$1"; }
+
+# A missing binary is never anchored.
+if workspan_install_links "$tmp/bin" "$tmp/config" 2>/dev/null; then
+  echo "expected a missing workspan binary to be refused" >&2
+  exit 1
+fi
+
+fake "$tmp/bin/workspan" "workspan 9.9.9"
+workspan_install_links "$tmp/bin" "$tmp/config"
+[ "$(readlink "$tmp/config/workspan")" = "$tmp/bin/workspan" ]
 [ "$(readlink "$tmp/bin/ws")" = workspan ]
 [ ! -e "$tmp/bin/wp" ]
-bn_install_workspan "$tmp/bin" "$tmp/config"
+workspan_install_links "$tmp/bin" "$tmp/config"
 
+# Someone else's ws, even a dangling one, is left alone.
 rm "$tmp/bin/ws"
-printf '#!/bin/sh\necho unrelated-ws\n' > "$tmp/bin/ws"
-chmod +x "$tmp/bin/ws"
-bn_install_workspan "$tmp/bin" "$tmp/config"
+fake "$tmp/bin/ws" unrelated-ws
+workspan_install_links "$tmp/bin" "$tmp/config"
 [ "$("$tmp/bin/ws")" = unrelated-ws ]
 rm "$tmp/bin/ws"
 ln -s missing-command "$tmp/bin/ws"
-bn_install_workspan "$tmp/bin" "$tmp/config"
+workspan_install_links "$tmp/bin" "$tmp/config"
 [ "$(readlink "$tmp/bin/ws")" = missing-command ]
 rm "$tmp/bin/ws"
 
-WORKSPAN_INSTALL_WP=1 bn_install_workspan "$tmp/bin" "$tmp/config"
-if [ -L "$tmp/bin/wp" ]; then
-  [ "$(readlink "$tmp/bin/wp")" = workspan ]
-fi
-# Remove only the alias created by this isolated test before planting a real command.
-if [ -L "$tmp/bin/wp" ]; then
-  rm "$tmp/bin/wp"
-fi
-printf '#!/bin/sh\necho wordpress\n' > "$tmp/bin/wp"
-chmod +x "$tmp/bin/wp"
-WORKSPAN_INSTALL_WP=1 bn_install_workspan "$tmp/bin" "$tmp/config"
+# wp is opt-in and never shadows an existing wp.
+WORKSPAN_INSTALL_WP=1 workspan_install_links "$tmp/bin" "$tmp/config"
+[ "$(readlink "$tmp/bin/wp")" = workspan ]
+rm "$tmp/bin/wp"
+fake "$tmp/bin/wp" wordpress
+WORKSPAN_INSTALL_WP=1 workspan_install_links "$tmp/bin" "$tmp/config"
 [ "$("$tmp/bin/wp")" = wordpress ]
 
-rm "$tmp/bin/workspan"
-printf 'unrelated tool\n' > "$tmp/bin/workspan"
-if bn_install_workspan "$tmp/bin" "$tmp/config"; then
-  echo "expected conflicting workspan command to be preserved" >&2
-  exit 1
-fi
-[ "$(cat "$tmp/bin/workspan")" = 'unrelated tool' ]
-
-rm "$tmp/bin/workspan" "$tmp/config/workspan"
+# A real file at the anchor is never replaced.
+rm "$tmp/config/workspan"
 printf 'unrelated anchor\n' > "$tmp/config/workspan"
-if bn_install_workspan "$tmp/bin" "$tmp/config"; then
+if workspan_install_links "$tmp/bin" "$tmp/config" 2>/dev/null; then
   echo "expected conflicting Workspan anchor to be preserved" >&2
   exit 1
 fi
 [ "$(cat "$tmp/config/workspan")" = 'unrelated anchor' ]
+rm "$tmp/config/workspan"
 
-mkdir -p "$tmp/home/bin" "$tmp/home/build" "$tmp/home/config" "$tmp/home/old"
-cp "$tmp/bin/bn" "$tmp/home/build/bn"
-cp "$tmp/bin/bn" "$tmp/home/old/bn"
-ln -s bn "$tmp/home/old/workspan"
-ln -s "$tmp/home/old/workspan" "$tmp/home/config/workspan"
-ln -s "$tmp/home/build/bn" "$tmp/home/bin/bn"
-ln -s "$tmp/home/old/workspan" "$tmp/home/bin/workspan"
-HOME="$tmp/home" PATH="$tmp/home/bin:/usr/bin:/bin" \
-  bn_install_workspan "$tmp/home/build" "$tmp/home/config"
-[ "$(readlink "$tmp/home/bin/workspan")" = "$tmp/home/build/workspan" ]
-[ "$(readlink "$tmp/home/config/workspan")" = "$tmp/home/build/workspan" ]
-[ "$("$tmp/home/bin/ws")" = compatibility ]
-HOME="$tmp/home" PATH="$tmp/home/bin:/usr/bin:/bin" \
-  bn_install_workspan "$tmp/home/build" "$tmp/home/config"
+# The bn names an older install left behind are retired.
+mkdir -p "$HOME/.bin"
+fake "$tmp/bin/bn" "bn 0.5.0"
+fake "$tmp/bin/bn-mcp" "bn-mcp"
+cp "$repo/config/workflow/bin/setup-entire.sh" "$tmp/bin/bn-setup-entire"
+cp "$repo/config/workflow/bin/setup-entire.sh" "$tmp/bin/workspan-setup-entire"
+ln -s "$tmp/bin/bn" "$tmp/config/bn"
+ln -s "$tmp/bin/bn" "$HOME/.bin/bn"
+workspan_install_links "$tmp/bin" "$tmp/config" >/dev/null
+for gone in "$tmp/bin/bn" "$tmp/bin/bn-mcp" "$tmp/bin/bn-setup-entire" "$tmp/config/bn" "$HOME/.bin/bn"; do
+  if [ -e "$gone" ] || [ -L "$gone" ]; then
+    echo "expected $gone to be retired" >&2
+    exit 1
+  fi
+done
+[ -f "$tmp/bin/workspan-setup-entire" ]
 
-rm "$tmp/home/build/ws" "$tmp/home/bin/ws"
-mkdir -p "$tmp/home/other"
-printf '#!/bin/sh\necho external-ws\n' > "$tmp/home/other/ws"
-chmod +x "$tmp/home/other/ws"
-HOME="$tmp/home" PATH="$tmp/home/other:$tmp/home/bin:/usr/bin:/bin" \
-  bn_install_workspan "$tmp/home/build" "$tmp/home/config"
-[ ! -e "$tmp/home/build/ws" ] && [ ! -e "$tmp/home/bin/ws" ]
-[ "$("$tmp/home/other/ws")" = external-ws ]
-
-rm "$tmp/home/bin/workspan"
-printf '#!/bin/sh\necho unrelated-workspan\n' > "$tmp/home/bin/workspan"
-chmod +x "$tmp/home/bin/workspan"
-HOME="$tmp/home" PATH="$tmp/home/bin:/usr/bin:/bin" \
-  bn_install_workspan "$tmp/home/build" "$tmp/home/config"
-[ "$("$tmp/home/bin/workspan")" = unrelated-workspan ]
-mv "$tmp/home/bin/workspan" "$tmp/home/bin/unrelated-workspan"
-ln -s unrelated-workspan "$tmp/home/bin/workspan"
-HOME="$tmp/home" PATH="$tmp/home/bin:/usr/bin:/bin" \
-  bn_install_workspan "$tmp/home/build" "$tmp/home/config"
-[ "$(readlink "$tmp/home/bin/workspan")" = unrelated-workspan ]
-
-mkdir -p "$tmp/home/direct" "$tmp/home/direct-config"
-cp "$tmp/bin/bn" "$tmp/home/direct/bn"
-ln -s "$tmp/home/old/workspan" "$tmp/home/direct/workspan"
-HOME="$tmp/home" PATH="$tmp/home/direct:/usr/bin:/bin" \
-  bn_install_workspan "$tmp/home/direct" "$tmp/home/direct-config"
-[ "$(readlink "$tmp/home/direct/workspan")" = bn ]
-[ "$("$tmp/home/direct/ws")" = compatibility ]
+# A bn that is not workspan stays, and so does the bn-mcp beside it.
+fake "$tmp/bin/bn" "some other tool"
+fake "$tmp/bin/bn-mcp" "bn-mcp"
+workspan_install_links "$tmp/bin" "$tmp/config"
+[ "$("$tmp/bin/bn")" = "some other tool" ]
+[ -e "$tmp/bin/bn-mcp" ]
 echo "check-install-workspan: ok"

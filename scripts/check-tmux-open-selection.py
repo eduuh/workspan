@@ -44,7 +44,7 @@ class SelectionTests(unittest.TestCase):
         self.calls.append((argv, kwargs))
         if argv[:2] == ["tmux", "display-message"] and "-p" in argv:
             return subprocess.CompletedProcess(argv, 0, self.cwd + "\n", "")
-        if argv[0] == "/home/tester/.config/bn/bn":
+        if argv[0] == "/home/tester/.config/bn/workspan":
             if self.failure:
                 raise self.failure
             return subprocess.CompletedProcess(argv, 0, self.stdout, "")
@@ -55,7 +55,7 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(
             self.calls[-1][0],
             [
-                "/home/tester/.config/bn/bn", "open", "--",
+                "/home/tester/.config/bn/workspan", "open", "--",
                 "/work/a project's dir/a 'quoted' file.txt",
             ],
         )
@@ -67,7 +67,7 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(
             self.calls[-1][0],
             [
-                "/home/tester/.config/bn/bn", "open", "--",
+                "/home/tester/.config/bn/workspan", "open", "--",
                 "/work/a project's dir/$(touch owned); `id` & file.txt",
             ],
         )
@@ -77,7 +77,7 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(
             self.calls[-1][0],
             [
-                "/home/tester/.config/bn/bn", "open", "--",
+                "/home/tester/.config/bn/workspan", "open", "--",
                 "https://example.test/?q=$(id)&x=1#anchor",
             ],
         )
@@ -89,7 +89,7 @@ class SelectionTests(unittest.TestCase):
         self.assertEqual(
             self.calls[-1][0],
             [
-                "/home/tester/.config/bn/bn", "open", "--",
+                "/home/tester/.config/bn/workspan", "open", "--",
                 "https://www.google.com/search?q=one+two+%26+%24%28id%29+caf%C3%A9",
             ],
         )
@@ -172,15 +172,15 @@ class SelectionTests(unittest.TestCase):
         self.assertIn("opener failed", self.calls[-1][0][-1])
 
     def test_missing_installed_bn_is_not_silently_replaced(self):
-        self.failure = FileNotFoundError("installed bn not found")
+        self.failure = FileNotFoundError("installed workspan not found")
         with patch.object(sys, "stdin", io.StringIO("test.txt")), patch.object(
             sys, "stderr", io.StringIO()
         ) as stderr:
             status = selection_helper.main(["%12", "open"])
         self.assertEqual(status, 1)
-        self.assertIn("installed bn not found", stderr.getvalue())
+        self.assertIn("installed workspan not found", stderr.getvalue())
         self.assertEqual(
-            self.calls[-2][0][0], "/home/tester/.config/bn/bn"
+            self.calls[-2][0][0], "/home/tester/.config/bn/workspan"
         )
 
 

@@ -28,7 +28,7 @@ done
 # Check the installer's defaults and opt-outs without running its deployment steps.
 tmp=$(mktemp -d)
 trap 'rm -rf "$tmp"' EXIT
-sed -n '/^mode="full"/,/^# bn home/{ /^# bn home/d; p; }' "$repo/install.sh" > "$tmp/settings.sh"
+sed -n '/^mode="full"/,/^# workspan home/{ /^# workspan home/d; p; }' "$repo/install.sh" > "$tmp/settings.sh"
 sed -n '/^# --- shell CLIs/,/^preflight_report "\$mode"/p' "$repo/install.sh" > "$tmp/phase.sh"
 
 check_shell_cli_mode() (

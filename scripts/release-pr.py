@@ -7,7 +7,7 @@ release-plz determines the next version by running `cargo package` on the tree a
 tag, and this workspace can never be packaged: `bn-core`/`bn-cli` `include_str!` repo-root files
 (`docs/config.md`, `config/skills/staff/*.md`, `config/workflow/tmux.conf`,
 `config/prompts/quarter-review.md`) that by definition cannot live inside a crate tarball. That is
-deliberate — bn is a single-repo private tool, never published to a registry (`release-plz.toml:
+deliberate — workspan is a single-repo private tool, never published to a registry (`release-plz.toml:
 git_only = true`) — so the packaging requirement is one this repo will never satisfy. Every
 `release-plz PR` run failed for exactly this reason from the
 v0.2.0 tag onward: that tag's manifest predates the explicit dependency versions added in #983, and
@@ -93,7 +93,7 @@ def classify(subject: str) -> tuple[str | None, str | None, bool, str]:
 
 def next_version(current: str, has_feat: bool, breaking: bool) -> str:
     major, minor, patch = (int(p) for p in current.split("."))
-    # Pre-1.0 semver: a breaking change bumps the minor, never the major. bn has never promised a
+    # Pre-1.0 semver: a breaking change bumps the minor, never the major. workspan has never promised a
     # stable API, and silently going 1.0 on the first `feat!:` would overstate its maturity.
     if breaking or has_feat:
         return f"{major}.{minor + 1}.0"

@@ -7,12 +7,12 @@ Thumbs.db
 .claude/memory/
 .claude/settings.local.json
 
-# Machine-local bn skills served by bn-mcp (never commit; see README "Skills" tier table)
+# Machine-local workspan skills served by bn-mcp (never commit; see README "Skills" tier table)
 .bn/skills.local/
 
-# Native Agent Skills compiled from the bn tiers into a worktree (`bn wt add` seeds these so a
+# Native Agent Skills compiled from the workspan tiers into a worktree (`workspan wt add` seeds these so a
 # dispatched agent can reach this repo's own skills). Generated, machine-local, and re-derivable
-# with `bn skills install` — ignoring them is also what opts this repo into the seeding at all.
+# with `workspan skills install` — ignoring them is also what opts this repo into the seeding at all.
 .claude/skills/
 .github/skills/
 

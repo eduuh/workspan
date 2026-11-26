@@ -1,5 +1,5 @@
 # The 1000-line ratchet — enforced by scripts/check-file-size.sh, which runs in the CI `gates`
-# job, the pre-commit and pre-push hooks, and `bn verify` / `bn wt merge`'s pre-land gate.
+# job, the pre-commit and pre-push hooks, and `workspan verify` / `workspan wt merge`'s pre-land gate.
 #
 # One entry per source file that was ALREADY over the limit when the ratchet landed, recorded as
 # "<lines>\t<path>" and sorted by path. Everything below is grandfathered debt, not permission.

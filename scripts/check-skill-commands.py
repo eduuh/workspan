@@ -8,7 +8,7 @@ walks the built binary's --help tree and checks each Workspan invocation found i
 inline code spans and fenced code blocks: every subcommand word must exist, and
 every --flag must be accepted by that subcommand (or an ancestor's global flag).
 
-Usage: check-skill-commands.py [--bin target/debug/bn] [files...]
+Usage: check-skill-commands.py [--bin target/debug/workspan] [files...]
 """
 import argparse
 import glob
@@ -94,8 +94,8 @@ def code_snippets(text):
             yield i, span
 
 
-# `bn` only where a shell command starts, so "# >>> bn codespace" markers and
-# "for b in bn bn-mcp" lists are not read as invocations.
+# `workspan` only where a shell command starts, so "# >>> bn codespace" markers and
+# "for b in workspan bn-mcp" lists are not read as invocations.
 INVOCATION = re.compile(
     r"(?:^\s*|[|;&(]\s*|\$\(\s*|[{!]\s+|\b(?:then|do|else|time|exec|sudo|env|xargs|watch)\s+)(?:workspan|ws|bn)\s+(?=\S)"
 )
@@ -174,7 +174,7 @@ def check(root, snippet):
                 if not name or not re.fullmatch(r"[a-z0-9][a-z0-9-]*", name):
                     continue
                 if name not in flags and name not in node.flags:
-                    # Grouped spellings (`bn list --summary` -> `bn summary`) are argv rewrites that
+                    # Grouped spellings (`workspan list --summary` -> `workspan summary`) are argv rewrites that
                     # --help does not list; one that routes answers its own --help.
                     routed = load(root.bin, [*node.path, f"--{name}"], root.cache)
                     if routed.exists:
@@ -227,7 +227,7 @@ def render_failures(bin_path, path, text):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--bin", default="target/debug/bn")
+    ap.add_argument("--bin", default="target/debug/workspan")
     ap.add_argument("files", nargs="*")
     args = ap.parse_args()
     files = args.files or sorted(glob.glob("config/prompts/*.md") + glob.glob(".bn/skills/*.md"))

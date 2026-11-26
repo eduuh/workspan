@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Regression tests for skill command extraction, using the current bn help tree."""
+"""Regression tests for skill command extraction, using the current workspan help tree."""
 from pathlib import Path
 import runpy
 import unittest
@@ -11,38 +11,38 @@ class SkillCommandTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls):
         cls.root = validator["load"](
-            str(Path(__file__).resolve().parents[1] / "target/debug/bn"), [], {}
+            str(Path(__file__).resolve().parents[1] / "target/debug/workspan"), [], {}
         )
 
     def test_double_quoted_comment_is_not_a_command(self):
         snippet = (
-            'gh pr close <n> --comment "Superseded by #<newer> (bn dep-prs)" '
+            'gh pr close <n> --comment "Superseded by #<newer> (workspan dep-prs)" '
             '--delete-branch'
         )
         self.assertEqual(validator["check"](self.root, snippet), [])
 
     def test_single_quoted_comment_is_not_a_command(self):
-        snippet = "gh pr close <n> --comment '(bn dep-prs)' --delete-branch"
+        snippet = "gh pr close <n> --comment '(workspan dep-prs)' --delete-branch"
         self.assertEqual(validator["check"](self.root, snippet), [])
 
     def test_escaped_quotes_do_not_end_a_quoted_comment(self):
-        snippet = r'echo "say \"hello\" (bn dep-prs)" --delete-branch'
+        snippet = r'echo "say \"hello\" (workspan dep-prs)" --delete-branch'
         self.assertEqual(validator["check"](self.root, snippet), [])
 
     def test_quoted_command_substitution_is_still_checked(self):
-        snippet = 'echo "$(bn task not-a-command)"'
+        snippet = 'echo "$(workspan task not-a-command)"'
         self.assertEqual(
             validator["check"](self.root, snippet),
             ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_single_quoted_substitution_is_literal(self):
-        snippet = "echo '$(bn task not-a-command)'"
+        snippet = "echo '$(workspan task not-a-command)'"
         self.assertEqual(validator["check"](self.root, snippet), [])
 
     def test_real_subshell_is_still_checked(self):
         self.assertEqual(
-            validator["check"](self.root, "(bn task not-a-command)"),
+            validator["check"](self.root, "(workspan task not-a-command)"),
             ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
@@ -58,14 +58,14 @@ class SkillCommandTests(unittest.TestCase):
         )
 
     def test_quoted_prose_does_not_hide_a_later_command(self):
-        snippet = 'echo "(bn dep-prs)" && bn task not-a-command'
+        snippet = 'echo "(workspan dep-prs)" && workspan task not-a-command'
         self.assertEqual(
             validator["check"](self.root, snippet),
             ["`workspan task` has no subcommand 'not-a-command'"],
         )
 
     def test_command_after_a_valid_command_is_checked(self):
-        snippet = "bn task --help && bn task not-a-command"
+        snippet = "bn task --help && workspan task not-a-command"
         self.assertEqual(
             validator["check"](self.root, snippet),
             ["`workspan task` has no subcommand 'not-a-command'"],
