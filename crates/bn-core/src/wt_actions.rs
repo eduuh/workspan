@@ -72,6 +72,9 @@ pub struct WtAction {
     /// script (the picker's `script:<name>` rows) pins `main`, because `workspan run --repo` refuses a
     /// repo without a branch and the script tiers resolve through the pair.
     pub needs_branch: bool,
+    /// Whether a surface must ask before running it. True only for a verb that destroys work a
+    /// person may still want, so a stray Enter in a list you also type into cannot fire it.
+    pub confirm: bool,
 }
 
 /// Every action, in the order a list should show them.
@@ -87,6 +90,7 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Repo,
         job: "build-main",
         needs_branch: false,
+        confirm: false,
     },
     WtAction {
         id: "pool-warm",
@@ -94,6 +98,7 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Repo,
         job: "pool-warm",
         needs_branch: false,
+        confirm: false,
     },
     WtAction {
         id: "pool-grow",
@@ -101,6 +106,7 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Repo,
         job: "pool-grow",
         needs_branch: false,
+        confirm: false,
     },
     WtAction {
         id: "wt-cleanup",
@@ -108,6 +114,7 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Repo,
         job: "wt-cleanup",
         needs_branch: false,
+        confirm: false,
     },
     WtAction {
         id: "fetch-prs",
@@ -115,6 +122,7 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Repo,
         job: "fetch-prs",
         needs_branch: false,
+        confirm: false,
     },
     WtAction {
         id: "pull-prs",
@@ -122,6 +130,7 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Repo,
         job: "pull-prs",
         needs_branch: false,
+        confirm: false,
     },
     WtAction {
         id: "wt-prune",
@@ -129,6 +138,15 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Repo,
         job: "wt-prune",
         needs_branch: false,
+        confirm: false,
+    },
+    WtAction {
+        id: "reset-to-main",
+        label: "Force-remove all worktrees + pull main",
+        scope: Scope::Repo,
+        job: "reset-to-main",
+        needs_branch: false,
+        confirm: true,
     },
     // --- worktree scope: reached from a row's own menu, never as a row of its own ---
     WtAction {
@@ -137,6 +155,7 @@ const ACTIONS: &[WtAction] = &[
         scope: Scope::Worktree,
         job: "verify",
         needs_branch: true,
+        confirm: false,
     },
 ];
 

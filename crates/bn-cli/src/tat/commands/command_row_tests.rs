@@ -442,3 +442,40 @@ fn a_place_row_is_refused_by_the_command_keys() {
     assert!(command_block("cmd", "script:a|b").is_some());
     assert!(command_block("cmd", "script:").is_some());
 }
+
+/// The destructive verb's confirmation: "No" is the default row, there is exactly one way to say
+/// yes, and every listed worktree row cancels.
+#[test]
+fn reset_confirmation_defaults_to_no_and_lists_what_goes() {
+    use crate::cmd::wt_reset::ResetStep;
+    let steps = vec![
+        ResetStep::Remove {
+            path: "/w/r/feat".into(),
+            label: "feat".into(),
+        },
+        ResetStep::ReturnSlot {
+            path: "/w/r/_pool/2".into(),
+            label: "fix".into(),
+        },
+    ];
+    let choices = super::confirm_choices(&steps);
+    assert_eq!(choices[0].0, "no");
+    assert_eq!(choices.iter().filter(|(id, _)| id == "yes").count(), 1);
+    assert!(choices[1].1.contains("2 worktree(s)"), "{choices:?}");
+    assert!(choices
+        .iter()
+        .any(|(id, l)| id == "no" && l.contains("/w/r/feat")));
+    assert!(choices
+        .iter()
+        .any(|(id, l)| id == "no" && l.contains("/w/r/_pool/2")));
+}
+
+#[test]
+fn only_the_reset_verb_asks_first() {
+    let asking: Vec<_> = bn_core::wt_actions::all()
+        .iter()
+        .filter(|a| a.confirm)
+        .map(|a| a.id)
+        .collect();
+    assert_eq!(asking, vec!["reset-to-main"]);
+}

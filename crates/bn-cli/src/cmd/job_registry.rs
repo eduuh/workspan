@@ -53,6 +53,7 @@ pub(crate) fn native_job(job: &str) -> Option<NativeJob> {
         "fetch-prs" => Some(crate::cmd::wt_action_jobs::job_fetch_prs),
         "pull-prs" => Some(crate::cmd::wt_action_jobs::job_pull_prs),
         "wt-prune" => Some(crate::cmd::wt_action_jobs::job_wt_prune),
+        "reset-to-main" => Some(crate::cmd::wt_reset::job_reset_to_main),
         "cron-health" => Some(crate::cmd::attention_workflow::job_cron_health),
         "agent-scheduler" => Some(crate::cmd::cron::job_agent_scheduler),
         "reactor" => Some(crate::cmd::on::job_reactor),

@@ -144,6 +144,7 @@ pub(in crate::tat) fn verb(name: &str) -> &'static WtAction {
         scope: Scope::Repo,
         job: name,
         needs_branch: true,
+        confirm: false,
     }))
 }
 

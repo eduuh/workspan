@@ -429,7 +429,7 @@ fn restore_head(dir_s: &str, before: Option<&str>) {
 
 /// The repo's default branch as a plain local branch name (`main`), from the shared base-ref
 /// resolver — `origin/HEAD` first, so a repo whose default is `develop` is handled like any other.
-fn default_branch(bare_s: &str) -> Option<String> {
+pub(crate) fn default_branch(bare_s: &str) -> Option<String> {
     let base = bn_core::gitbase::base_ref(
         &bn_core::runner::RealRunner,
         bn_core::gitbase::BaseScope::BareRepo(Path::new(bare_s)),
