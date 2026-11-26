@@ -42,7 +42,8 @@ pub fn inventory(cfg: &Config) -> Vec<RepoInfo> {
             let default_branch =
                 git_in(&git_dir, &["symbolic-ref", "--short", "HEAD"]).unwrap_or_default();
             let remote = git_in(&git_dir, &["config", "--get", "remote.origin.url"])
-                .filter(|s| !s.is_empty());
+                .filter(|s| !s.is_empty())
+                .map(|url| redact_credentials(&url));
             let main_worktree = (!default_branch.is_empty())
                 .then(|| {
                     worktree_root
@@ -59,6 +60,29 @@ pub fn inventory(cfg: &Config) -> Vec<RepoInfo> {
             })
         })
         .collect()
+}
+
+/// A remote URL with any embedded credential removed, so a token stored in the clone's config
+/// (`https://user:token@host/...`) never reaches an agent or a log. HTTP(S) drops the whole
+/// userinfo; other schemes keep the login name (`ssh://git@host`) and drop only a password. The
+/// scp form `git@host:path` has no password part and passes through.
+fn redact_credentials(url: &str) -> String {
+    let Some((scheme, rest)) = url.split_once("://") else {
+        return url.to_string();
+    };
+    let (authority, path) = match rest.find('/') {
+        Some(i) => rest.split_at(i),
+        None => (rest, ""),
+    };
+    let Some((userinfo, host)) = authority.rsplit_once('@') else {
+        return url.to_string();
+    };
+    let user = userinfo.split(':').next().unwrap_or_default();
+    if scheme.starts_with("http") || user.is_empty() {
+        format!("{scheme}://{host}{path}")
+    } else {
+        format!("{scheme}://{user}@{host}{path}")
+    }
 }
 
 /// `git -C <dir> <args>` → trimmed stdout, or `None` when git failed.
@@ -129,6 +153,39 @@ mod tests {
         assert_eq!(repos[0].main_worktree.as_deref(), Some(main.as_path()));
         assert_eq!(repos[1].remote, None);
         assert_eq!(repos[1].main_worktree, None);
+    }
+
+    #[test]
+    fn credentials_never_leave_the_remote_url() {
+        for (url, want) in [
+            (
+                "https://me:ghp_secret@github.com/o/r.git",
+                "https://github.com/o/r.git",
+            ),
+            (
+                "https://ghp_secret@github.com/o/r.git",
+                "https://github.com/o/r.git",
+            ),
+            (
+                "https://org@dev.azure.com/org/p/_git/r",
+                "https://dev.azure.com/org/p/_git/r",
+            ),
+            (
+                "ssh://git:pw@host.example/o/r.git",
+                "ssh://git@host.example/o/r.git",
+            ),
+            (
+                "ssh://git@host.example/o/r.git",
+                "ssh://git@host.example/o/r.git",
+            ),
+            ("git@github.com:o/r.git", "git@github.com:o/r.git"),
+            (
+                "https://github.com/o/r@v1.git",
+                "https://github.com/o/r@v1.git",
+            ),
+        ] {
+            assert_eq!(redact_credentials(url), want, "{url}");
+        }
     }
 
     #[test]
