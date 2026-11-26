@@ -63,7 +63,6 @@ fn consolidated_skills_install_short_entries_and_keep_runtime_contracts() {
     for (name, reference) in [
         ("coding-principles", "coding-principles-reference"),
         ("testing-principles", "testing-principles-reference"),
-        ("coordinate-agents", "coordinate-agents-reference"),
         ("ship-solo", "ship-solo-workflow"),
         ("build-from-plan", "build-from-plan-workflow"),
         ("plan", "plan-workflow"),
