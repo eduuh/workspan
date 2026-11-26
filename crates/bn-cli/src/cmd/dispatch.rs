@@ -513,6 +513,9 @@ pub(crate) fn run_dispatch(
     if raw.trim().is_empty() {
         fail_json(json, "dispatch", "empty-item", "workspan dispatch: empty item");
     }
+    if agent.is_some() {
+        crate::harness_dispatch::refuse_if_agents_paused(json, "dispatch");
+    }
     // #503: opportunistic fleet GC before adding load. A dispatch wave is exactly when stale
     // stragglers from prior waves pile up (this is what drove load to 147), so reap the orphaned
     // process trees + prune dead windows first. Safe + quiet: never touches a working / WIP /

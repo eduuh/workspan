@@ -308,6 +308,15 @@ pub(crate) struct ResumeFleetOpts {
 const TAG: &str = "resume_fleet";
 
 pub(crate) fn emit_resume_fleet(cfg: &Config, opts: &ResumeFleetOpts, json: bool) {
+    if bn_core::agent_pause::paused().is_some() {
+        // The tmux-start recovery is unattended: stay quiet rather than fail a hook.
+        if opts.auto {
+            return;
+        }
+        if !opts.dry_run {
+            crate::harness_dispatch::refuse_if_agents_paused(json, "resume");
+        }
+    }
     if opts.auto {
         return emit_auto(cfg);
     }

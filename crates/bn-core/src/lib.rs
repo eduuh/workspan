@@ -15,6 +15,7 @@
 
 pub mod action_rank;
 pub mod agent;
+pub mod agent_pause;
 pub mod agents;
 pub mod attention;
 pub mod autoreview;

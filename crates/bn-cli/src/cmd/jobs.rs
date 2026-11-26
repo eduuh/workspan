@@ -553,6 +553,10 @@ pub(crate) fn source_tail<'a>(sources: impl Iterator<Item = &'a str>) -> Option<
 
 /// `jobs/auto-review-trigger.sh` — when idle, prep the next queued PR unattended.
 pub(crate) fn job_auto_review_trigger(cfg: &Config, _ctx: Option<&Resolved>) -> i32 {
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        println!("auto-review-trigger: skipped, {refusal}");
+        return 0;
+    }
     review_pr::auto_trigger(cfg)
 }
 
@@ -638,6 +642,10 @@ pub(crate) fn job_attention_auto_trigger(cfg: &Config, _ctx: Option<&Resolved>) 
     // Stuck-capture runs regardless of the idle gate — it's read-only on tmux and makes the board
     // truthful even while you're active.
     capture_stuck_details();
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        println!("attention-auto-trigger: skipped, {refusal}");
+        return 0;
+    }
     let idle_mins = env_i64("BN_ATTN_AUTO_IDLE_MINS", 5);
     if !bn_core::idle::is_idle(cfg, now, idle_mins) {
         return 0; // active — don't interrupt

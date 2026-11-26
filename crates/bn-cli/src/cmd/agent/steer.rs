@@ -57,6 +57,9 @@ pub(crate) fn steer_via_resume(
     wt: &std::path::Path,
     msg: &str,
 ) -> Option<String> {
+    if bn_core::agent_pause::paused().is_some() {
+        return None;
+    }
     let out = resume_command(harness, id, wt, msg)?.output().ok()?;
     if !out.status.success() {
         return None;

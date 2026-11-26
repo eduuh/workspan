@@ -154,6 +154,7 @@ pub(crate) fn parse_start(code: Option<i32>, stdout: &str) -> Result<Started, St
 
 /// Start the agent on `host`, or find it already running there; exits with the reason when neither.
 pub(crate) fn start(cfg: &crate::Config, host: &str, repo: &str, branch: &str, launch: &[String]) -> Started {
+    crate::harness_dispatch::refuse_if_agents_paused(false, "agent launch --host");
     if !super::safe_ssh_host(host) {
         eprintln!("workspan agent launch: '{host}' is not an ssh host alias");
         std::process::exit(2);

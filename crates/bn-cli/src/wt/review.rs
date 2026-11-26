@@ -211,6 +211,10 @@ fn worktree_path_in_listing(listing: &str, branch: &str) -> Option<PathBuf> {
 /// caller then just reports the path). Autonomy is ownership-gated (see below). The full slug flows
 /// to the seed for ownership; the pane's prompt file is keyed by the short name.
 fn launch_review_pane(cfg: &Config, repo: &str, branch: &str, number: i64, wt_path: &Path) -> bool {
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        eprintln!("workspan: {refusal}");
+        return false;
+    }
     // The review pane must land in the SAME tmux window that already hosts this worktree. `None` →
     // nothing hosts it (or no tmux server), so the caller reports the path for a manual review.
     let Some(target) = tmux_windows_for(wt_path, branch).into_iter().next() else {
@@ -387,6 +391,10 @@ pub(crate) fn launch_agent_in_window(
     prompt: &str,
     opts: AgentLaunchOpts<'_>,
 ) -> bool {
+    if let Some(refusal) = bn_core::agent_pause::refusal() {
+        eprintln!("workspan: {refusal}");
+        return false;
+    }
     let harness = review_harness_name(cfg);
     if harness == "copilot" {
         ensure_copilot_trusts(wt_path);
