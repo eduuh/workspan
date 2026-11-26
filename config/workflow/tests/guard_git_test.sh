@@ -25,6 +25,22 @@ for c in "git push origin feature" "git reset --soft HEAD~1" "git branch -d foo"
   check "copilot: $c" allow "$(copilot "$c")"
 done
 
+# tmux sessions must be named: an unnamed one gets a number instead of its repo.
+for c in "tmux" "tmux new -d" "tmux new-session -d -c /tmp" "tmux -L x new-session -d" \
+  "env -u TMUX tmux new-session -d" "cd x && tmux new -d" "bash -c \"tmux new-session -d\"" \
+  "id=\$(tmux new-session -d -P)" "tmux kill-server; tmux new-session -d"; do
+  check "claude: $c" deny "$(claude "$c")"
+  check "copilot: $c" deny "$(copilot "$c")"
+done
+
+for c in "tmux new-session -d -s workspan" "tmux new -A -s main" "tmux new -ds repo" \
+  "tmux new-session -d -c \"/x y\" -s repo" "tmux -L x new-session -d -s t" "tmux ls" \
+  "tmux new-window -d -t workspan: -n build" "which tmux" "grep tmux file" \
+  "ls ~/.bin/tmux/" "tmux has-session -t x || tmux new-session -d -s x"; do
+  check "claude: $c" allow "$(claude "$c")"
+  check "copilot: $c" allow "$(copilot "$c")"
+done
+
 check "escape hatch" allow "$(BN_GUARD_OFF=1 claude "git push --force")"
 check "non-bash tool" allow "$(printf '{"tool_name":"Read","tool_input":{"file_path":"x"}}' | "$guard")"
 
