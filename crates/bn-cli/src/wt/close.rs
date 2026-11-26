@@ -1,13 +1,16 @@
 //! `workspan wt close` — the `prefix x` action: close **this worktree**.
 //!
-//! The keystroke does two things, in order:
+//! The keystroke does three things, in order:
 //!
 //! * drop the worktree's tmux window — a handful of tmux calls, and all a human is waiting for;
 //! * reclaim the worktree: hand a pool slot's lease back, or run the normal `wt cleanup` gates for
-//!   a conventional one. That half is not keystroke-sized — a warm reset re-checks-out the tree,
-//!   and the cleanup gates make a `gh pr view` round-trip — so the tmux bind runs the whole command
-//!   with `run-shell -b`, and the reclaim happens in that background process by re-entering `workspan wt
-//!   close --reclaim`; see [`reclaim`] for why the keystroke does the work itself.
+//!   a conventional one;
+//! * rebuild a returned pool slot (`workspan build` in it), so the next lease lands warm.
+//!
+//! The last two are not keystroke-sized — a warm reset re-checks-out the tree, the cleanup gates
+//! make a `gh pr view` round-trip, and a build takes minutes — so the tmux bind runs the whole
+//! command with `run-shell -b`, and the reclaim happens in that background process by re-entering
+//! `workspan wt close --reclaim`; see [`reclaim`] for why the keystroke does the work itself.
 //!
 //! Slot occupancy is derived from live tmux windows, so releasing a lease before the window is
 //! gone is refused as "slot in use". The reclaim therefore waits for the killed window to be reaped
@@ -250,11 +253,20 @@ pub(crate) fn cmd_close(
         // Both reclaimable plans do the same two things here, in this order: take the window, then
         // reclaim. Which reclaim it turns out to be is re-decided by the re-entered `--reclaim`
         // half, by the same `close_plan`, over a tree whose windows are now gone.
+        //
+        // A returned pool slot is then rebuilt, still in this backgrounded process, so the next
+        // lease gets a warm checkout. The reclaim's outcome is flashed first: the build can take
+        // minutes and nobody should wait on it to learn the worktree closed.
         ClosePlan::ReleaseSlot { .. } | ClosePlan::CleanupWorktree => {
             let root = target_root(&wt_path);
             let wins = tmux_windows_for(&root, &facts.branch);
             kill_tmux_windows_into(&wins, false, &fallback);
-            flash(&reclaim::run_now(&repo, &label, &facts.branch, &root, confirmed));
+            let (reclaimed, msg) =
+                reclaim::run_now(&repo, &label, &facts.branch, &root, confirmed);
+            flash(&msg);
+            if reclaimed && matches!(plan, ClosePlan::ReleaseSlot { .. }) {
+                flash(&reclaim::rebuild_slot(&repo, &root));
+            }
             true
         }
     }

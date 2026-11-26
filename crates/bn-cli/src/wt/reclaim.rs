@@ -80,15 +80,47 @@ fn wait_for_windows_gone(root: &Path, branch: &str) {
     }
 }
 
-/// Reclaim the worktree now, in this process. Returns the one-line outcome for the caller to flash.
-pub(crate) fn run_now(repo: &str, label: &str, branch: &str, path: &Path, confirmed: bool) -> String {
+/// Reclaim the worktree now, in this process. Returns whether it worked, and the one-line outcome
+/// for the caller to flash.
+pub(crate) fn run_now(
+    repo: &str,
+    label: &str,
+    branch: &str,
+    path: &Path,
+    confirmed: bool,
+) -> (bool, String) {
     wait_for_windows_gone(path, branch);
     let cmd = reclaim_cmd(path, confirmed);
     match run_reclaim(&cmd) {
-        true => format!("closed {repo}/{label} — reclaimed"),
+        true => (true, format!("closed {repo}/{label} — reclaimed")),
+        false => (
+            false,
+            format!(
+                "closed {repo}/{label} — the reclaim failed; run `workspan wt close --reclaim --path {}`",
+                path.display()
+            ),
+        ),
+    }
+}
+
+/// Rebuild a pool slot that has just been handed back, so the next lease lands on a warm checkout
+/// instead of one whose build is behind the base the reset moved it to. Returns the one-line
+/// outcome to flash.
+///
+/// Yields to a pool warm already running: that warm builds the idle slots itself, and two builds
+/// in one checkout would race. Holds the warm lock for the build for the same reason.
+pub(crate) fn rebuild_slot(repo: &str, slot: &Path) -> String {
+    let n = slot
+        .file_name()
+        .map(|s| s.to_string_lossy().into_owned())
+        .unwrap_or_default();
+    let Some(_warm) = slot.parent().and_then(crate::wt_pool::slot_lock::try_lock_warm) else {
+        return format!("{repo} slot {n}: a pool warm is running — it will build the slot");
+    };
+    match crate::wt_pool::warm::build_one_slot(repo, slot) {
+        true => format!("{repo} slot {n}: rebuilt — warm for the next lease"),
         false => format!(
-            "closed {repo}/{label} — the reclaim failed; run `workspan wt close --reclaim --path {}`",
-            path.display()
+            "{repo} slot {n}: rebuild failed — run `workspan wt pool warm --repo {repo} --slot {n}`"
         ),
     }
 }
