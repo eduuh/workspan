@@ -46,6 +46,7 @@ pub(crate) mod forge_agent;
 pub(crate) mod keep_warm;
 pub(crate) mod wt_action_jobs;
 pub(crate) mod wt_action_run;
+pub(crate) mod wt_reset;
 pub(crate) mod killport;
 pub(crate) mod learnings;
 pub(crate) mod notify;

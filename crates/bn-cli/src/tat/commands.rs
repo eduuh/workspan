@@ -240,6 +240,9 @@ fn describe(id: &str) -> &'static str {
         "fetch-prs" => "Fetch every remote so the PR rows above are current.",
         "pull-prs" => "Create a worktree for each open PR of yours that lacks one.",
         "wt-prune" => "Drop worktree registrations git has lost, and over-size or orphaned slots.",
+        "reset-to-main" => {
+            "Force-remove every worktree but main (dirty or not; branches are kept), return leased pool slots to the warm pool, then fetch and fast-forward main. Asks first."
+        }
         _ => "",
     }
 }
@@ -574,6 +577,9 @@ pub(super) fn run_command(cfg: &Config, roots: &Roots, project: &str, action_id:
         crate::picker::hold();
         return;
     }
+    if action.confirm && !confirm_destructive(cfg, repo, action) {
+        return;
+    }
     match crate::cmd::wt_action_run::start_action(cfg, action, repo, None) {
         Ok(started) => println!("✓ {} — {}", action.label, started.describe(repo)),
         Err(e) => {
@@ -581,6 +587,52 @@ pub(super) fn run_command(cfg: &Config, roots: &Roots, project: &str, action_id:
             crate::picker::hold();
         }
     }
+}
+
+/// Ask before a verb that destroys work, listing exactly what it will touch. `true` to go ahead.
+///
+/// The list is the job's own [`crate::cmd::wt_reset::plan_for`], so what you confirm is what runs.
+/// It rides as rows under the answers rather than in the header, because the native picker's header
+/// is one line. "No" comes first and every list row means "no" too, so only picking the one "Yes"
+/// row starts it.
+fn confirm_destructive(cfg: &Config, repo: &str, action: &bn_core::wt_actions::WtAction) -> bool {
+    let steps = match crate::cmd::wt_reset::plan_for(cfg, repo) {
+        Ok(steps) => steps,
+        Err(e) => {
+            eprintln!("✗ {e}");
+            crate::picker::hold();
+            return false;
+        }
+    };
+    pick_one(&confirm_choices(&steps), &confirm_header(action, repo)).as_deref() == Some("yes")
+}
+
+pub(super) fn confirm_header(action: &bn_core::wt_actions::WtAction, repo: &str) -> String {
+    format!(
+        "{} in {repo}? Uncommitted changes are discarded; local branches are kept.",
+        action.label
+    )
+}
+
+pub(super) fn confirm_choices(steps: &[crate::cmd::wt_reset::ResetStep]) -> Vec<(String, String)> {
+    let no = |label: String| ("no".to_string(), label);
+    let mut choices = vec![
+        no("No, keep everything".to_string()),
+        (
+            "yes".to_string(),
+            format!(
+                "Yes, force-remove {} worktree(s) and pull main",
+                steps.len()
+            ),
+        ),
+    ];
+    if steps.is_empty() {
+        choices.push(no(
+            "   (no worktrees besides main: this only pulls main)".to_string()
+        ));
+    }
+    choices.extend(steps.iter().map(|s| no(format!("   · {}", s.describe()))));
+    choices
 }
 
 // --- the spinner's repaint loop --------------------------------------------
