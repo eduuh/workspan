@@ -38,8 +38,17 @@ pub(crate) fn clone_json(
 ) -> Result<serde_json::Value, (&'static str, String)> {
     let (bare_dir, worktree_dir) = layout(cfg);
     let repo = clone_name(url, name);
-    if repo.is_empty() {
-        return Err(("invalid", "could not derive a repo name from the URL".to_string()));
+    // The name becomes a directory under the bare and worktree roots, whether it was given or
+    // derived from the URL, so it must be exactly one ordinary path component.
+    let unsafe_name = repo.is_empty()
+        || repo.starts_with(['.', '-'])
+        || repo.contains(['/', '\\'])
+        || repo.chars().any(|c| c.is_whitespace() || c.is_control());
+    if unsafe_name {
+        return Err((
+            "invalid",
+            format!("'{repo}' is not a usable repo name; pass an explicit plain name"),
+        ));
     }
     let flat = is_regular_clone(&repo);
     let git_dir = if flat {
@@ -652,6 +661,13 @@ mod partial_clone_tests {
         let main = tmp.path().join("worktree/demo/main");
         assert_eq!(first["worktree"], serde_json::json!(main.to_string_lossy()));
         assert!(main.is_dir());
+
+        for bad in ["..", ".", ".hidden", "-x", "a/b", "a b"] {
+            let err = clone_json(&cfg, &src_s, Some(bad)).unwrap_err();
+            assert_eq!(err.0, "invalid", "{bad}");
+        }
+        assert_eq!(clone_json(&cfg, "https://h.example/o/..", None).unwrap_err().0, "invalid");
+        assert_eq!(clone_json(&cfg, "https://h.example/o/.git", None).unwrap_err().0, "invalid");
 
         let again = clone_json(&cfg, &src_s, Some("demo")).expect("already cloned");
         assert_eq!(again["created"], false);
