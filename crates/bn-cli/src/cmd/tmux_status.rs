@@ -133,8 +133,57 @@ fn compute_git_seg(dir: &std::path::Path) -> String {
         Some(dir),
         false,
     )
-    .and_then(|status| render_git_seg(&parse_git_status(&status)))
+    .and_then(|status| {
+        let seg = parse_git_status(&status);
+        let rendered = render_git_seg(&seg)?;
+        Some(match branch_link_for(dir, &seg.branch) {
+            Some(url) => link_branch(&rendered, &url),
+            None => rendered,
+        })
+    })
     .unwrap_or_default()
+}
+
+/// The branch's page on its forge, when the running tmux can draw it as a link.
+///
+/// `#[link=…]` is a tmux 3.8 style attribute; an older server does not know it and would mangle the
+/// whole segment, so the version is checked before a URL is even looked up. The remote read is a
+/// local config lookup, no network, and happens only on a cache refresh.
+fn branch_link_for(dir: &std::path::Path, branch: &str) -> Option<String> {
+    if crate::proc::tmux_version().is_none_or(|v| v < (3, 8)) {
+        return None;
+    }
+    let remote = crate::git::git_capture(&["remote", "get-url", "origin"], Some(dir), false)?;
+    branch_url(remote.trim(), branch)
+}
+
+/// Turn a GitHub remote (`git@github.com:o/r.git`, `https://github.com/o/r`) and a branch into the
+/// branch's web URL. `None` for any other host, a detached HEAD, or a branch tmux's `link=` cannot
+/// carry (it takes no spaces or commas and has a length limit). Pure.
+pub(crate) fn branch_url(remote: &str, branch: &str) -> Option<String> {
+    let path = remote
+        .strip_prefix("git@github.com:")
+        .or_else(|| remote.strip_prefix("https://github.com/"))
+        .or_else(|| remote.strip_prefix("ssh://git@github.com/"))?;
+    let path = path.trim_end_matches('/').trim_end_matches(".git");
+    let safe = |s: &str| !s.is_empty() && !s.contains([' ', ',', '#', ']', '\t']);
+    if !safe(path) || !safe(branch) || branch == "(detached)" {
+        return None;
+    }
+    let url = format!("https://github.com/{path}/tree/{branch}");
+    (url.len() <= 200).then_some(url)
+}
+
+/// Wrap the segment's branch name (everything after the leading divider) in an OSC 8 link.
+fn link_branch(rendered: &str, url: &str) -> String {
+    match rendered.split_once("\u{2387} ") {
+        Some((head, tail)) => {
+            let (name, rest) = tail.split_once(' ').unwrap_or((tail, ""));
+            let rest = if rest.is_empty() { String::new() } else { format!(" {rest}") };
+            format!("{head}#[link={url}]\u{2387} {name}#[nolink]{rest}")
+        }
+        None => rendered.to_string(),
+    }
 }
 
 /// Cache file for `dir`'s segment: `$TMPDIR/bn-tmuxgit/<hash of the path>`.
@@ -830,5 +879,44 @@ mod git_seg_cache_tests {
         std::fs::write(cache.with_extension("lock"), "").unwrap();
         refresh_git_seg(tmp.path(), &cache);
         assert!(!cache.exists(), "a held lock means another refresh is running");
+    }
+}
+
+#[cfg(test)]
+mod branch_link_tests {
+    use super::*;
+
+    #[test]
+    fn github_remotes_in_every_spelling_give_the_branch_page() {
+        let want = Some("https://github.com/o/r/tree/feat/x".to_string());
+        for remote in [
+            "git@github.com:o/r.git",
+            "https://github.com/o/r.git",
+            "https://github.com/o/r",
+            "ssh://git@github.com/o/r.git",
+        ] {
+            assert_eq!(branch_url(remote, "feat/x"), want, "{remote}");
+        }
+    }
+
+    #[test]
+    fn anything_tmux_could_not_carry_or_we_cannot_address_gives_no_link() {
+        assert_eq!(branch_url("https://dev.azure.com/o/p/_git/r", "main"), None);
+        assert_eq!(branch_url("git@github.com:o/r.git", "(detached)"), None);
+        assert_eq!(branch_url("git@github.com:o/r.git", "a,b"), None);
+        assert_eq!(branch_url("git@github.com:o/r.git", ""), None);
+    }
+
+    #[test]
+    fn only_the_branch_name_is_linked_and_the_counters_keep_their_colours() {
+        let seg = GitSeg {
+            branch: "main".into(),
+            ahead: 2,
+            ..Default::default()
+        };
+        let plain = render_git_seg(&seg).unwrap();
+        let linked = link_branch(&plain, "https://github.com/o/r/tree/main");
+        assert!(linked.contains("#[link=https://github.com/o/r/tree/main]\u{2387} main#[nolink] "));
+        assert!(linked.ends_with(plain.split_once("main").unwrap().1));
     }
 }
