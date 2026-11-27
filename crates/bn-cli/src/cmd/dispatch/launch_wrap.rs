@@ -7,6 +7,16 @@
 
 use crate::wt::shq;
 
+/// The `workspan agent launch` invocation prefix — the native replacement for the old `workflow/bin/agent`
+/// zsh launcher (#683+). Points at the *installed* workspan (`$HOME/.config/bn/workspan`, the same stable path
+/// tmux.conf uses for `workspan jump` / `workspan tmux-cockpit`), because the tmux server's PATH lacks the
+/// bindir, so callers embed an absolute command. Callers append ` {kind} …flags` to this.
+pub(crate) fn agent_launcher_bin() -> String {
+    std::env::var("HOME")
+        .map(|h| format!("{h}/.config/bn/workspan agent launch"))
+        .unwrap_or_else(|_| "workspan agent launch".to_string())
+}
+
 pub(super) fn worker_memory_wrapped_command(cmd: &str, memory_ceiling_mb: u64, systemd_run: bool) -> String {
     let inner = vec!["sh".to_string(), "-lc".to_string(), cmd.to_string()];
     bn_core::worker::spawn::wrap(
