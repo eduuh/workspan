@@ -91,6 +91,11 @@ fn window_row(cols: &[&str], cur: &str, now: i64) -> Option<Win> {
     let g = |i: usize| cols.get(i).copied().unwrap_or("");
     let (wid, sess, idx, name, agent, done, blk, since) =
         (g(0), g(1), g(2), g(3), g(4), g(5), g(6), g(7));
+    // A window badged by the watch (`prefix m`) has no agent hook to stamp `@bn_agent_since`, so
+    // it used to show no age and sort as if it had waited since 1970. tmux 3.8 records when the
+    // pane last printed (`#{pane_last_output_time}`), which for a finished job is when it
+    // finished. Older servers expand the unknown variable to nothing and behave as before.
+    let since = if since.is_empty() { g(8) } else { since };
     if wid.is_empty() || wid == cur {
         return None;
     }
@@ -139,9 +144,18 @@ fn window_row(cols: &[&str], cur: &str, now: i64) -> Option<Win> {
         "working" => return None,
         "" => {
             if done == "✓" {
+                d = dur(since, now);
                 (
                     2,
                     format!("{}     ", ink.ok(&format!("{} done", glyph::CHECK))),
+                )
+            } else if done == crate::cmd::tmux_done::FAIL_GLYPH {
+                // A watched command that exited non-zero. Same tier as a failed agent: it stopped
+                // and is waiting on you.
+                d = dur(since, now);
+                (
+                    1,
+                    format!("{}   ", ink.danger(&format!("{} failed", glyph::BOLT))),
                 )
             } else if !blk.is_empty() {
                 (
@@ -173,7 +187,7 @@ fn window_row(cols: &[&str], cur: &str, now: i64) -> Option<Win> {
 /// Source 1 — every window across every session that needs you, ranked (waiting > done >
 /// blocker, then longest-waiting first), the current window excluded.
 fn window_rows(now: i64, cur: &str) -> Vec<Win> {
-    let fmt = "#{window_id}\t#{session_name}\t#{window_index}\t#{window_name}\t#{@bn_agent}\t#{@bn_done}\t#{@bn_blockers}\t#{@bn_agent_since}";
+    let fmt = "#{window_id}\t#{session_name}\t#{window_index}\t#{window_name}\t#{@bn_agent}\t#{@bn_done}\t#{@bn_blockers}\t#{@bn_agent_since}\t#{pane_last_output_time}";
     let Some(out) = tmux_raw(&["list-windows", "-a", "-F", fmt]) else {
         return Vec::new();
     };
@@ -724,6 +738,27 @@ mod tests {
                 now,
             )
         }
+    }
+
+    #[test]
+    fn a_watched_window_takes_its_age_from_the_panes_last_output() {
+        // No `@bn_agent_since` (col 7): the watch badged it, no agent hook ran.
+        let cols = ["@7", "repo", "2", "build", "", "✓", "", "", "940"];
+        let w = window_row(&cols, "@1", 1000).expect("a done window is listed");
+        assert_eq!(w.sortkey, 940);
+        assert!(w.display.contains("1m"), "got {}", w.display);
+        // tmux older than 3.8 has no such variable; the column is empty and nothing is invented.
+        let old = ["@7", "repo", "2", "build", "", "✓", "", "", ""];
+        let w = window_row(&old, "@1", 1000).expect("still listed");
+        assert_eq!(w.sortkey, 0);
+    }
+
+    #[test]
+    fn a_watched_command_that_failed_ranks_with_failed_agents() {
+        let cols = ["@7", "repo", "2", "build", "", "✗", "", "", "990"];
+        let w = window_row(&cols, "@1", 1000).expect("a failed command is not dropped");
+        assert_eq!(w.rank, 1);
+        assert!(w.display.contains("failed"));
     }
 
     #[test]
