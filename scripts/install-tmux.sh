@@ -14,7 +14,7 @@
 # OSC 52 clipboard from 3.3).
 BN_TMUX_MIN_VERSION="3.7"
 # The release built when the floor is not met. Override: TMUX_VERSION=3.7b ./install.sh
-BN_TMUX_VERSION="${TMUX_VERSION:-3.7c}"
+BN_TMUX_VERSION="${TMUX_VERSION:-3.8}"
 # Installed system-wide, not into $bindir: bn's own systemd timers and cron shells run with the
 # default PATH (/usr/local/bin:/usr/bin:/bin) and call `tmux` by name, so a copy in ~/.local/bin
 # would leave those talking to a different tmux than the shell. /usr/local sorts ahead of the

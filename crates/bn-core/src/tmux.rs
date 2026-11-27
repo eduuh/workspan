@@ -182,6 +182,18 @@ pub fn tmux_version() -> Option<(u32, u32)> {
     })
 }
 
+/// The `remain-on-exit` value for a window that clears itself on success and keeps a failure on
+/// screen. tmux 3.8 adds `failed-key`: the same, except the dead pane closes on the next keypress
+/// instead of sitting there until someone kills the window. Its exit status, the `pane-died` hook
+/// and `respawn-window` all behave as they do under `failed`. Older servers reject the value, and
+/// an unparseable version (a dev build) gets the one every server accepts.
+pub fn keep_failed_pane(version: Option<(u32, u32)>) -> &'static str {
+    match version {
+        Some(v) if v >= (3, 8) => "failed-key",
+        _ => "failed",
+    }
+}
+
 /// Warn once per process when tmux is older than [`MIN_TMUX_VERSION`]. An unparseable version (a
 /// dev build) gets the benefit of the doubt.
 pub fn warn_if_old_tmux() {
@@ -714,6 +726,10 @@ mod error_and_version_tests {
         assert_eq!(parse_tmux_version("tmux 3.4"), Some((3, 4)));
         assert_eq!(parse_tmux_version("tmux 2.9a"), Some((2, 9)));
         assert_eq!(parse_tmux_version("tmux master"), None);
+        assert_eq!(keep_failed_pane(Some((3, 8))), "failed-key");
+        assert_eq!(keep_failed_pane(Some((3, 10))), "failed-key");
+        assert_eq!(keep_failed_pane(Some((3, 7))), "failed");
+        assert_eq!(keep_failed_pane(None), "failed");
         assert_eq!(parse_tmux_version(""), None);
     }
 

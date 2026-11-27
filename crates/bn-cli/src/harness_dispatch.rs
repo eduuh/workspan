@@ -214,7 +214,8 @@ pub(crate) fn dispatch_visible(
         return dispatch_capture(cmd, wall);
     }
     let win = exact_target(&format!("{}:{}", at.session, at.window));
-    let _ = tmux_run(&["set-window-option", "-t", &win, "remain-on-exit", "failed"]);
+    let keep = crate::proc::keep_failed_pane(crate::proc::tmux_version());
+    let _ = tmux_run(&["set-window-option", "-t", &win, "remain-on-exit", keep]);
     let _ = tmux_run(&["set-window-option", "-t", &win, "@bn_agent", "working"]);
 
     let deadline = wall.map(|w| Instant::now() + w);

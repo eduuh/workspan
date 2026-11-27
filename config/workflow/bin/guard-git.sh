@@ -55,6 +55,8 @@ unnamed_tmux_session() {
     # like `which tmux` or `grep tmux` are not invocations.
     [[ $seg =~ (^[[:space:]]*(\$\(|[A-Za-z_][A-Za-z0-9_]*=[^[:space:]]*[[:space:]]+|(exec|command|env|timeout[[:space:]]+[0-9]+)[[:space:]]+|-u[[:space:]]+[^[:space:]]+[[:space:]]+)*|\$\()tmux([[:space:]]+(.*))?$ ]] || continue
     rest=${BASH_REMATCH[5]:-}
+    # `-V` prints the version and exits; it never starts a session, whatever follows it.
+    [[ $rest =~ ^-[2CDlNuv]*V ]] && continue
     # Drop tmux's own global flags (-L/-S/-f/-T take a value) to reach the subcommand.
     while [[ $rest =~ ^(-[LSfT][[:space:]]+[^[:space:]]+|-[2CDlNuVv]+)([[:space:]]+(.*))?$ ]]; do
       rest=${BASH_REMATCH[3]:-}

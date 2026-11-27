@@ -61,7 +61,9 @@ queries its active pane's worktree, so different worktrees do not share outcomes
 remains prominent until a new run with the same label supersedes it; all earlier records remain
 in the history. No popup or focus change occurs on completion.
 
-`m` remains a legacy **quietness watch**, not proof that a build passed. Use the explicit
+On tmux 3.8, with a shell that emits OSC 133 `D;<status>`, a window watched with `m` is badged
+when its command returns to the prompt: `✓` for exit 0, a red `✗` otherwise. Anything else falls
+back to the **quietness watch**, which is not proof that a build passed. Use the explicit
 `RUN`/`PASS`/`FAIL` result for wrapped commands. An abruptly killed runner becomes `UNKNOWN`;
 its child may still exist, so inspect before rerunning. Results do not yet detect source edits:
 an old `PASS` does not verify today's changes. Records/logs are local and private; see
@@ -95,6 +97,8 @@ The left pill shows the session name and **flips to reverse-video `PREFIX`** the
 |-----|--------|
 | `C-o` | Project picker (fzf over `~/projects`). Creates or switches session. A bare repo's sub-picker includes windows, local worktrees, pool slots, and your open PRs missing from this laptop; selecting a `PR` row fetches and opens its branch. |
 | `C-j` | Session tree (`choose-tree`). tmux's own picker, no fzf and no `workspan` — the fallback that still switches sessions when PATH is bare or `workspan` is mid-reinstall. `f` filters, `O` re-sorts, `x` kills the highlighted row, `Right` expands a session into its windows. |
+| `S-Tab` | tmux's own fast session switcher (stock in 3.8): type to filter, Enter switches. |
+| `*` | New floating pane over this window (stock in 3.8). It is a real pane; move and resize it with the mouse. |
 | `t` | Kill current session, switch to next. |
 | `.` | Rename current session. |
 | `C-d` | Detach this client (leave tmux). `d` is the diff picker. |
@@ -269,6 +273,7 @@ run inside copy mode after making a selection.
 | `Y` | Toggle output recording for this pane. The start/stop message gives the file path. |
 | `C-y` | Save the visible pane text. |
 | `H` | Save all retained scrollback for this pane (up to `history-limit`, currently 100,000 lines). |
+| `M-H` | The same, with the time each line arrived as epoch seconds at the start of the line (tmux 3.8). |
 
 Extraction and hint copies use tmux's OSC52 clipboard path, including remote
 sessions; normal mouse and copy-mode copies still use the existing `bn-clip`
@@ -315,6 +320,10 @@ Copilot and editors. Clicks and scrolling keep their existing behavior.
 | `[` `]` | Jump to the previous / next **shell prompt** — i.e. to the start of a command's output. Needs OSC 133 marks from the shell (see the dotfiles `.zshrc`); without them these do nothing. |
 | `C-u` `C-d` | Half-page up / down. |
 | `q` or `Esc` | Exit copy mode. Scrolling back down to the live screen also exits on its own. |
+| `r` / `R` | Refresh the view once / toggle following new output while you read (tmux 3.8). |
+
+Copy mode shows hybrid line numbers on tmux 3.7+: the cursor's line is absolute, the others count
+away from it. On 3.8 the cursor's line is also shaded.
 
 Outside copy mode: `p` pastes the **system clipboard** (through `bn-clip`), `P` chooses a tmux buffer, `Space` enters copy mode.
 

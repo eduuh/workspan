@@ -160,7 +160,8 @@ no-op outside tmux) and is the source of truth for Claude windows. It takes prec
 over `@bn_done` — the silence-watch fallback (`bind m` / `workspan tmux done-badge`) that
 badges a `✓` on any non-Claude job (build/test) once its output goes quiet. A pane that exits
 badges at once instead: `pane-died` passes its exit status, so a failed job gets a red mark rather
-than a quiet `✓`.
+than a quiet `✓`. On tmux 3.8 a watched window is also badged when its command returns to the
+shell prompt, from the exit status in OSC 133 `D` (`pane-command-finished`, `tmux-3.8.conf`).
 
 Wire `@bn_agent` to Claude Code by adding these hooks to `~/.claude/settings.json`;
 they inherit `$TMUX_PANE` from the agent's pane, so the decoration lands on the right
