@@ -71,10 +71,9 @@ pub(crate) fn emit_repos(cfg: &Config, action: Option<ReposCmd>, json: bool) -> 
 
 /// Every cloned repo as `(name, bare dir)`, in name order.
 fn fleet(cfg: &Config) -> Vec<(String, PathBuf)> {
-    let (bare_dir, _) = crate::wt::layout(cfg);
-    crate::wt::bare_repos(&bare_dir)
+    bn_core::repos::inventory(cfg)
         .into_iter()
-        .map(|bare| (crate::wt::repo_name(&bare), bare))
+        .map(|r| (r.repo, r.git_dir))
         .collect()
 }
 
@@ -102,7 +101,7 @@ fn worktrees_of(bare: &Path) -> Vec<(PathBuf, String)> {
 }
 
 fn list(cfg: &Config, json: bool) -> i32 {
-    let repos = fleet(cfg);
+    let repos = bn_core::repos::inventory(cfg);
     if repos.is_empty() {
         let (bare_dir, _) = crate::wt::layout(cfg);
         if json {
@@ -117,17 +116,18 @@ fn list(cfg: &Config, json: bool) -> i32 {
     }
     let rows: Vec<serde_json::Value> = repos
         .iter()
-        .map(|(name, bare)| {
-            let head = git_in(bare, &["symbolic-ref", "--short", "HEAD"]).unwrap_or_default();
+        .map(|r| {
+            let (bare, head) = (&r.git_dir, &r.default_branch);
             let branches = git_in(bare, &["for-each-ref", "--format=%(refname)", "refs/heads"])
                 .map(|s| s.lines().count())
                 .unwrap_or(0);
             let worktrees = worktrees_of(bare).len();
-            let last = git_in(bare, &["log", "-1", "--format=%cr", &head]).unwrap_or_default();
+            let last = git_in(bare, &["log", "-1", "--format=%cr", head]).unwrap_or_default();
             serde_json::json!({
-                "repo": name,
+                "repo": r.repo,
                 "git_dir": bare.to_string_lossy(),
                 "default_branch": head,
+                "remote": r.remote,
                 "branches": branches,
                 "worktrees": worktrees,
                 "last_commit": last,

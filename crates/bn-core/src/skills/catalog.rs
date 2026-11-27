@@ -625,6 +625,7 @@ mod tests {
             "workspan_links_search",
             "workspan_ref",
             "workspan_ref_append",
+            "workspan_repos",
         ];
         let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
         let dirs = [root.join("config/prompts"), root.join("config/agents")];

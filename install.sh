@@ -579,7 +579,7 @@ echo "             'workspan doctor' warns while the wrappers are missing, inact
 register_mcp() {
   command -v jq >/dev/null 2>&1 || { echo "Skipped global MCP registration (jq not found)."; return; }
   local tmp
-  local tools='["workspan_cmd","workspan_links_search","workspan_links_add","workspan_ref","workspan_ref_append"]'
+  local tools='["workspan_cmd","workspan_links_search","workspan_links_add","workspan_ref","workspan_ref_append","workspan_repos"]'
 
   # Spawn workspan by ABSOLUTE path, never the bare name. A GUI-launched client (Claude Desktop, VS Code
   # from the Dock) inherits none of the shell PATH — its PATH is /usr/bin:/bin:/usr/sbin:/sbin, so

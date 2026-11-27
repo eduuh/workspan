@@ -207,7 +207,41 @@ fn advertised_tools_exclude_session_note_runtime() {
             "workspan_links_add",
             "workspan_links_search",
             "workspan_ref",
-            "workspan_ref_append"
+            "workspan_ref_append",
+            "workspan_repos"
         ]
     );
+}
+
+// Sync on purpose: the env lock must not be held across an await.
+#[test]
+fn repos_lists_cloned_repos_without_a_branch_scope() {
+    let _lock = bn_core::test_support::env_lock();
+    let _env = bn_core::test_support::EnvGuard::remove("WT_ROOT");
+    let root = tempfile::tempdir().expect("tempdir");
+    let cfg = Config {
+        worktree_dir: root.path().join("worktree"),
+        ..bn_core::test_support::config(root.path())
+    };
+    let bare = root.path().join("bare/alpha.git");
+    std::fs::create_dir_all(&bare).expect("create bare dir");
+    git(
+        &bare,
+        &["init", "--quiet", "--bare", "--initial-branch=main"],
+    );
+    // Launched outside any git worktree: the listing must not need a resolved branch.
+    let server = BnServer::new(cfg, root.path().to_path_buf(), vec![]);
+
+    let out = tokio::runtime::Builder::new_current_thread()
+        .build()
+        .expect("runtime")
+        .block_on(server.workspan_repos())
+        .expect("list repos")
+        .structured_content
+        .expect("json");
+
+    assert_eq!(out["dir"], json!(root.path().join("bare")));
+    assert_eq!(out["repos"][0]["repo"], "alpha");
+    assert_eq!(out["repos"][0]["default_branch"], "main");
+    assert_eq!(out["repos"].as_array().map(Vec::len), Some(1));
 }

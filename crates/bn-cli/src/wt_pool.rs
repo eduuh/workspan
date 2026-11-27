@@ -32,9 +32,11 @@ pub fn run(cfg: &Config, action: wt::PoolCmd) -> bool {
             branch,
             repo,
             holder,
+            base,
+            cold,
             path,
             no_tmux,
-        } => pool_get(cfg, branch, repo, holder, path, no_tmux),
+        } => get_json::pool_get(cfg, branch, repo, holder, base, cold, path, no_tmux),
         wt::PoolCmd::Return { target, force } => pool_return(cfg, target, force),
         wt::PoolCmd::Status { repo } => pool_status(cfg, repo),
         wt::PoolCmd::Warm {
@@ -487,6 +489,7 @@ fn adopt_occupied_slots_in(
     adopted
 }
 
+pub(crate) mod get_json;
 pub(crate) mod health;
 pub(crate) use health::*;
 
@@ -677,28 +680,6 @@ fn now_epoch() -> i64 {
 }
 
 // --- commands --------------------------------------------------------------
-
-fn pool_get(
-    cfg: &Config,
-    branch: Option<String>,
-    repo: Option<String>,
-    holder: Option<String>,
-    path_only: bool,
-    no_tmux: bool,
-) -> bool {
-    let Some(ctx) = resolve_pool(cfg, repo) else {
-        return false;
-    };
-    let Some(branch) = branch else {
-        ceprintln!("{RED}Usage: wt pool get <branch>{NC}");
-        return false;
-    };
-    let Some(leased) = acquire_slot(&ctx, &branch, None, holder, SlotRole::Worker, false) else {
-        return false;
-    };
-    lease_store::pin(&ctx.pool_dir, &leased.slot);
-    finish_get(&ctx, &leased.slot, &branch, path_only, no_tmux)
-}
 
 /// The result of leasing a slot: its path, plus whether this was a *fresh* lease of `branch` (a
 /// newly taken slot) versus an idempotent hand-back of the slot already leased to it. `workspan dispatch`

@@ -11,7 +11,8 @@
         "workspan_links_search",
         "workspan_links_add",
         "workspan_ref",
-        "workspan_ref_append"
+        "workspan_ref_append",
+        "workspan_repos"
       ],
       "type": "local"
     }
