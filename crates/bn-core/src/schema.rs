@@ -126,6 +126,32 @@ pub const COMMANDS: &[CommandSchema] = &[
         ],
     },
     CommandSchema {
+        tag: "wt-pool-get",
+        invocation: "workspan wt pool get <branch> --repo <repo> [--base <b>] [--cold] --json",
+        summary: "lease a warm pool slot for a branch without prompting; --cold cuts a named worktree",
+        fields: &[
+            "repo: string — the repo, in its clone's spelling",
+            "branch: string — the branch checked out",
+            "base: string|null — the requested base, when one was given",
+            "worktree: string — the directory to work in",
+            "created: boolean — false when the branch already had this worktree",
+            "pooled: boolean — true for a pool slot, false for a named worktree",
+        ],
+    },
+    CommandSchema {
+        tag: "wt-clone",
+        invocation: "workspan wt clone <url> [name] --json",
+        summary: "clone a repo into the bare + worktree layout, or report the existing clone",
+        fields: &[
+            "repo: string — the repo name",
+            "git_dir: string — the bare clone, or the checkout for a flat clone",
+            "default_branch: string|null — the clone's default branch",
+            "worktree: string|null — the default branch's worktree, when it exists",
+            "created: boolean — false when the repo was already cloned",
+            "flat: boolean — true for a regular (non-bare) clone",
+        ],
+    },
+    CommandSchema {
         tag: "wt-list",
         invocation: "workspan wt list --json",
         summary: "git worktrees for the current repo, or every repo when outside one",

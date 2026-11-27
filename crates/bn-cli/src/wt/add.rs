@@ -17,18 +17,68 @@ pub(crate) fn cmd_clone_root(url: &str, root: &Path) -> bool {
     clone_into(url, None, &root.join("bare"), &root.join("worktree"))
 }
 
-fn clone_into(url: &str, name: Option<&str>, bare_dir: &Path, worktree_dir: &Path) -> bool {
-    if url.is_empty() {
-        ceprintln!("{RED}Error: URL required{NC}");
-        return false;
-    }
-    let name = match name {
+/// The repo name a clone lands under: the explicit one, else the URL's basename sans `.git`.
+fn clone_name(url: &str, name: Option<&str>) -> String {
+    match name {
         Some(n) if !n.is_empty() => n.to_string(),
         _ => Path::new(url)
             .file_stem()
             .map(|s| s.to_string_lossy().to_string())
             .unwrap_or_default(),
+    }
+}
+
+/// `workspan --json wt clone` — clone, then say where everything landed. A repo that is already
+/// cloned is reported as it stands (`created: false`) rather than failing, so a caller can ask
+/// for a repo without first checking whether it is there.
+pub(crate) fn clone_json(
+    cfg: &Config,
+    url: &str,
+    name: Option<&str>,
+) -> Result<serde_json::Value, (&'static str, String)> {
+    let (bare_dir, worktree_dir) = layout(cfg);
+    let repo = clone_name(url, name);
+    if repo.is_empty() {
+        return Err(("invalid", "could not derive a repo name from the URL".to_string()));
+    }
+    let flat = is_regular_clone(&repo);
+    let git_dir = if flat {
+        worktree_dir.parent().unwrap_or(&worktree_dir).join(&repo)
+    } else {
+        bare_dir.join(format!("{repo}.git"))
     };
+    let created = !git_dir.exists();
+    if created && !clone_into(url, name, &bare_dir, &worktree_dir) {
+        return Err(("clone_failed", format!("could not clone '{repo}'")));
+    }
+    let git_dir_s = git_dir.to_string_lossy().to_string();
+    let (default_branch, worktree) = if flat {
+        let head = git_out(&["-C", &git_dir_s, "symbolic-ref", "--short", "HEAD"]);
+        (head, Some(git_dir))
+    } else {
+        let default = resolve_default_branch(&git_dir_s);
+        let path = default
+            .as_deref()
+            .map(|d| worktree_dir.join(&repo).join(sanitize_branch(d)))
+            .filter(|p| p.is_dir());
+        (default, path)
+    };
+    Ok(serde_json::json!({
+        "repo": repo,
+        "git_dir": git_dir_s,
+        "default_branch": default_branch,
+        "worktree": worktree,
+        "created": created,
+        "flat": flat,
+    }))
+}
+
+fn clone_into(url: &str, name: Option<&str>, bare_dir: &Path, worktree_dir: &Path) -> bool {
+    if url.is_empty() {
+        ceprintln!("{RED}Error: URL required{NC}");
+        return false;
+    }
+    let name = clone_name(url, name);
 
     if is_regular_clone(&name) {
         let root = worktree_dir.parent().unwrap_or(worktree_dir).to_path_buf();
@@ -180,7 +230,7 @@ fn bare_fetch_refspec(from_env: Option<&str>) -> String {
         .to_string()
 }
 
-fn resolve_default_branch(bare_s: &str) -> Option<String> {
+pub(crate) fn resolve_default_branch(bare_s: &str) -> Option<String> {
     let has = |b: &str| run_git(&["--git-dir", bare_s, "show-ref", "--verify", "--quiet", b]);
     if let Some(def) = git_out(&["--git-dir", bare_s, "symbolic-ref", "--short", "HEAD"]) {
         if !def.is_empty() && has(&format!("refs/heads/{def}")) {
@@ -578,5 +628,33 @@ mod partial_clone_tests {
             bare_fetch_refspec(Some("+refs/heads/main:refs/remotes/origin/main")),
             "+refs/heads/main:refs/remotes/origin/main"
         );
+    }
+
+    #[test]
+    fn clone_json_reports_a_fresh_clone_then_the_existing_one() {
+        let _g = bn_core::test_support::env_lock();
+        let tmp = tempfile::tempdir().unwrap();
+        let _root = bn_core::test_support::EnvGuard::set("WT_ROOT", tmp.path());
+        let _flat = bn_core::test_support::EnvGuard::remove("BN_REGULAR_CLONE_REPOS");
+        let src = tmp.path().join("upstream");
+        let src_s = src.to_string_lossy().to_string();
+        assert!(run_git(&["init", "-q", "--initial-branch=main", &src_s]));
+        assert!(run_git(&[
+            "-C", &src_s, "-c", "user.name=t", "-c", "user.email=t@t", "-c",
+            "commit.gpgsign=false", "commit", "-q", "--allow-empty", "-m", "init",
+        ]));
+        let cfg = bn_core::test_support::config(tmp.path());
+
+        let first = clone_json(&cfg, &src_s, Some("demo")).expect("clone");
+        assert_eq!(first["repo"], "demo");
+        assert_eq!(first["default_branch"], "main");
+        assert_eq!((&first["created"], &first["flat"]), (&true.into(), &false.into()));
+        let main = tmp.path().join("worktree/demo/main");
+        assert_eq!(first["worktree"], serde_json::json!(main.to_string_lossy()));
+        assert!(main.is_dir());
+
+        let again = clone_json(&cfg, &src_s, Some("demo")).expect("already cloned");
+        assert_eq!(again["created"], false);
+        assert_eq!(again["git_dir"], first["git_dir"]);
     }
 }

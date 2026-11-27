@@ -63,25 +63,33 @@ pub fn inventory(cfg: &Config) -> Vec<RepoInfo> {
 }
 
 /// A remote URL with any embedded credential removed, so a token stored in the clone's config
-/// (`https://user:token@host/...`) never reaches an agent or a log. HTTP(S) drops the whole
-/// userinfo; other schemes keep the login name (`ssh://git@host`) and drop only a password. The
-/// scp form `git@host:path` has no password part and passes through.
+/// (`https://user:token@host/...`) never reaches an agent or a log. Only ssh keeps its login name
+/// (`ssh://git@host`); every other scheme loses the whole userinfo. The scp form `git@host:path`
+/// has no password part and passes through.
 fn redact_credentials(url: &str) -> String {
     let Some((scheme, rest)) = url.split_once("://") else {
         return url.to_string();
     };
-    let (authority, path) = match rest.find('/') {
-        Some(i) => rest.split_at(i),
-        None => (rest, ""),
-    };
+    let end = rest.find(['/', '?', '#']).unwrap_or(rest.len());
+    let (authority, path) = rest.split_at(end);
     let Some((userinfo, host)) = authority.rsplit_once('@') else {
-        return url.to_string();
+        // `user:pa/ss@host`: the "authority" stopped inside a password. A real `host:port` has a
+        // numeric port, so anything else followed by a later `@` is withheld rather than guessed.
+        let port_like = authority
+            .split_once(':')
+            .is_none_or(|(_, port)| port.chars().all(|c| c.is_ascii_digit()));
+        return if port_like || !path.contains('@') {
+            url.to_string()
+        } else {
+            format!("{scheme}://<redacted>")
+        };
     };
     let user = userinfo.split(':').next().unwrap_or_default();
-    if scheme.starts_with("http") || user.is_empty() {
-        format!("{scheme}://{host}{path}")
-    } else {
+    let ssh = scheme.eq_ignore_ascii_case("ssh") || scheme.eq_ignore_ascii_case("git+ssh");
+    if ssh && !user.is_empty() {
         format!("{scheme}://{user}@{host}{path}")
+    } else {
+        format!("{scheme}://{host}{path}")
     }
 }
 
@@ -182,6 +190,23 @@ mod tests {
             (
                 "https://github.com/o/r@v1.git",
                 "https://github.com/o/r@v1.git",
+            ),
+            (
+                "HTTPS://me:tok@github.com/o/r.git",
+                "HTTPS://github.com/o/r.git",
+            ),
+            (
+                "ftp://me:tok@host.example/r.git",
+                "ftp://host.example/r.git",
+            ),
+            ("https://me:to/k@github.com/o/r.git", "https://<redacted>"),
+            (
+                "https://host.example:8443/o/r@v1.git",
+                "https://host.example:8443/o/r@v1.git",
+            ),
+            (
+                "https://me:tok@host.example?x=1",
+                "https://host.example?x=1",
             ),
         ] {
             assert_eq!(redact_credentials(url), want, "{url}");
