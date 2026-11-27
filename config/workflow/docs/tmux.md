@@ -61,7 +61,9 @@ queries its active pane's worktree, so different worktrees do not share outcomes
 remains prominent until a new run with the same label supersedes it; all earlier records remain
 in the history. No popup or focus change occurs on completion.
 
-`m` remains a legacy **quietness watch**, not proof that a build passed. Use the explicit
+On tmux 3.8, with a shell that emits OSC 133 `D;<status>`, a window watched with `m` is badged
+when its command returns to the prompt: `✓` for exit 0, a red `✗` otherwise. Anything else falls
+back to the **quietness watch**, which is not proof that a build passed. Use the explicit
 `RUN`/`PASS`/`FAIL` result for wrapped commands. An abruptly killed runner becomes `UNKNOWN`;
 its child may still exist, so inspect before rerunning. Results do not yet detect source edits:
 an old `PASS` does not verify today's changes. Records/logs are local and private; see
