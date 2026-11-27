@@ -396,6 +396,10 @@ pub(crate) enum AgentCmd {
         /// Prefer this exact recorded session before falling back to a fresh launch.
         #[arg(long, hide = true)]
         resume_session: Option<String>,
+        /// Send this as the first message when the launch resumes a session (ignored when fresh),
+        /// so a resumed agent picks its work back up instead of waiting at an idle prompt.
+        #[arg(long, hide = true)]
+        resume_prompt: Option<String>,
         /// Let the agent reach this directory too, on top of the one it is launched in.
         /// Repeatable. An agent is otherwise confined to its launch directory (plus its own
         /// task and execution artifact directories), so a search cannot wander into `~/Documents`.

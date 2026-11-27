@@ -94,7 +94,6 @@ struct WindowLaunch<'a> {
     repo: &'a str,
     branch: &'a str,
     task_name: &'a str,
-    window_scope: &'a str,
     worktree: &'a std::path::Path,
     command: &'a str,
     session_id: &'a str,
@@ -118,14 +117,35 @@ fn off_limits(worktree: &std::path::Path) -> Option<String> {
     })
 }
 
+/// The names of the windows open in the repo's tmux session, if it exists.
+fn open_window_names(repo: &str) -> Vec<String> {
+    crate::proc::tmux(&["list-windows", "-t", &format!("={repo}"), "-F", "#{window_name}"])
+        .unwrap_or_default()
+        .lines()
+        .map(str::to_string)
+        .collect()
+}
+
+/// A resumed agent's window is named after its task alone. A short suffix is added only when a
+/// window by that name is still open, because two windows sharing a name make `repo:name` targets
+/// ambiguous.
+fn resume_window_name(window: String, open: &[String]) -> String {
+    if !open.contains(&window) {
+        return window;
+    }
+    format!(
+        "{window} · resume-{:x}",
+        bn_core::util::now_epoch_secs() & 0xffff
+    )
+}
+
 fn launch_session_window(launch: &WindowLaunch<'_>, json: bool) -> Result<(), String> {
     if let Some(refusal) = off_limits(launch.worktree) {
         return Err(refusal);
     }
-    let window = bn_core::agent::task_window_name(launch.task_name, launch.window_scope);
-    let window = format!(
-        "{window} · resume-{:x}",
-        bn_core::util::now_epoch_secs() & 0xffff
+    let window = resume_window_name(
+        bn_core::agent::task_window_label(launch.task_name),
+        &open_window_names(launch.repo),
     );
     let branch = launch.branch.replace('/', "-");
     let lease_target = format!("{}:{window}", launch.repo);
@@ -191,7 +211,6 @@ pub(crate) fn launch_resume_window(
             repo,
             branch,
             task_name,
-            window_scope: branch,
             worktree,
             command,
             session_id,
@@ -225,7 +244,6 @@ fn launch_recorded_session(row: &bn_core::agent::SessionRecord, json: bool, comm
         repo: &row.repo,
         branch: &row.branch,
         task_name: &row.task_name,
-        window_scope: row.controller_id.as_deref().unwrap_or(&row.branch),
         worktree: &worktree,
         command: &command,
         session_id: &row.session_id,
@@ -287,8 +305,9 @@ fn agent_launch_command(harness: &str, session_id: &str, resuming: bool) -> Stri
     );
     if resuming {
         command.push_str(&format!(
-            " --resume-session {}",
-            wt::shell_single_quote(session_id)
+            " --resume-session {} --resume-prompt {}",
+            wt::shell_single_quote(session_id),
+            wt::shell_single_quote(bn_core::agent::RESUME_PROMPT)
         ));
     } else {
         command.push_str(" --fresh");
@@ -327,7 +346,6 @@ fn launch_fresh_session(cfg: &Config, worktree: &std::path::Path, json: bool, co
         repo: &ctx.repo,
         branch: &ctx.branch,
         task_name: &task_name,
-        window_scope: &ctx.branch,
         worktree,
         command: &command,
         session_id: &session_id,
@@ -473,7 +491,16 @@ pub(crate) fn worktree_resume(
 
 #[cfg(test)]
 mod tests {
-    use super::agent_launch_command;
+    use super::{agent_launch_command, resume_window_name};
+
+    #[test]
+    fn resumed_window_keeps_original_name_unless_taken() {
+        let name = "Fix login".to_string();
+        assert_eq!(resume_window_name(name.clone(), &[]), name);
+        assert_eq!(resume_window_name(name.clone(), &["Other".into()]), name);
+        let taken = resume_window_name(name.clone(), std::slice::from_ref(&name));
+        assert!(taken.starts_with("Fix login · resume-"));
+    }
 
     /// `--resume-session` is what actually restores the transcript, and `--fresh` is what stops the
     /// harness quietly continuing *some other* session in the same checkout. A recycled pool slot
@@ -482,7 +509,9 @@ mod tests {
     #[test]
     fn only_a_backed_session_is_asked_to_resume() {
         let resumed = agent_launch_command("claude", "abc-123", true);
-        assert!(resumed.ends_with("agent launch 'claude' --session 'abc-123' --resume-session 'abc-123'"));
+        assert!(resumed.ends_with(
+            "agent launch 'claude' --session 'abc-123' --resume-session 'abc-123' --resume-prompt 'continue'"
+        ));
 
         let fresh = agent_launch_command("copilot", "abc-123", false);
         assert!(fresh.ends_with("agent launch 'copilot' --session 'abc-123' --fresh"));

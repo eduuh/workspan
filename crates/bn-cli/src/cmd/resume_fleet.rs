@@ -507,8 +507,9 @@ fn launch_command(row: &RestoreRow) -> String {
     );
     if row.resuming {
         command.push_str(&format!(
-            " --resume-session {}",
-            wt::shell_single_quote(&row.session_id)
+            " --resume-session {} --resume-prompt {}",
+            wt::shell_single_quote(&row.session_id),
+            wt::shell_single_quote(bn_core::agent::RESUME_PROMPT)
         ));
     }
     command
