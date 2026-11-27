@@ -263,7 +263,8 @@ fn read_panes() -> Vec<Pane> {
 
 /// The last non-empty lines of a window's active pane — the live "is it mid-turn?" glance.
 fn capture_tail(target: &str, n: usize) -> Vec<String> {
-    let t = crate::proc::exact_target(target);
+    // Under a floating diff editor the active pane is nvim, which never shows a spinner.
+    let t = crate::proc::under_float(&crate::proc::exact_target(target));
     let Some(out) = tmux_raw(&["capture-pane", "-p", "-t", &t]) else {
         return Vec::new();
     };

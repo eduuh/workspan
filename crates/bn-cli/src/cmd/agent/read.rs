@@ -34,7 +34,7 @@ pub(crate) fn emit_agent_pane(
         return;
     }
 
-    let exact = resolve_tmux_target(cfg, target);
+    let exact = crate::proc::under_float(&resolve_tmux_target(cfg, target));
     // `-e` includes SGR (colour/attribute) escapes for a real-terminal render; without it the tail
     // is plain text. `-e` covers only text attributes, not cursor motion, so the frame stays
     // line-oriented (safe to re-render in a resized xterm).

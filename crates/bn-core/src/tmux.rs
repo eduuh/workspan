@@ -182,6 +182,48 @@ pub fn tmux_version() -> Option<(u32, u32)> {
     })
 }
 
+/// One row per pane, for [`first_tiled`]: its id and whether it floats (tmux 3.7+; empty before,
+/// which reads as "not floating").
+pub const FLOAT_FORMAT: &str = "#{pane_id}\t#{pane_floating_flag}";
+
+/// Of a window's panes ([`FLOAT_FORMAT`] rows), the first that is part of the layout — and whether
+/// any pane floats above it. Pure.
+pub fn first_tiled(rows: &str) -> (Option<String>, bool) {
+    let mut tiled = None;
+    let mut floats = false;
+    for row in rows.lines() {
+        let (id, flag) = row.split_once('\t').unwrap_or((row, ""));
+        if flag.trim() == "1" {
+            floats = true;
+        } else if tiled.is_none() && !id.trim().is_empty() {
+            tiled = Some(id.trim().to_string());
+        }
+    }
+    (tiled, floats)
+}
+
+/// `target`, redirected past a floating pane.
+///
+/// A window target resolves to the window's *active* pane, and a floating pane (tmux 3.7; the
+/// modal diff editor is one) is active while it is open. Anything that reads or types into "the
+/// window" would then be reading nvim's screen or typing into it. With a float open this returns
+/// the first tiled pane's id instead; with none, or for a target that already names a pane, it
+/// returns `target` unchanged, so nothing moves for a window without a float.
+pub fn under_float(target: &str) -> String {
+    if target.starts_with('%') {
+        return target.to_string();
+    }
+    match tmux_raw(&["list-panes", "-t", target, "-F", FLOAT_FORMAT]).map(|r| first_tiled(&r)) {
+        Some((Some(pane), true)) => pane,
+        _ => target.to_string(),
+    }
+}
+
+/// The id of a window's first tiled pane: its first pane, skipping any that float.
+pub fn first_tiled_pane(target: &str) -> Option<String> {
+    tmux_raw(&["list-panes", "-t", target, "-F", FLOAT_FORMAT]).and_then(|r| first_tiled(&r).0)
+}
+
 /// The `remain-on-exit` value for a window that clears itself on success and keeps a failure on
 /// screen. tmux 3.8 adds `failed-key`: the same, except the dead pane closes on the next keypress
 /// instead of sitting there until someone kills the window. Its exit status, the `pane-died` hook
@@ -730,6 +772,17 @@ mod error_and_version_tests {
         assert_eq!(keep_failed_pane(Some((3, 10))), "failed-key");
         assert_eq!(keep_failed_pane(Some((3, 7))), "failed");
         assert_eq!(keep_failed_pane(None), "failed");
+        // No float: the caller keeps its window target, so nothing changes for ordinary windows.
+        assert_eq!(first_tiled("%1\t0\n%2\t0\n"), (Some("%1".into()), false));
+        assert_eq!(
+            first_tiled("%1\t\n"),
+            (Some("%1".into()), false),
+            "tmux before 3.7"
+        );
+        // A float listed first or last never becomes the answer.
+        assert_eq!(first_tiled("%9\t1\n%1\t0\n"), (Some("%1".into()), true));
+        assert_eq!(first_tiled("%1\t0\n%9\t1\n"), (Some("%1".into()), true));
+        assert_eq!(first_tiled("%9\t1\n"), (None, true));
         assert_eq!(parse_tmux_version(""), None);
     }
 

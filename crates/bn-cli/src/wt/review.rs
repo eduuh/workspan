@@ -406,7 +406,9 @@ pub(crate) fn launch_agent_in_window(
         Some(f) => harness_cmd_from_file(&harness, &f, opts.yolo, opts.session_id),
         None => harness_cmd(&harness, prompt, opts.yolo, opts.session_id),
     };
-    let target = crate::proc::exact_target(&format!("{repo}:{win_branch}"));
+    // Past a floating pane, so the launch command is not pasted into an open diff editor.
+    let target =
+        crate::proc::under_float(&crate::proc::exact_target(&format!("{repo}:{win_branch}")));
     let buf = format!("bn-agent-{repo}-{win_branch}");
     let tmux = |args: &[&str]| tmux_run(args);
     let pasted = tmux(&["set-buffer", "-b", &buf, &cmd])

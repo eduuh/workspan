@@ -331,7 +331,8 @@ pub fn publish_actionable_wakes(
 /// for the fleet board. Targets the window exactly (its active pane); callers that already resolved
 /// a window name to an exact target pass it through untouched rather than picking up a second `=`.
 fn capture_tail(target: &str, n: usize) -> Vec<String> {
-    let t = crate::cmd::agent::tmux_exact_target(target);
+    // The agent's pane, not a floating diff editor over it: state is inferred from this text.
+    let t = crate::proc::under_float(&crate::cmd::agent::tmux_exact_target(target));
     let out = match bounded_tmux(
         &["capture-pane", "-p", "-t", &t],
         Duration::from_millis(500),

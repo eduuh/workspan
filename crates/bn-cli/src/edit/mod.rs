@@ -473,11 +473,7 @@ fn existing_or_new_window(sess: &EditSession) -> Result<String, String> {
 /// The id of a window's first pane. Splits and joins anchor on this rather than a `<window>.0`
 /// composite, which tmux only accepts after a window name or index — never after a `@id`.
 fn first_pane_of(window: &str) -> Option<String> {
-    tmux(&["list-panes", "-t", window, "-F", "#{pane_id}"])?
-        .lines()
-        .next()
-        .map(|s| s.trim().to_string())
-        .filter(|s| !s.is_empty())
+    crate::proc::first_tiled_pane(window)
 }
 
 /// `tmux_ok`, never `tmux_run`: the latter inherits stdio, so `display-message -p` would print the
