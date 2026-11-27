@@ -105,7 +105,7 @@ pub(crate) fn emit_tmux_git(path: Option<String>, refresh: bool) {
     }
     match std::fs::read_to_string(&cache) {
         Ok(seg) => {
-            print!("{seg}");
+            print!("{}", themed(&seg, light_theme()));
             if age_secs(&cache).is_none_or(|age| age >= GIT_SEG_TTL_SECS) {
                 spawn_git_seg_refresh(&dir);
             }
@@ -113,9 +113,35 @@ pub(crate) fn emit_tmux_git(path: Option<String>, refresh: bool) {
         Err(_) => {
             let seg = compute_git_seg(&dir);
             write_git_seg_cache(&cache, &seg);
-            print!("{seg}");
+            print!("{}", themed(&seg, light_theme()));
         }
     }
+}
+
+/// Whether tmux asked for the light palette. tmux.conf passes its `@bn_theme` option to status
+/// commands as `BN_TMUX_THEME`; anything but `light` (unset, an older config) is the dark default.
+fn light_theme() -> bool {
+    std::env::var("BN_TMUX_THEME").is_ok_and(|t| t == "light")
+}
+
+/// Repaint a rendered segment for the light theme. Segments are rendered and cached in the dark
+/// palette, which the tests and `tat`'s ANSI mapping know; the light one is a straight swap of
+/// each colour for its counterpart in `config/workflow/themes/tokyo-night-day.conf`.
+pub(crate) fn themed(seg: &str, light: bool) -> String {
+    const SWAP: [(&str, &str); 8] = [
+        ("#3b4261", "#a8aecb"),
+        ("#565f89", "#8990b3"),
+        ("#7aa2f7", "#2e7de9"),
+        ("#7dcfff", "#007197"),
+        ("#9ece6a", "#587539"),
+        ("#e0af68", "#8c6c3e"),
+        ("#f7768e", "#f52a65"),
+        ("#c0caf5", "#3760bf"),
+    ];
+    if !light {
+        return seg.to_string();
+    }
+    SWAP.iter().fold(seg.to_string(), |s, (dark, day)| s.replace(dark, day))
 }
 
 /// Run `git status` for `dir` and render the segment; empty outside a git repo.
@@ -905,6 +931,23 @@ mod branch_link_tests {
         assert_eq!(branch_url("git@github.com:o/r.git", "(detached)"), None);
         assert_eq!(branch_url("git@github.com:o/r.git", "a,b"), None);
         assert_eq!(branch_url("git@github.com:o/r.git", ""), None);
+    }
+
+    #[test]
+    fn the_light_theme_swaps_every_colour_and_dark_is_untouched() {
+        let seg = GitSeg {
+            branch: "main".into(),
+            ahead: 1,
+            behind: 1,
+            dirty: 1,
+        };
+        let dark = render_git_seg(&seg).unwrap();
+        assert_eq!(themed(&dark, false), dark);
+        let day = themed(&dark, true);
+        assert!(day.contains("#[fg=#2e7de9]") && day.contains("#[fg=#f52a65]"));
+        for hex in ["#3b4261", "#7aa2f7", "#e0af68", "#7dcfff", "#f7768e"] {
+            assert!(!day.contains(hex), "{hex} survived in {day}");
+        }
     }
 
     #[test]

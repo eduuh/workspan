@@ -203,6 +203,10 @@ def tmux_summary(records, badge=False):
             "#7dcfff" if running else "#9ece6a"
         )
     )
+    if os.environ.get("BN_TMUX_THEME") == "light":
+        # tmux.conf passes its theme; these are the Tokyo Night Day counterparts.
+        color = {"#f7768e": "#f52a65", "#e0af68": "#8c6c3e",
+                 "#7dcfff": "#007197", "#9ece6a": "#587539"}[color]
     return f"#[fg={color}] {text.replace('#', '##')} #[default]"
 
 
