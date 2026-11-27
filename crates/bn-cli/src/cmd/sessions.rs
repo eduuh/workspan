@@ -94,7 +94,6 @@ struct WindowLaunch<'a> {
     repo: &'a str,
     branch: &'a str,
     task_name: &'a str,
-    window_scope: &'a str,
     worktree: &'a std::path::Path,
     command: &'a str,
     session_id: &'a str,
@@ -127,7 +126,7 @@ fn open_window_names(repo: &str) -> Vec<String> {
         .collect()
 }
 
-/// A resumed agent keeps its session's original window name. A short suffix is added only when a
+/// A resumed agent's window is named after its task alone. A short suffix is added only when a
 /// window by that name is still open, because two windows sharing a name make `repo:name` targets
 /// ambiguous.
 fn resume_window_name(window: String, open: &[String]) -> String {
@@ -144,8 +143,10 @@ fn launch_session_window(launch: &WindowLaunch<'_>, json: bool) -> Result<(), St
     if let Some(refusal) = off_limits(launch.worktree) {
         return Err(refusal);
     }
-    let window = bn_core::agent::task_window_name(launch.task_name, launch.window_scope);
-    let window = resume_window_name(window, &open_window_names(launch.repo));
+    let window = resume_window_name(
+        bn_core::agent::task_window_label(launch.task_name),
+        &open_window_names(launch.repo),
+    );
     let branch = launch.branch.replace('/', "-");
     let lease_target = format!("{}:{window}", launch.repo);
     let reservation = agent_lease::reserve(agent_lease::AgentLeaseRequest {
@@ -210,7 +211,6 @@ pub(crate) fn launch_resume_window(
             repo,
             branch,
             task_name,
-            window_scope: branch,
             worktree,
             command,
             session_id,
@@ -244,7 +244,6 @@ fn launch_recorded_session(row: &bn_core::agent::SessionRecord, json: bool, comm
         repo: &row.repo,
         branch: &row.branch,
         task_name: &row.task_name,
-        window_scope: row.controller_id.as_deref().unwrap_or(&row.branch),
         worktree: &worktree,
         command: &command,
         session_id: &row.session_id,
@@ -346,7 +345,6 @@ fn launch_fresh_session(cfg: &Config, worktree: &std::path::Path, json: bool, co
         repo: &ctx.repo,
         branch: &ctx.branch,
         task_name: &task_name,
-        window_scope: &ctx.branch,
         worktree,
         command: &command,
         session_id: &session_id,
@@ -496,11 +494,11 @@ mod tests {
 
     #[test]
     fn resumed_window_keeps_original_name_unless_taken() {
-        let name = "Fix login · 0a1b2c".to_string();
+        let name = "Fix login".to_string();
         assert_eq!(resume_window_name(name.clone(), &[]), name);
         assert_eq!(resume_window_name(name.clone(), &["Other".into()]), name);
         let taken = resume_window_name(name.clone(), std::slice::from_ref(&name));
-        assert!(taken.starts_with("Fix login · 0a1b2c · resume-"));
+        assert!(taken.starts_with("Fix login · resume-"));
     }
 
     /// `--resume-session` is what actually restores the transcript, and `--fresh` is what stops the

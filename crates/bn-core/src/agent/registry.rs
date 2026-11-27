@@ -212,6 +212,16 @@ pub fn task_window_name(task_name: &str, key: &str) -> String {
         hash ^= u64::from(*byte);
         hash = hash.wrapping_mul(0x100000001b3);
     }
+    format!(
+        "{} · {:06x}",
+        task_window_label(task_name),
+        hash & 0xff_ffff
+    )
+}
+
+/// The task name as a tmux window label: separators tmux would misread flattened to spaces,
+/// whitespace collapsed, at most 60 characters.
+pub fn task_window_label(task_name: &str) -> String {
     let clean = task_name
         .replace([':', '\t', '\n'], " ")
         .split_whitespace()
@@ -222,11 +232,7 @@ pub fn task_window_name(task_name: &str, key: &str) -> String {
     } else {
         clean.as_str()
     };
-    format!(
-        "{} · {:06x}",
-        clean.chars().take(60).collect::<String>(),
-        hash & 0xff_ffff
-    )
+    clean.chars().take(60).collect()
 }
 
 fn fallback_task_name(branch: &str) -> String {
