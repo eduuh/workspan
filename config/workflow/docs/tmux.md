@@ -97,6 +97,8 @@ The left pill shows the session name and **flips to reverse-video `PREFIX`** the
 |-----|--------|
 | `C-o` | Project picker (fzf over `~/projects`). Creates or switches session. A bare repo's sub-picker includes windows, local worktrees, pool slots, and your open PRs missing from this laptop; selecting a `PR` row fetches and opens its branch. |
 | `C-j` | Session tree (`choose-tree`). tmux's own picker, no fzf and no `workspan` — the fallback that still switches sessions when PATH is bare or `workspan` is mid-reinstall. `f` filters, `O` re-sorts, `x` kills the highlighted row, `Right` expands a session into its windows. |
+| `S-Tab` | tmux's own fast session switcher (stock in 3.8): type to filter, Enter switches. |
+| `*` | New floating pane over this window (stock in 3.8). It is a real pane; move and resize it with the mouse. |
 | `t` | Kill current session, switch to next. |
 | `.` | Rename current session. |
 | `C-d` | Detach this client (leave tmux). `d` is the diff picker. |
