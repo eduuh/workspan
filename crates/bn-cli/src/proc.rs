@@ -11,6 +11,6 @@
 //! the session half and lets a write fnmatch into a neighbouring window.
 
 pub use bn_core::tmux::{
-    exact_target, tmux, tmux_command, tmux_ok, tmux_raw, tmux_run, tmux_run_try, tmux_status,
-    warn_unreachable,
+    exact_target, keep_failed_pane, tmux, tmux_command, tmux_ok, tmux_raw, tmux_run, tmux_run_try,
+    tmux_status, tmux_version, warn_unreachable,
 };

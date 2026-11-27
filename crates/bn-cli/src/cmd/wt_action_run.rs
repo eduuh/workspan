@@ -150,10 +150,11 @@ pub(crate) fn open_window(cfg: &Config, session: &str, window: &str, command: &s
     // `exec` so the command *is* the pane's process: its exit status becomes the pane's, which is
     // what `remain-on-exit failed` reads to decide whether to keep the pane.
     let command = format!("PATH={}; exec {}", shq(&crate::cmd::cron::job_path()), command);
+    let keep = crate::proc::keep_failed_pane(crate::proc::tmux_version());
     let argvs = match existing_window(session, window) {
         WindowSlot::Live => return WindowOpen::Live,
-        WindowSlot::Vacant => window_argv(session, window, &home, &command),
-        WindowSlot::Dead(id) => respawn_argv(&id, &home, &command),
+        WindowSlot::Vacant => window_argv(session, window, &home, &command, keep),
+        WindowSlot::Dead(id) => respawn_argv(&id, &home, &command, keep),
     };
     for argv in argvs {
         if !crate::proc::tmux_run(&argv) {
@@ -226,7 +227,13 @@ fn window_slot(panes: &str, window: &str) -> WindowSlot {
 ///
 /// `remain-on-exit failed` is what makes the window self-clearing: a successful run's window closes
 /// with it, and only a failure leaves a dead pane holding its final output.
-fn window_argv(session: &str, window: &str, home: &str, command: &str) -> Vec<Vec<String>> {
+fn window_argv(
+    session: &str,
+    window: &str,
+    home: &str,
+    command: &str,
+    keep: &str,
+) -> Vec<Vec<String>> {
     let argv = |parts: &[&str]| parts.iter().map(|s| s.to_string()).collect::<Vec<String>>();
     vec![
         argv(&[
@@ -245,7 +252,7 @@ fn window_argv(session: &str, window: &str, home: &str, command: &str) -> Vec<Ve
             "-t",
             &crate::proc::exact_target(&format!("{session}:{window}")),
             "remain-on-exit",
-            "failed",
+            keep,
         ]),
     ]
 }
@@ -254,11 +261,11 @@ fn window_argv(session: &str, window: &str, home: &str, command: &str) -> Vec<Ve
 ///
 /// `respawn-window` restarts the window's dead pane with the new command, so the window, and with
 /// it the session, never closes. `-k` is not needed: every pane in it has already exited.
-fn respawn_argv(id: &str, home: &str, command: &str) -> Vec<Vec<String>> {
+fn respawn_argv(id: &str, home: &str, command: &str, keep: &str) -> Vec<Vec<String>> {
     let argv = |parts: &[&str]| parts.iter().map(|s| s.to_string()).collect::<Vec<String>>();
     vec![
         argv(&["respawn-window", "-t", id, "-c", home, command]),
-        argv(&["set-window-option", "-t", id, "remain-on-exit", "failed"]),
+        argv(&["set-window-option", "-t", id, "remain-on-exit", keep]),
     ]
 }
 
@@ -273,7 +280,13 @@ mod tests {
 
     #[test]
     fn the_window_is_detached_rooted_and_self_clearing() {
-        let cmds = window_argv("bn", "pool-warm", "/home/me/projects/worktree/bn/main", "true");
+        let cmds = window_argv(
+            "bn",
+            "pool-warm",
+            "/home/me/projects/worktree/bn/main",
+            "true",
+            "failed",
+        );
         let new_window = &cmds[0];
         assert_eq!(new_window[0], "new-window");
         // Never steal focus: these land in sessions a human is attached to.
@@ -310,7 +323,8 @@ mod tests {
 
     #[test]
     fn a_failed_runs_window_is_respawned_in_place_never_killed() {
-        let cmds = respawn_argv("@9", "/home/me/projects/worktree/bn/main", "true");
+        let cmds = respawn_argv("@9", "/home/me/projects/worktree/bn/main", "true", "failed-key");
+        assert_eq!(cmds[1][3..], ["remain-on-exit", "failed-key"]);
         assert_eq!(cmds[0][..3], ["respawn-window", "-t", "@9"]);
         assert!(cmds.iter().all(|argv| argv[0] != "kill-window"));
     }
