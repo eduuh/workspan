@@ -19,6 +19,7 @@ mod item;
 pub(crate) mod policy;
 mod slot_reuse;
 mod launch_wrap;
+pub(crate) use launch_wrap::agent_launcher_bin;
 use launch_wrap::{
     one_shot_wrapped_command, systemd_run_available, worker_completion_wrapped_command,
     worker_memory_wrapped_command,
@@ -356,16 +357,6 @@ pub(crate) fn command_quoting_is_balanced(s: &str) -> bool {
         }
     }
     st == St::Bare && !escaped
-}
-
-/// The `workspan agent launch` invocation prefix — the native replacement for the old `workflow/bin/agent`
-/// zsh launcher (#683+). Points at the *installed* workspan (`$HOME/.config/bn/workspan`, the same stable path
-/// tmux.conf uses for `workspan jump` / `workspan tmux-cockpit`), because the tmux server's PATH lacks the
-/// bindir, so callers embed an absolute command. Callers append ` {kind} …flags` to this.
-pub(crate) fn agent_launcher_bin() -> String {
-    std::env::var("HOME")
-        .map(|h| format!("{h}/.config/bn/workspan agent launch"))
-        .unwrap_or_else(|_| "bn agent launch".to_string())
 }
 
 /// The shared gh config dir a pinned worktree copy is seeded from: `$GH_CONFIG_DIR` if set (so an

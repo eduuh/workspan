@@ -356,6 +356,11 @@ mod bare_for_tests {
     #[test]
     fn a_lowercased_repo_still_finds_its_bare_clone() {
         let tmp = tempfile::tempdir().unwrap();
+        // `layout` reads `$WT_ROOT` ahead of the config, and other tests set it for their own
+        // roots. Hold the same lock, or this test looks in whichever root is live when it runs
+        // (it failed on CI that way and passed locally).
+        let _g = bn_core::test_support::env_lock();
+        let _wt_root = bn_core::test_support::EnvGuard::set("WT_ROOT", tmp.path());
         std::fs::create_dir_all(tmp.path().join("bare/BigMono.git")).unwrap();
         let cfg = cfg_at(tmp.path());
         let want = tmp.path().join("bare/BigMono.git");

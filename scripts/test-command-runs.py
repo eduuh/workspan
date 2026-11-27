@@ -273,7 +273,7 @@ class TmuxTests(RunTestCase):
                                 "set -g status-format[0] "))
             or (line.startswith("bind ") and "build/test runs:" in line)
         ]
-        self.assertEqual(len(lines), 6)
+        self.assertEqual(len(lines), 8)
         self.tmux("source-file", "-", input="\n".join(lines))
         self.master, self.slave = pty.openpty()
         self.addCleanup(os.close, self.master)

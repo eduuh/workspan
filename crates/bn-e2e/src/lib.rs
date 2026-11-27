@@ -114,7 +114,7 @@ impl Sandbox {
         let bn_bin = locate_bn()?;
         let anchor_dir = root.join("home/.config/bn");
         std::fs::create_dir_all(&anchor_dir).context("create the installed-bn anchor dir")?;
-        symlink_binary(&bn_bin, &anchor_dir.join("bn"))?;
+        symlink_binary(&bn_bin, &anchor_dir.join("workspan"))?;
 
         // The shipped-content anchor, install.sh's `ln -sfn "$repo" "$cfgdir/repo"` (line 648).
         // `skills::shared_skills_dir` resolves the shipped skills through
