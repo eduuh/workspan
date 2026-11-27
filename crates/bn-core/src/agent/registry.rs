@@ -204,6 +204,10 @@ pub fn derive_task_name(explicit: Option<&str>, source: &str) -> String {
     name
 }
 
+/// The first message a resumed agent receives, so it picks its work back up rather than sitting
+/// at an idle prompt.
+pub const RESUME_PROMPT: &str = "continue";
+
 /// Stable, readable tmux window name. The short key suffix prevents two same-named tasks in one
 /// repo from reusing each other's windows while keeping the task name as the primary label.
 pub fn task_window_name(task_name: &str, key: &str) -> String {

@@ -305,8 +305,9 @@ fn agent_launch_command(harness: &str, session_id: &str, resuming: bool) -> Stri
     );
     if resuming {
         command.push_str(&format!(
-            " --resume-session {}",
-            wt::shell_single_quote(session_id)
+            " --resume-session {} --resume-prompt {}",
+            wt::shell_single_quote(session_id),
+            wt::shell_single_quote(bn_core::agent::RESUME_PROMPT)
         ));
     } else {
         command.push_str(" --fresh");
@@ -508,7 +509,9 @@ mod tests {
     #[test]
     fn only_a_backed_session_is_asked_to_resume() {
         let resumed = agent_launch_command("claude", "abc-123", true);
-        assert!(resumed.ends_with("agent launch 'claude' --session 'abc-123' --resume-session 'abc-123'"));
+        assert!(resumed.ends_with(
+            "agent launch 'claude' --session 'abc-123' --resume-session 'abc-123' --resume-prompt 'continue'"
+        ));
 
         let fresh = agent_launch_command("copilot", "abc-123", false);
         assert!(fresh.ends_with("agent launch 'copilot' --session 'abc-123' --fresh"));

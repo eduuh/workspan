@@ -741,6 +741,8 @@ pub(crate) struct LaunchPlan {
     pub(crate) fresh: bool,
     pub(crate) session: Option<String>,
     pub(crate) resume_session: Option<String>,
+    /// First message for a resumed session (`--resume-prompt`); unused on a fresh launch.
+    pub(crate) resume_prompt: Option<String>,
     /// Directories to widen the harness's allowed working set with, beyond the launch cwd.
     pub(crate) add_dirs: Vec<String>,
     /// Run the seed with `-p` so the harness exits when the run ends (`--one-shot`).
@@ -1257,6 +1259,7 @@ pub(crate) fn emit_agent_launch(
     fresh: bool,
     session: Option<String>,
     resume_session: Option<String>,
+    resume_prompt: Option<String>,
     add_dirs: Vec<String>,
     one_shot: bool,
     passthrough: Vec<String>,
@@ -1288,7 +1291,7 @@ pub(crate) fn emit_agent_launch(
         // then attached from here, and survives the connection (remote.rs).
         let sid = session.clone().unwrap_or_else(gen_uuid);
         let plan = LaunchPlan {
-            seed, yolo_force: yolo, fresh, session, resume_session,
+            seed, yolo_force: yolo, fresh, session, resume_session, resume_prompt,
             add_dirs, one_shot, passthrough,
         };
         let launch = remote::launch_args(harness, &plan, &sid);
@@ -1316,6 +1319,7 @@ pub(crate) fn emit_agent_launch(
             .filter(|s| !s.trim().is_empty())
             .or_else(|| (!user_owns_session).then(gen_uuid)),
         resume_session,
+        resume_prompt,
         one_shot,
         passthrough,
     };

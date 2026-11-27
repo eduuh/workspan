@@ -70,12 +70,14 @@ pub(crate) fn build_claude_args(plan: &LaunchPlan, has_transcripts: bool) -> Vec
     if !plan.fresh {
         if let Some(id) = &plan.resume_session {
             args.extend(["--resume".to_string(), id.clone()]);
+            args.extend(plan.resume_prompt.iter().cloned()); // positional: the resumed first turn
             args.extend(plan.passthrough.iter().cloned());
             return args;
         }
     }
     if !plan.fresh && has_transcripts {
         args.push("--continue".to_string()); // resume: session already holds context
+        args.extend(plan.resume_prompt.iter().cloned());
         args.extend(plan.passthrough.iter().cloned());
         return args;
     }
@@ -115,6 +117,9 @@ pub(crate) fn build_copilot_args(plan: &LaunchPlan, resume_id: Option<&str>) -> 
     if !plan.fresh {
         if let Some(rid) = resume_id {
             args.push(format!("--resume={rid}"));
+            if let Some(prompt) = &plan.resume_prompt {
+                args.extend(["-i".to_string(), prompt.clone()]);
+            }
             args.extend(plan.passthrough.iter().cloned());
             return args;
         }
@@ -147,6 +152,7 @@ mod tests {
             fresh: true,
             session: None,
             resume_session: None,
+            resume_prompt: None,
             add_dirs: Vec::new(),
             one_shot: false,
             passthrough: Vec::new(),
@@ -180,6 +186,23 @@ mod tests {
     fn a_seeded_launch_without_yolo_asks_for_nothing_extra() {
         let args = build_claude_args(&plan(Some("body"), false), false);
         assert!(!args.iter().any(|a| a == "--permission-mode"), "{args:?}");
+    }
+
+    /// A resumed agent gets its resume prompt as the first turn; a fresh one never does.
+    #[test]
+    fn resume_prompt_rides_only_on_a_resume() {
+        let mut p = plan(None, false);
+        p.fresh = false;
+        p.resume_session = Some("abc".into());
+        p.resume_prompt = Some("continue".into());
+        let claude = build_claude_args(&p, false);
+        assert!(claude.windows(3).any(|w| w == ["--resume", "abc", "continue"]), "{claude:?}");
+        let copilot = build_copilot_args(&p, Some("abc"));
+        assert!(copilot.windows(2).any(|w| w == ["-i", "continue"]), "{copilot:?}");
+
+        p.fresh = true;
+        assert!(!build_claude_args(&p, false).contains(&"continue".to_string()));
+        assert!(!build_copilot_args(&p, None).contains(&"continue".to_string()));
     }
 
     /// The allowed working set belongs to the session, not to how its prompts are answered — so a

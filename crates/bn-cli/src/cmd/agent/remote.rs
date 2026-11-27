@@ -25,7 +25,7 @@ pub(super) fn launch_args(
     if plan.fresh {
         launch.push("--fresh".to_string());
     }
-    for (flag, value) in [("--session", &plan.session), ("--resume-session", &plan.resume_session)] {
+    for (flag, value) in [("--session", &plan.session), ("--resume-session", &plan.resume_session), ("--resume-prompt", &plan.resume_prompt)] {
         if let Some(value) = value {
             launch.extend([flag.to_string(), value.clone()]);
         }
@@ -245,6 +245,7 @@ mod tests {
             fresh: true,
             session: None,
             resume_session: None,
+            resume_prompt: None,
             add_dirs: vec![],
             one_shot: false,
             passthrough: vec!["--model".into(), "sonnet".into()],
