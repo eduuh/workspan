@@ -35,7 +35,8 @@ for c in "tmux" "tmux new -d" "tmux new-session -d -c /tmp" "tmux -L x new-sessi
 done
 
 for c in "tmux new-session -d -s workspan" "tmux new -A -s main" "tmux new -ds repo" \
-  "tmux new-session -d -c \"/x y\" -s repo" "tmux -L x new-session -d -s t" "tmux ls" \
+  "tmux new-session -d -c \"/x y\" -s repo" "tmux -L x new-session -d -s t" "tmux ls" "tmux -V" \
+  "echo \"\$(tmux -V)\"" \
   "tmux new-window -d -t workspan: -n build" "which tmux" "grep tmux file" \
   "ls ~/.bin/tmux/" "tmux has-session -t x || tmux new-session -d -s x" \
   "echo \"tmux new -d\"" "jq -n --arg c \"tmux new -d\" '{}'" "git commit -m 'fix: tmux new -d; tmux'" \
