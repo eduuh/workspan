@@ -58,7 +58,8 @@ pub(crate) enum CmdShellUi {
     /// when all quiet so the bar stays clean.
     TmuxAttnCount,
     /// Mark a finished window: from the global alert-silence hook when a watched window goes
-    /// quiet, or from the pane-died / pane-exited hooks when its pane exits. Sets @bn_done (✓, or
+    /// quiet, from the pane-died / pane-exited hooks when its pane exits, or from tmux 3.8's
+    /// pane-command-finished when a command in a watched window returns to the prompt. Sets @bn_done (✓, or
     /// ✗ for a non-zero exit), clears monitor-silence, and fires a best-effort desktop toast.
     TmuxDoneBadge {
         /// The tmux window id (`#{hook_window}`) to badge.
@@ -71,6 +72,10 @@ pub(crate) enum CmdShellUi {
         /// a watched window is badged.
         #[arg(long, conflicts_with = "status")]
         exited: bool,
+        /// Called from `pane-command-finished` (tmux 3.8, OSC 133): the pane is still alive and
+        /// `--status` is the command's exit status. Only a watched window is badged.
+        #[arg(long, conflicts_with = "exited")]
+        command: bool,
     },
     /// Orchestration roll-up popup (bound to prefix S; replaces workflow/bin/tmux-cockpit.sh):
     /// in-flight windows across every session (agent state / silence-watch), fleet health

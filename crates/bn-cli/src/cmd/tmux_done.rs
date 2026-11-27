@@ -13,6 +13,11 @@
 //! | `on`  | `pane-died`   | available |
 //! | `off` | `pane-exited` | empty (the pane is already gone) |
 //!
+//! tmux 3.8 adds a third source that needs no exit at all: a shell that emits OSC 133 `D;<status>`
+//! fires `pane-command-finished` each time a command returns to the prompt, with the command's own
+//! exit status. That is the real answer to "did the thing I was watching finish, and did it work"
+//! for a pane that stays alive — the case the silence watch could only guess at.
+//!
 //! The decisions ([`done_mark`], [`should_badge`]) are pure, so they are testable without a tmux
 //! server; [`emit`] is the thin tmux I/O around them.
 
@@ -69,15 +74,19 @@ pub(crate) enum Trigger {
     Died,
     /// `pane-exited`: the pane exited and is already gone, so its status is not.
     Exited,
+    /// `pane-command-finished` (tmux 3.8, OSC 133): a command returned to the shell prompt. The
+    /// pane lives on and the command's status is known.
+    Command,
 }
 
 impl Trigger {
     /// Which hook this invocation came from, read off the flags the hook passed.
-    pub(crate) fn from_flags(status: Option<&str>, exited: bool) -> Trigger {
-        match (status, exited) {
-            (Some(_), _) => Trigger::Died,
-            (None, true) => Trigger::Exited,
-            (None, false) => Trigger::Silence,
+    pub(crate) fn from_flags(status: Option<&str>, exited: bool, command: bool) -> Trigger {
+        match (status, exited, command) {
+            (_, _, true) => Trigger::Command,
+            (Some(_), _, _) => Trigger::Died,
+            (None, true, _) => Trigger::Exited,
+            (None, false, _) => Trigger::Silence,
         }
     }
 }
@@ -88,24 +97,27 @@ impl Trigger {
 /// runs work in (agent windows, failed picker jobs), so a window that is still there always gets
 /// its outcome. `pane-exited` fires for every pane that closes, including a shell someone typed
 /// `exit` into, so it badges only a window that is still there and is being watched. The silence
-/// watch badges as it always has.
+/// watch badges as it always has. `pane-command-finished` fires after every command in every shell,
+/// so like `pane-exited` it badges only a window someone asked to watch.
 pub(crate) fn should_badge(trigger: Trigger, window_exists: bool, monitor_silence: &str) -> bool {
     match trigger {
         Trigger::Silence => true,
         Trigger::Died => window_exists,
-        Trigger::Exited => window_exists && !matches!(monitor_silence.trim(), "" | "0"),
+        Trigger::Exited | Trigger::Command => {
+            window_exists && !matches!(monitor_silence.trim(), "" | "0")
+        }
     }
 }
 
-/// `workspan tmux-done-badge <window> [--status=<s> | --exited]`: mark a finished window.
+/// `workspan tmux-done-badge <window> [--status=<s>] [--exited | --command]`: mark a finished window.
 ///
 /// Every step is best-effort, because this runs inside a tmux hook, and a hook that fails is worse
 /// than a badge that is missing.
-pub(crate) fn emit(win: &str, status: Option<&str>, exited: bool) {
+pub(crate) fn emit(win: &str, status: Option<&str>, exited: bool, command: bool) {
     if win.is_empty() {
         return;
     }
-    let trigger = Trigger::from_flags(status, exited);
+    let trigger = Trigger::from_flags(status, exited, command);
     // One read for whether the window is still there, its name, and whether it is watched. A
     // window that is gone answers nothing, which is how `pane-exited` on a last pane stays quiet.
     let facts = crate::proc::tmux_raw(&[
@@ -184,10 +196,20 @@ mod tests {
 
     #[test]
     fn each_hook_is_recognised_from_its_flags() {
-        assert_eq!(Trigger::from_flags(None, false), Trigger::Silence);
-        assert_eq!(Trigger::from_flags(Some("1"), false), Trigger::Died);
-        assert_eq!(Trigger::from_flags(Some(""), false), Trigger::Died);
-        assert_eq!(Trigger::from_flags(None, true), Trigger::Exited);
+        assert_eq!(Trigger::from_flags(None, false, false), Trigger::Silence);
+        assert_eq!(Trigger::from_flags(Some("1"), false, false), Trigger::Died);
+        assert_eq!(Trigger::from_flags(Some(""), false, false), Trigger::Died);
+        assert_eq!(Trigger::from_flags(None, true, false), Trigger::Exited);
+        // `pane-command-finished` passes a status too; the flag is what tells it from `pane-died`.
+        assert_eq!(Trigger::from_flags(Some("1"), false, true), Trigger::Command);
+        assert_eq!(Trigger::from_flags(None, false, true), Trigger::Command);
+    }
+
+    #[test]
+    fn a_finished_command_badges_only_a_watched_window() {
+        assert!(should_badge(Trigger::Command, true, "12"));
+        assert!(!should_badge(Trigger::Command, true, "0"), "every `ls` would badge its tab");
+        assert!(!should_badge(Trigger::Command, false, "12"));
     }
 
     #[test]
