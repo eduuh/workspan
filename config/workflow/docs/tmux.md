@@ -301,6 +301,14 @@ Checks: `python3 scripts/check-tmux-plugins.py`,
 `python3 scripts/check-tmux-logging.py`, and
 `python3 scripts/check-install-tmux-fingers.py`.
 
+## Theme
+
+The bar's colours come from `config/workflow/themes/`: `tokyo-night.conf` (dark, the default) and
+`tokyo-night-day.conf` (light). When the terminal reports a light or dark background tmux fires
+`client-light-theme` / `client-dark-theme` and the matching file is sourced, so the tabs, borders
+and the script-drawn segments (git, runs, tunnels) switch together. A terminal that reports
+nothing stays dark. To switch by hand: `tmux source-file ~/.config/bn/repo/config/workflow/themes/tokyo-night-day.conf`.
+
 ## Copy Mode (vi)
 
 Enter with **`C-Space Space`**.
