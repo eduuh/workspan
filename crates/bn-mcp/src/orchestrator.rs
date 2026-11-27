@@ -63,6 +63,95 @@ struct SpinUpArgs {
 
 #[derive(Deserialize, JsonSchema)]
 #[serde(deny_unknown_fields)]
+struct CreateWorktreeArgs {
+    /// Target repo by name, as `workspan_repos` / `workspan repos list` spells it.
+    repo: String,
+    /// Branch to check out. An existing local or remote branch is used as-is; otherwise a new
+    /// branch is cut from `base`.
+    branch: String,
+    /// Base branch a NEW branch forks from (default: the repo's default branch).
+    #[serde(default)]
+    base: Option<String>,
+    /// Cut a named worktree at `<repo>/<branch>` instead of leasing a warm pool slot. Slower (no
+    /// cached deps) and never reclaimed automatically; use only when the pool is unavailable.
+    #[serde(default)]
+    cold: bool,
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
+struct CloneRepoArgs {
+    /// Git URL: `https://…`, `ssh://…` or `git@host:owner/repo.git`. No other form is accepted.
+    url: String,
+    /// Repo name to clone as (default: the URL's basename without `.git`).
+    #[serde(default)]
+    name: Option<String>,
+}
+
+/// A value that becomes one path component or ref on a git command line: non-empty, not a flag,
+/// and free of the characters that would let it mean something else.
+fn plain_name(what: &str, value: &str) -> Result<(), ErrorData> {
+    let bad = value.is_empty()
+        || value.starts_with('-')
+        || value.contains("..")
+        || value
+            .chars()
+            .any(|c| c.is_whitespace() || c.is_control() || c == '\\');
+    if bad {
+        return Err(ErrorData::invalid_params(
+            format!("{what} '{value}' is not a plain name"),
+            None,
+        ));
+    }
+    Ok(())
+}
+
+/// Only network transports a person would paste: `https://`, `ssh://`, or scp-style
+/// `user@host:path`. Everything else is refused before git sees it — `ext::` runs an arbitrary
+/// command, `file://` and bare paths read the local disk, and a leading `-` is an option.
+fn check_clone_url(url: &str) -> Result<(), ErrorData> {
+    let refuse = |why: &str| {
+        Err(ErrorData::invalid_params(
+            format!("clone_repo: {why}; pass an https://, ssh:// or git@host:owner/repo.git URL"),
+            None,
+        ))
+    };
+    if url.is_empty() || url.chars().any(|c| c.is_whitespace() || c.is_control()) {
+        return refuse("the URL is empty or contains whitespace");
+    }
+    if url.starts_with('-') {
+        return refuse("the URL looks like an option");
+    }
+    let lower = url.to_ascii_lowercase();
+    if lower.starts_with("https://") || lower.starts_with("ssh://") {
+        return Ok(());
+    }
+    let scp = url.split_once(':').is_some_and(|(login, path)| {
+        let host_ok = |h: &str| {
+            !h.is_empty()
+                && h.chars()
+                    .all(|c| c.is_ascii_alphanumeric() || "-._".contains(c))
+        };
+        !path.is_empty()
+            && !path.starts_with(':')
+            && !path.starts_with('/')
+            && login.split_once('@').is_some_and(|(user, host)| {
+                !user.is_empty()
+                    && user
+                        .chars()
+                        .all(|c| c.is_ascii_alphanumeric() || "-._".contains(c))
+                    && host_ok(host)
+            })
+    });
+    if scp {
+        Ok(())
+    } else {
+        refuse("that transport is not allowed")
+    }
+}
+
+#[derive(Deserialize, JsonSchema)]
+#[serde(deny_unknown_fields)]
 struct SendArgs {
     /// The agent's tmux window, as `repo:branch` (the `target` from `list_agents`).
     target: String,
@@ -199,6 +288,61 @@ impl BnOrchestratorServer {
     }
 
     #[tool(
+        name = "create_worktree",
+        description = "Get a working directory for a branch in any cloned repo, with no agent, task or tmux window: leases a warm pool slot (deps already cached), checks the branch out there (cutting it from `base` if it is new), and returns `worktree` — the path to work in. Idempotent: asking again for the same branch returns the same directory with `created: false`, and a branch already checked out elsewhere returns that directory. The default branch returns the repo's main worktree. If the pool is full the call fails with what to do; pass `cold: true` only then. When finished, hand a pooled slot back with `workspan wt pool return <worktree>`. Find repo names with workspan_repos or `workspan repos list`."
+    )]
+    async fn create_worktree(
+        &self,
+        Parameters(a): Parameters<CreateWorktreeArgs>,
+    ) -> Result<CallToolResult, ErrorData> {
+        plain_name("repo", &a.repo)?;
+        plain_name("branch", &a.branch)?;
+        let mut args: Vec<String> = vec![
+            "wt".into(),
+            "pool".into(),
+            "get".into(),
+            format!("--repo={}", a.repo),
+        ];
+        if let Some(b) = a.base.as_deref().filter(|s| !s.is_empty()) {
+            plain_name("base", b)?;
+            args.push(format!("--base={b}"));
+        }
+        if a.cold {
+            args.push("--cold".into());
+        }
+        args.push("--".into());
+        args.push(a.branch.clone());
+        let argv: Vec<&str> = args.iter().map(String::as_str).collect();
+        let env = self.run_bn_env(&argv, &[("BN_WORKER_REPO", &a.repo)])?;
+        Ok(CallToolResult::structured(
+            env.get("data").cloned().unwrap_or(env),
+        ))
+    }
+
+    #[tool(
+        name = "clone_repo",
+        description = "Clone a git repo onto this machine in workspan's bare + worktree layout, so it can pool worktrees. Returns the repo name, its git dir and the default branch's worktree. Idempotent: a repo that is already cloned is reported with `created: false`. Accepts only https://, ssh:// and git@host:owner/repo.git URLs. Large repos take minutes. Follow with create_worktree to get a branch to work in."
+    )]
+    async fn clone_repo(
+        &self,
+        Parameters(a): Parameters<CloneRepoArgs>,
+    ) -> Result<CallToolResult, ErrorData> {
+        check_clone_url(&a.url)?;
+        let mut args = vec!["wt", "clone", "--", a.url.as_str()];
+        if let Some(name) = a.name.as_deref().filter(|s| !s.is_empty()) {
+            plain_name("name", name)?;
+            if name.contains('/') {
+                return Err(ErrorData::invalid_params("name must not contain '/'", None));
+            }
+            args.push(name);
+        }
+        let env = self.run_bn(&args)?;
+        Ok(CallToolResult::structured(
+            env.get("data").cloned().unwrap_or(env),
+        ))
+    }
+
+    #[tool(
         name = "spin_up_work",
         description = "Spin up isolated work on any repo from anywhere: create a worktree off the base branch, seed its branch note with the goal, open a window in the repo's tmux session, and launch an agent (copilot default; claude also). Each call is fully isolated — its own worktree, tmux window, and note. Re-calling the same branch is idempotent (won't clobber a live note)."
     )]
@@ -313,6 +457,8 @@ impl ServerHandler for BnOrchestratorServer {
                  ranked next-action queue; list_attention for the attention list (each item tagged \
                  auto vs confirm — spin up the auto ones unattended, ask about the confirm ones); \
                  spin_up_work to create an isolated worktree+tmux window+seeded agent on any repo; \
+                 create_worktree for just a working directory on a branch (no agent, no task), and \
+                 clone_repo to bring a new repo onto the machine; \
                  list_agents for the live fleet (both harnesses) and send_to_agent to steer one. \
                  Every spun-up agent is fully isolated and keeps its own workspan note."
                     .to_string(),
@@ -323,6 +469,57 @@ impl ServerHandler for BnOrchestratorServer {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn clone_urls_are_limited_to_network_transports() {
+        for ok in [
+            "https://github.com/o/r.git",
+            "HTTPS://dev.azure.com/org/p/_git/r",
+            "ssh://git@github.com/o/r.git",
+            "git@github.com:o/r.git",
+        ] {
+            assert!(check_clone_url(ok).is_ok(), "{ok}");
+        }
+        for bad in [
+            "",
+            "--upload-pack=touch /tmp/x",
+            "-u",
+            "ext::sh -c 'id'",
+            "ext::sh",
+            "file:///etc",
+            "/tmp/local/repo",
+            "../repo",
+            "http://plain.example/r.git",
+            "git://host.example/r.git",
+            "fd::3",
+            "git@host:/abs/path",
+            "-oProxyCommand=x@host:r",
+            "https://ok.example/r.git --upload-pack=x",
+        ] {
+            assert!(check_clone_url(bad).is_err(), "{bad}");
+        }
+    }
+
+    #[test]
+    fn names_that_could_be_flags_or_paths_are_refused() {
+        for ok in ["workspan", "BigMono", "feat/x", "dispatch/a-b_c.1"] {
+            assert!(plain_name("branch", ok).is_ok(), "{ok}");
+        }
+        for bad in ["", "-b", "--cold", "a b", "../up", "a\\b", "x\ny"] {
+            assert!(plain_name("branch", bad).is_err(), "{bad:?}");
+        }
+    }
+
+    #[test]
+    fn worktree_and_clone_args_reject_unknown_fields() {
+        let args = json!({"repo": "r", "branch": "b"});
+        let parsed = serde_json::from_value::<CreateWorktreeArgs>(args).unwrap();
+        assert!(!parsed.cold && parsed.base.is_none());
+        let args = json!({"repo": "r", "branch": "b", "agent": "claude"});
+        assert!(serde_json::from_value::<CreateWorktreeArgs>(args).is_err());
+        let args = json!({"url": "https://x/r.git", "depth": 1});
+        assert!(serde_json::from_value::<CloneRepoArgs>(args).is_err());
+    }
 
     #[test]
     fn spin_up_work_rejects_the_removed_scout_option() {
