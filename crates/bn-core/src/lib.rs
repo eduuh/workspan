@@ -98,6 +98,7 @@ pub mod remote;
 pub mod render;
 pub mod repo_resolve;
 pub mod reports;
+pub mod repos;
 pub mod resolver;
 pub mod review_gate;
 pub mod reviews;

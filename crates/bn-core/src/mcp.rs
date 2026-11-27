@@ -26,6 +26,7 @@ const MCP_SESSION_TOOLS: &[&str] = &[
     "workspan_links_add",
     "workspan_ref",
     "workspan_ref_append",
+    "workspan_repos",
 ];
 
 /// The agent-facing instructions dropped into the harness's memory file. Mirrors the MCP
@@ -50,6 +51,7 @@ The per-worktree stdio launcher (`workspan mcp serve`) exposes only:
 - `workspan_cmd` — list or run commands in the current workspace.
 - `workspan_links_search` / `workspan_links_add` — curated durable links.
 - `workspan_ref` / `workspan_ref_append` — reusable repository references and standards.
+- `workspan_repos` — the repos cloned on this machine (read-only).
 
 Use the Workspan CLI for tasks, execution, attention, scheduling, and fleet operations.
 MCP workflow prompts remain available from the effective skills.

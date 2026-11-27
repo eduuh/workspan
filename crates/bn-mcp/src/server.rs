@@ -1,6 +1,7 @@
 //! The MCP server: commands, references and durable links, plus workflow prompts from every skill
 //! tier. Deliberately narrower than the CLI: cross-branch, whole-person, and explicit repo/branch
 //! targeting stay in `workspan` so an MCP-connected agent cannot discover or act on unrelated sessions.
+//! `workspan_repos` is the one cross-repo view: it reads which repos are cloned, and acts on none.
 //!
 //! The *tool* surface is what enforces that narrowness. Prompts are inert text — serving one only
 //! puts a workflow's instructions in front of the agent, and every action it then takes still goes
@@ -156,6 +157,17 @@ impl BnServer {
                 None,
             )
         })
+    }
+
+    #[tool(
+        name = "workspan_repos",
+        description = "List every repo cloned on this machine (the bare clones workspan manages): name, git dir, default branch, origin URL, and the default-branch worktree when one exists. Read-only; use it to find a repo's exact name or path before working across repos. Creating a worktree or cloning is not done here: use the workspan CLI (`workspan wt pool get <branch> --repo <repo> --json`, `workspan wt clone <url> --json`) or the orchestrator server's create_worktree and clone_repo."
+    )]
+    async fn workspan_repos(&self) -> Result<CallToolResult, ErrorData> {
+        Ok(CallToolResult::structured(json!({
+            "dir": bn_core::repos::bare_dir(&self.cfg),
+            "repos": bn_core::repos::inventory(&self.cfg),
+        })))
     }
 
     #[tool(
@@ -421,7 +433,8 @@ impl ServerHandler for BnServer {
              for plan artifacts, and workspan pipeline for execution state. Entire owns session history. \
              Read workspan_ref without a name for the reference index; append only durable repo facts. \
              Search workspan_links_search before adding an important, repeatedly useful link with workspan_links_add. \
-             workspan_cmd lists and runs configured commands."
+             workspan_cmd lists and runs configured commands. \
+             workspan_repos lists the repos cloned on this machine."
                 .to_string(),
         )
     }

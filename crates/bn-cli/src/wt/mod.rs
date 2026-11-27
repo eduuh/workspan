@@ -279,6 +279,12 @@ pub enum PoolCmd {
         /// Label recorded as the lease holder (defaults to $USER).
         #[arg(long)]
         holder: Option<String>,
+        /// Base branch a NEW branch is cut from (default: the repo's base).
+        #[arg(long, value_name = "BASE")]
+        base: Option<String>,
+        /// With --json: cut a named worktree at `<repo>/<branch>` instead of leasing a slot.
+        #[arg(long)]
+        cold: bool,
         /// Print only the slot path and skip tmux (for agents / `--lease`-style use).
         #[arg(long)]
         path: bool,
@@ -387,12 +393,60 @@ pub enum PoolCmd {
 pub fn run(cfg: &Config, action: WtCmd, json: bool) {
     // `run_code` is also the native cron entry point, which has no `--json` to honour; the one
     // read-only verb that has a machine form is split out here rather than threaded through it.
-    if json {
-        if let WtCmd::List = action {
-            std::process::exit(i32::from(!cmd_list_json(cfg)));
+    // The machine forms below never prompt: they answer with one JSON envelope or a named error.
+    let action = match (json, action) {
+        (true, WtCmd::List) => std::process::exit(i32::from(!cmd_list_json(cfg))),
+        (true, WtCmd::Clone { url, name }) => {
+            json_exit("wt-clone", clone_json(cfg, &url, name.as_deref()))
+        }
+        (
+            true,
+            WtCmd::Pool {
+                action:
+                    PoolCmd::Get {
+                        branch,
+                        repo,
+                        holder,
+                        base,
+                        cold,
+                        ..
+                    },
+            },
+        ) => {
+            let result = match (repo, branch) {
+                (Some(repo), Some(branch)) => crate::wt_pool::get_json::get_worktree(
+                    cfg,
+                    &repo,
+                    &branch,
+                    base.as_deref(),
+                    holder,
+                    cold,
+                ),
+                _ => Err((
+                    "invalid",
+                    "wt pool get --json needs both <branch> and --repo".to_string(),
+                )),
+            };
+            json_exit("wt-pool-get", result)
+        }
+        (_, action) => action,
+    };
+    std::process::exit(run_code(cfg, action));
+}
+
+/// Print a machine result as its envelope and exit. A failure also goes to stderr, where a caller
+/// that only relays stderr (the orchestrator MCP) will find it.
+fn json_exit(tag: &str, result: Result<serde_json::Value, (&'static str, String)>) -> ! {
+    match result {
+        Ok(data) => {
+            crate::json_ok(tag, data);
+            std::process::exit(0)
+        }
+        Err((code, msg)) => {
+            eprintln!("{msg}");
+            crate::fail_json(true, tag, code, &msg)
         }
     }
-    std::process::exit(run_code(cfg, action));
 }
 
 /// Run a `wt` action and return its exit code (0 ok, 1 failure) without exiting — so callers like
