@@ -271,6 +271,7 @@ run inside copy mode after making a selection.
 | `Y` | Toggle output recording for this pane. The start/stop message gives the file path. |
 | `C-y` | Save the visible pane text. |
 | `H` | Save all retained scrollback for this pane (up to `history-limit`, currently 100,000 lines). |
+| `M-H` | The same, with the time each line arrived as epoch seconds at the start of the line (tmux 3.8). |
 
 Extraction and hint copies use tmux's OSC52 clipboard path, including remote
 sessions; normal mouse and copy-mode copies still use the existing `bn-clip`
@@ -317,6 +318,10 @@ Copilot and editors. Clicks and scrolling keep their existing behavior.
 | `[` `]` | Jump to the previous / next **shell prompt** — i.e. to the start of a command's output. Needs OSC 133 marks from the shell (see the dotfiles `.zshrc`); without them these do nothing. |
 | `C-u` `C-d` | Half-page up / down. |
 | `q` or `Esc` | Exit copy mode. Scrolling back down to the live screen also exits on its own. |
+| `r` / `R` | Refresh the view once / toggle following new output while you read (tmux 3.8). |
+
+Copy mode shows hybrid line numbers on tmux 3.7+: the cursor's line is absolute, the others count
+away from it. On 3.8 the cursor's line is also shaded.
 
 Outside copy mode: `p` pastes the **system clipboard** (through `bn-clip`), `P` chooses a tmux buffer, `Space` enters copy mode.
 
