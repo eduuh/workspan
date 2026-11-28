@@ -579,7 +579,8 @@ pub(crate) fn pane_tail_for(repo: &str, branch: &str, lines: usize) -> Option<St
         (bn_core::attention::window_key_parts(c.get(1)?, name) == want)
             .then(|| c.first().map(|s| s.to_string()))?
     })?;
-    // `-t <window_id>` captures the window's active pane.
+    // `-t <window_id>` captures the window's active pane, unless a floating pane covers it.
+    let wid = crate::proc::under_float(&wid);
     let text = crate::proc::tmux_raw(&["capture-pane", "-p", "-J", "-t", &wid])?;
     let all: Vec<&str> = text.lines().collect();
     let trimmed_len = all
@@ -727,7 +728,8 @@ pub(crate) fn job_agent_supervise(cfg: &Config, _ctx: Option<&Resolved>) -> i32 
 /// Exact-name target ([`tmux_exact_target`]) so a renumbered/prefix-matched window can't receive
 /// another agent's nudge.
 pub(crate) fn tmux_send_keys(target: &str, msg: &str) -> bool {
-    let target = tmux_exact_target(target);
+    // Past a floating pane (the diff editor): the nudge is for the agent, not for nvim.
+    let target = crate::proc::under_float(&tmux_exact_target(target));
     let send = |key: &str| crate::proc::tmux_ok(&["send-keys", "-t", &target, key]);
     send(msg) && send("Enter")
 }

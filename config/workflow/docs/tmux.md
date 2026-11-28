@@ -309,6 +309,14 @@ The bar's colours come from `config/workflow/themes/`: `tokyo-night.conf` (dark,
 and the script-drawn segments (git, runs, tunnels) switch together. A terminal that reports
 nothing stays dark. To switch by hand: `tmux source-file ~/.config/bn/repo/config/workflow/themes/tokyo-night-day.conf`.
 
+## Floating diff editor (opt-in)
+
+`set -g @bn_diff_float on` (tmux 3.8+) makes `prefix e` open the diff in a modal floating pane
+instead of a popup. Unlike a popup it belongs to the window: switch to another window and come
+back, and the diff is where you left it. While it is open workspan still addresses the agent's own
+pane for messages, nudges and state reads. Known gaps: the Codespace diff (`C-g`) is still a popup,
+and remote (SSH) agent messaging does not skip floats on the remote machine.
+
 ## Copy Mode (vi)
 
 Enter with **`C-Space Space`**.

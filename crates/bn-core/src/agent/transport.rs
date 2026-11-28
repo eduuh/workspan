@@ -181,6 +181,27 @@ pub fn pick_agent_pane(rows: &str) -> Option<String> {
         .map(|(id, _, _)| id.to_string())
 }
 
+/// The pane to pin a window's transport to, from its `list-panes` rows (id, command, active,
+/// floating), or `None` to keep the window target.
+///
+/// A floating pane is never the agent: it is the diff editor, an ssh picker, a scratch shell, and
+/// while it is open it is the active pane, so the window target would deliver straight into it.
+/// Floats are dropped first. What is left is pinned as before when there are several panes; when
+/// a float was hiding a single pane, that pane is pinned outright.
+pub fn pin_pane(rows: &str) -> Option<String> {
+    let id = |row: &str| row.split('\t').next().unwrap_or("").to_string();
+    let tiled: Vec<&str> = rows
+        .lines()
+        .filter(|l| l.split('\t').nth(3) != Some("1"))
+        .collect();
+    let had_float = tiled.len() < rows.lines().count();
+    match tiled.as_slice() {
+        [] => None,
+        [only] => had_float.then(|| id(only)),
+        many => pick_agent_pane(&many.join("\n")).or_else(|| had_float.then(|| id(many[0]))),
+    }
+}
+
 impl TmuxTransport {
     /// A window target resolves to tmux's *active* pane, and in a dispatched window that is often
     /// the editor split beside the agent: a message typed there landed in nvim and the agent never
@@ -194,12 +215,11 @@ impl TmuxTransport {
                     "-t",
                     &exact,
                     "-F",
-                    "#{pane_id}\t#{pane_current_command}\t#{pane_active}",
+                    "#{pane_id}\t#{pane_current_command}\t#{pane_active}\t#{pane_floating_flag}",
                 ])
             })
             .flatten()
-            .filter(|rows| rows.lines().count() > 1)
-            .and_then(|rows| pick_agent_pane(&rows));
+            .and_then(|rows| pin_pane(&rows));
         TmuxTransport {
             target: pane.unwrap_or(exact),
         }
@@ -415,7 +435,7 @@ mod liveness_tests {
 
 #[cfg(test)]
 mod pick_agent_pane_tests {
-    use super::pick_agent_pane;
+    use super::{pick_agent_pane, pin_pane};
 
     #[test]
     fn the_agent_wins_over_an_active_editor_split() {
@@ -440,5 +460,48 @@ mod pick_agent_pane_tests {
     #[test]
     fn nothing_but_editors_and_shells_keeps_the_window() {
         assert_eq!(pick_agent_pane("%1\tzsh\t1\n%2\tnvim\t0\n"), None);
+    }
+
+    #[test]
+    fn a_floating_pane_is_never_the_agent_whatever_it_runs() {
+        // One agent pane under a modal diff editor: the window target would be nvim.
+        assert_eq!(
+            pin_pane("%1\tclaude\t0\t0\n%9\tnvim\t1\t1\n").as_deref(),
+            Some("%1")
+        );
+        // The Codespace diff floats `ssh`, which is not on the editor/shell list and used to win.
+        assert_eq!(
+            pin_pane("%1\tclaude\t0\t0\n%9\tssh\t1\t1\n").as_deref(),
+            Some("%1")
+        );
+        // An agent that dropped to its shell still gets the message, not the float.
+        assert_eq!(
+            pin_pane("%1\tzsh\t0\t0\n%9\tnvim\t1\t1\n").as_deref(),
+            Some("%1")
+        );
+        // Editor split + agent + float: the agent among the tiled panes.
+        assert_eq!(
+            pin_pane("%1\tnvim\t0\t0\n%2\tnode\t0\t0\n%9\tnvim\t1\t1\n").as_deref(),
+            Some("%2")
+        );
+    }
+
+    #[test]
+    fn without_a_float_pinning_is_what_it_was() {
+        assert_eq!(
+            pin_pane("%1\tclaude\t1\t0\n"),
+            None,
+            "one pane keeps the window target"
+        );
+        assert_eq!(
+            pin_pane("%1\tclaude\t1\t\n"),
+            None,
+            "tmux before floating panes"
+        );
+        assert_eq!(
+            pin_pane("%12\tnode\t0\t0\n%13\tnvim\t1\t0\n").as_deref(),
+            Some("%12")
+        );
+        assert_eq!(pin_pane("%1\tzsh\t1\t0\n%2\tnvim\t0\t0\n"), None);
     }
 }

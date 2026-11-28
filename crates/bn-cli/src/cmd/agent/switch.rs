@@ -231,9 +231,7 @@ pub(crate) fn run_in_place_swap(
     // launcher chose, which is exactly how the in-place swap came to miss every pooled agent.
     let window_pane = resolve_agent_channel(cfg, &ctx.repo, &ctx.branch)
         .tmux_target
-        .and_then(|t| proc::tmux(&["list-panes", "-t", &tmux_exact_target(&t), "-F", "#{pane_id}"]))
-        .and_then(|out| out.lines().next().map(|l| l.trim().to_string()))
-        .filter(|p| !p.is_empty());
+        .and_then(|t| proc::first_tiled_pane(&tmux_exact_target(&t)));
     // $TMUX_PANE is only a valid target when workspan is running *inside* this worktree — from an
     // orchestrator window it would respawn the orchestrator's own pane.
     let cwd_in_wt = std::env::current_dir()
